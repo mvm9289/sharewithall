@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd ..
+cd /home/sharewithall/SWAServer
 cp bin/ShareWithAll/Server/RMI/* sources/ShareWithAll/Server/RMI/
 cd sources
 rmic ShareWithAll.Server.RMI.SWAServerRMIImplementation
