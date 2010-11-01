@@ -4,8 +4,6 @@
 package ShareWithAll.Client;
 
 import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
-
 import ShareWithAll.Server.RMI.SWAServerRMIInterface;
 
 /**
@@ -20,8 +18,7 @@ public class SWAClient
     {
         try
         {
-        	if (System.getSecurityManager() == null) System.setSecurityManager(new RMISecurityManager());
-            SWAServerRMIInterface SWASI = (SWAServerRMIInterface)Naming.lookup("rmi://192.168.1.122/SWAService");
+        	SWAServerRMIInterface SWASI = (SWAServerRMIInterface)Naming.lookup("rmi://192.168.1.122:4040/SWAService");
             System.out.println(SWASI.getOnlineClients(0));
             System.out.println(SWASI.newUser("mvm9289", "mvm9289"));
             SWASI.logout(0);
