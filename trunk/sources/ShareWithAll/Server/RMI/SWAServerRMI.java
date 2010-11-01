@@ -3,7 +3,8 @@
  */
 package ShareWithAll.Server.RMI;
 
-import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 /**
  * Author: mvm9289
@@ -19,7 +20,9 @@ public class SWAServerRMI
         try
         {
             SWAServerRMIInterface SWASI = new SWAServerRMIImplementation();
-            Naming.rebind("rmi://localhost:4040/SWAService", SWASI);
+        	Registry registry = LocateRegistry.getRegistry(4040);
+        	registry.rebind("SWAService", SWASI);
+            //Naming.rebind("rmi://localhost:4040/SWAService", SWASI);
         }
         catch (Exception e)
         {

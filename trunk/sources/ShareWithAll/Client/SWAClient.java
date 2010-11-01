@@ -3,7 +3,8 @@
  */
 package ShareWithAll.Client;
 
-import java.rmi.Naming;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 import ShareWithAll.Server.RMI.SWAServerRMIInterface;
 
@@ -19,9 +20,11 @@ public class SWAClient
     {
         try
         {
-            SWAServerRMIInterface SWASI = (SWAServerRMIInterface)Naming.lookup("rmi://localhost:4040/SWAService");
+        	Registry registry = LocateRegistry.getRegistry("192.168.1.122", 4040);
+        	SWAServerRMIInterface SWASI = (SWAServerRMIInterface)registry.lookup("SWAService");
+            //SWAServerRMIInterface SWASI = (SWAServerRMIInterface)Naming.lookup("rmi://192.168.1.122:4040/SWAService");
             System.out.println(SWASI.getOnlineClients(0));
-            System.out.println(SWASI.newUser("asdf", "asdf"));
+            System.out.println(SWASI.newUser("mvm9289", "mvm9289"));
             SWASI.logout(0);
         }
         catch (Exception e)
