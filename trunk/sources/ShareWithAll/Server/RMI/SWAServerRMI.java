@@ -19,7 +19,7 @@ public class SWAServerRMI
         try
         {
         	SWAServerRMIInterface SWASI = new SWAServerRMIImplementation();
-            Naming.bind("SWAService", SWASI);
+            Naming.bind("rmi://localhost:4040/SWAService", SWASI);
         }
         catch (Exception e)
         {
