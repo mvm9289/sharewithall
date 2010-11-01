@@ -26,7 +26,7 @@ public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
     @Override
     protected String get_name()
     {
-        return "Users";
+        return "users";
     }
 
     @Override
