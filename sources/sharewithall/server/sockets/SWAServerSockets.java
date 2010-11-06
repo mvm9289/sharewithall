@@ -3,11 +3,11 @@
  */
 package sharewithall.server.sockets;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 import sharewithall.server.SWAServer;
 
 /**
@@ -54,9 +54,9 @@ public class SWAServerSockets
     {   
         try
         {
-            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            String[] petition = in.readLine().split(";");
+            DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+            String[] petition = in.readUTF().split(";");
             
             int instruction = Integer.valueOf(petition[0]).intValue();
             
@@ -65,29 +65,29 @@ public class SWAServerSockets
                 switch (instruction)
                 {
                     case NEW_USER:
-                        out.print(String.valueOf(RETURN_VALUE) + ";" +
+                        out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
                                 String.valueOf(server.newUser(petition[1], petition[2])));
                         break;
                     case LOGIN:
-                        out.print(String.valueOf(RETURN_VALUE) + ";" +
+                        out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
                                 String.valueOf(server.login(petition[1], petition[2], petition[3],
                                         Boolean.valueOf(petition[4]).booleanValue())));
                         break;
                     case LOGOUT:
                         server.logout(Integer.valueOf(petition[1]).intValue());
-                        out.print(String.valueOf(RETURN_VALUE));
+                        out.writeUTF(String.valueOf(RETURN_VALUE));
                         break;
                     case GET_ONLINE_CLIENTS:
-                        out.print(String.valueOf(RETURN_VALUE) + ";" +
+                        out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
                                 server.getOnlineClients(Integer.valueOf(petition[1])));
                         break;
                     case IP_AND_PORT_REQUEST:
-                        out.print(String.valueOf(RETURN_VALUE) + ";" +
+                        out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
                                 server.ipAndPortRequest(Integer.valueOf(petition[1]).intValue(),
                                         petition[2]));
                         break;
                     case SEND_INVITATION:
-                        out.print(String.valueOf(RETURN_VALUE) + ";" +
+                        out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
                                 String.valueOf(server.sendInvitation(Integer.valueOf(petition[1]).intValue(),
                                         petition[2])));
                         break;
@@ -97,7 +97,7 @@ public class SWAServerSockets
             }
             catch (Exception e)
             {
-                out.print(String.valueOf(EXCEPTION) + ";" + e.getMessage());
+                out.writeUTF(String.valueOf(EXCEPTION) + ";" + e.getMessage());
             }
         }
         catch (Exception e)
