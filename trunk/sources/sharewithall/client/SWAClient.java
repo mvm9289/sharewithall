@@ -16,7 +16,7 @@ import sharewithall.client.sockets.SWAClientSockets;
 public class SWAClient
 {
     
-    private static final String serverIP = "mvm9289.dyndns.org";
+    private static final String serverIP = "192.168.1.122";
     private static final int serverPort = 4040;
 
     public static void main(String[] args)
@@ -25,9 +25,7 @@ public class SWAClient
         
         try
         {
-        	System.out.println(socketsModule.getOnlineClients(0));
-            System.out.println(socketsModule.newUser("mvm9289", "mvm9289"));
-            socketsModule.logout(0);
+        	socketsModule.newUser("mvm9289", "mvm9289");
         }
         catch (Exception e)
         {
