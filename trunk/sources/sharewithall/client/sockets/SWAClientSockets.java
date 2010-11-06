@@ -3,9 +3,8 @@
  */
 package sharewithall.client.sockets;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 /**
@@ -41,26 +40,28 @@ public class SWAClientSockets
     
     public boolean newUser(String username, String password) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(NEW_USER) + ";" + username + ";" + password);
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(NEW_USER) + ";" + username + ";" + password);
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return Boolean.valueOf(response[1]).booleanValue();
         
         throw new Exception(response[1]);
@@ -68,26 +69,28 @@ public class SWAClientSockets
     
     public int login(String username, String password, String name, boolean isPublic) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(LOGIN) + ";" + username + ";" + password + ";" + name + ";" + String.valueOf(isPublic));
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(LOGIN) + ";" + username + ";" + password + ";" + name + ";" + String.valueOf(isPublic));
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return Integer.valueOf(response[1]).intValue();
         
         throw new Exception(response[1]);
@@ -95,51 +98,55 @@ public class SWAClientSockets
     
     public void logout(int sessionID) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(LOGOUT) + ";" + String.valueOf(sessionID));
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(LOGOUT) + ";" + String.valueOf(sessionID));
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
     }
     
     public String getOnlineClients(int sessionID) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(GET_ONLINE_CLIENTS) + ";" + String.valueOf(sessionID));
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(GET_ONLINE_CLIENTS) + ";" + String.valueOf(sessionID));
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return response[1];
             
         throw new Exception(response[1]);
@@ -147,26 +154,28 @@ public class SWAClientSockets
     
     public String ipAndPortRequest(int sessionID, String client) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(IP_AND_PORT_REQUEST) + ";" + String.valueOf(sessionID) + ";" + client);
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(IP_AND_PORT_REQUEST) + ";" + String.valueOf(sessionID) + ";" + client);
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return response[1];
             
         throw new Exception(response[1]);
@@ -174,26 +183,28 @@ public class SWAClientSockets
     
     public boolean sendInvitation(int sessionID, String friend) throws Exception
     {
-        BufferedReader in = null;
-        PrintWriter out = null;
+        DataInputStream in = null;
+        DataOutputStream out = null;
         
         clientSocket = new Socket(serverIP, serverPort);
         
         try
         {
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
+            in = new DataInputStream(clientSocket.getInputStream());
+            out = new DataOutputStream(clientSocket.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
+            clientSocket.close();
             throw new Exception("Can not connect to server.");
         }
         
-        out.print(String.valueOf(SEND_INVITATION) + ";" + String.valueOf(sessionID) + ";" + friend);
-        String[] response = in.readLine().split(";");
-        int responseCode = Integer.valueOf(response[0]).intValue();
+        out.writeUTF(String.valueOf(SEND_INVITATION) + ";" + String.valueOf(sessionID) + ";" + friend);
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
         
+        int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return Boolean.valueOf(response[1]).booleanValue();
             
         throw new Exception(response[1]);
