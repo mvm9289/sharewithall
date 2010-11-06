@@ -1,4 +1,3 @@
 #!/bin/bash
 
-kill -9 `jps | grep SWAServerRMI | cut -d ' ' -f 1`
-killall rmiregistry
+kill -9 `jps | grep SWAServer | cut -d ' ' -f 1`
