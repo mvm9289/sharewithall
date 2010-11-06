@@ -16,7 +16,7 @@ import sharewithall.client.sockets.SWAClientSockets;
 public class SWAClient
 {
     
-    private static final String serverIP = "localhost";
+    private static final String serverIP = "mvm9289.dyndns.org";
     private static final int serverPort = 4040;
 
     public static void main(String[] args)
