@@ -27,8 +27,9 @@ public class SWAServer
 {
     
     private static final int DEFAULT_SERVER_PORT = 4040;
+    private static final int STATUS_PENDING = 1;
+    private static final int STATUS_ACCEPTED = 2;
     
-    @SuppressWarnings("unused")
     private SWAServerSockets socketsModule;
     
     public SWAServer(int port)
@@ -40,7 +41,7 @@ public class SWAServer
     public void newUser(String username, String password) throws Exception
     {
         SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
-        boolean exists;
+        boolean exists = false;
         
         try
         {
@@ -82,7 +83,7 @@ public class SWAServer
         
         try
         {
-            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
+            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
         }
         catch (Exception e)
         {
@@ -94,7 +95,7 @@ public class SWAServer
         
         try
         {
-            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
+            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
             SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
             DBClients.delete_key(client.name, client.username);
             DBClients.commit();
@@ -108,7 +109,7 @@ public class SWAServer
             if (client.is_public)
             {
                 SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-                ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", "accepted"));
+                ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
                 for (int i = 0; i < friends.size(); i++)
                 {
                     clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user2));
@@ -118,7 +119,7 @@ public class SWAServer
                     }
                 }
                 
-                friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", "accepted"));
+                friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
                 for (int i = 0; i < friends.size(); i++)
                 {
                     clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user1));
@@ -143,7 +144,7 @@ public class SWAServer
         
         try
         {
-            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
+            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
         }
         catch (Exception e)
         {
@@ -155,37 +156,37 @@ public class SWAServer
         
         try
         {
-            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
+            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
             SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
             
             clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", client.username));
-            String list = ((SWAServerJDBCClient)clients.get(0)).name;
+            String list = ((SWAServerJDBCClient)clients.get(0)).name.trim();
             for (int i = 1; i < clients.size(); i++)
             {
                 list += ":";
-                list += ((SWAServerJDBCClient)clients.get(i)).name;
+                list += ((SWAServerJDBCClient)clients.get(i)).name.trim();
             }
             
             SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-            ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", "accepted"));
+            ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
             for (int i = 0; i < friends.size(); i++)
             {
                 clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user2), new SWAServerJDBCPredicate("is_public", true));
                 for (int j = 0; j < clients.size(); j++)
                 {
                     list += ":";
-                    list += (((SWAServerJDBCClient)clients.get(i)).name + ((SWAServerJDBCFriends)friends.get(i)).user2);
+                    list += (((SWAServerJDBCClient)clients.get(i)).name.trim() + " - " + ((SWAServerJDBCFriends)friends.get(i)).user2.trim());
                 }
             }
             
-            friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", "accepted"));
+            friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
             for (int i = 0; i < friends.size(); i++)
             {
                 clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user1), new SWAServerJDBCPredicate("is_public", true));
                 for (int j = 0; j < clients.size(); j++)
                 {
                     list += ":";
-                    list += (((SWAServerJDBCClient)clients.get(i)).name + ((SWAServerJDBCFriends)friends.get(i)).user1);
+                    list += (((SWAServerJDBCClient)clients.get(i)).name.trim() + " - " + ((SWAServerJDBCFriends)friends.get(i)).user1.trim());
                 }
             }
             
@@ -205,7 +206,7 @@ public class SWAServer
         
         try
         {
-            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
+            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
         }
         catch (Exception e)
         {
@@ -220,7 +221,7 @@ public class SWAServer
             ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", client));
             SWAServerJDBCClient client_ = (SWAServerJDBCClient)clients.get(0);
             
-            return (client_.ip + ":" + String.valueOf(client_.port));
+            return (client_.ip.trim() + ":" + String.valueOf(client_.port));
         }
         catch (Exception e)
         {

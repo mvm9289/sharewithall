@@ -22,14 +22,14 @@ public class SWAServerJDBCClient
     public boolean is_public;
     public Timestamp last_time;
     public String username;
-    public String sessionID;
+    public String session_id;
     
     public SWAServerJDBCClient()
     {
         super();
     }
     
-    public SWAServerJDBCClient(String ip, int port, String name, boolean is_public, Timestamp last_time, String username, String sessionID)
+    public SWAServerJDBCClient(String ip, int port, String name, boolean is_public, Timestamp last_time, String username, String session_id)
     {
         super();
         this.ip = ip;
@@ -38,7 +38,7 @@ public class SWAServerJDBCClient
         this.is_public = is_public;
         this.last_time = last_time;
         this.username = username;
-        this.sessionID = sessionID;
+        this.session_id = session_id;
     }
 
 }
