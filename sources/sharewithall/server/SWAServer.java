@@ -96,7 +96,7 @@ public class SWAServer
         {
             ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("sessionID", sessionID));
             SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
-            DBClients.delete_key(client.ip, client.port);
+            DBClients.delete_key(client.name, client.username);
             DBClients.commit();
             
             clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", client.username));
