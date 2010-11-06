@@ -82,13 +82,14 @@ public abstract class SWAServerJDBCDBTable
     {
         PreparedStatement ps = prepare_key("SELECT * FROM " + get_name(), keys);
         ResultSet rs = ps.executeQuery();
-        ps.close();
         if (!rs.next()) {
             rs.close();
+            ps.close();
             return null;
         }
         Object ret = read_obj(rs);
         rs.close();
+        ps.close();
         return ret;
     }
 
@@ -97,10 +98,10 @@ public abstract class SWAServerJDBCDBTable
         PreparedStatement ps = prepare_gen("SELECT * FROM " + get_name(), preds);
         fill_prepared(ps, preds);
         ResultSet rs = ps.executeQuery();
-        ps.close();
         ArrayList<Object> ret = new ArrayList<Object>();
         while (rs.next()) ret.add(read_obj(rs));
         rs.close();
+        ps.close();
         return ret;
     }
 
@@ -182,10 +183,10 @@ public abstract class SWAServerJDBCDBTable
         PreparedStatement ps = prepare_gen("SELECT EXISTS(SELECT * FROM " + get_name(), preds, ") AS exists");
         fill_prepared(ps, preds);
         ResultSet rs = ps.executeQuery();
-        ps.close();
         if (!rs.next())
         {
             rs.close();
+            ps.close();
             return false;
         }
         return rs.getBoolean("exists");
@@ -195,10 +196,10 @@ public abstract class SWAServerJDBCDBTable
     {
         PreparedStatement ps = prepare_key("SELECT EXISTS(SELECT * FROM " + get_name(), keys, ") AS exists");
         ResultSet rs = ps.executeQuery();
-        ps.close();
         if (!rs.next())
         {
             rs.close();
+            ps.close();
             return false;
         }
         return rs.getBoolean("exists");
