@@ -39,7 +39,7 @@ public class SWAServerJDBCDBClients extends SWAServerJDBCDBTable
         try
         {
             ret = new SWAServerJDBCClient(rs.getString("ip"), rs.getInt("port"), rs.getString("name"),
-              rs.getBoolean("is_public"), rs.getTimestamp("last_time"), rs.getString("username"));
+              rs.getBoolean("is_public"), rs.getTimestamp("last_time"), rs.getString("username"), rs.getString("sessionID"));
         } catch (SQLException ex)
         {
             Logger.getLogger(SWAServerJDBCDBClients.class.getName()).log(Level.SEVERE, null, ex);
@@ -52,13 +52,14 @@ public class SWAServerJDBCDBClients extends SWAServerJDBCDBTable
     {
         SWAServerJDBCClient cl = (SWAServerJDBCClient) obj;
 
-        SWAServerJDBCPredicate[] res = new SWAServerJDBCPredicate[6];
+        SWAServerJDBCPredicate[] res = new SWAServerJDBCPredicate[7];
         res[0] = new SWAServerJDBCPredicate("ip", cl.ip);
         res[1] = new SWAServerJDBCPredicate("port", cl.port);
         res[2] = new SWAServerJDBCPredicate("name", cl.name);
         res[3] = new SWAServerJDBCPredicate("is_public", cl.is_public);
         res[4] = new SWAServerJDBCPredicate("last_time", cl.last_time);
         res[5] = new SWAServerJDBCPredicate("username", cl.username);
+        res[6] = new SWAServerJDBCPredicate("sesionID", cl.sessionID);
 
         return res;
     }
