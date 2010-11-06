@@ -4,8 +4,6 @@
 package sharewithall.server.jdbc;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -34,29 +32,34 @@ public abstract class SWAServerJDBCDBTable
     protected abstract Object read_obj(ResultSet rs);
     protected abstract SWAServerJDBCPredicate[] write_obj(Object obj);
 
-    public SWAServerJDBCDBTable() throws FileNotFoundException, IOException, ClassNotFoundException, SQLException
+    public SWAServerJDBCDBTable()
     {
-        FileInputStream in = new FileInputStream("connection.properties");
-        Properties p = new Properties();
-        p.load(in);
-
-        String driver = p.getProperty("driver");
-        p.remove("driver");
-        String url = p.getProperty("url");
-        p.remove("url");
-
-        Class.forName(driver);
-        c = DriverManager.getConnection(url, p);
-        c.setAutoCommit(false);
-
-        DatabaseMetaData meta = c.getMetaData();
-        ResultSet rs = meta.getPrimaryKeys(null, null, get_name());
-        while (rs.next()) pkeys.add(rs.getString("COLUMN_NAME"));
-        rs.close();
-        
-        rs = meta.getColumns(null, null, get_name(), null);
-        while (rs.next()) fields.add(rs.getString("COLUMN_NAME"));
-        rs.close();
+        try {
+            FileInputStream in = new FileInputStream("connection.properties");
+            Properties p = new Properties();
+            p.load(in);
+    
+            String driver = p.getProperty("driver");
+            p.remove("driver");
+            String url = p.getProperty("url");
+            p.remove("url");
+    
+            Class.forName(driver);
+            c = DriverManager.getConnection(url, p);
+            c.setAutoCommit(false);
+    
+            DatabaseMetaData meta = c.getMetaData();
+            ResultSet rs = meta.getPrimaryKeys(null, null, get_name());
+            while (rs.next()) pkeys.add(rs.getString("COLUMN_NAME"));
+            rs.close();
+            
+            rs = meta.getColumns(null, null, get_name(), null);
+            while (rs.next()) fields.add(rs.getString("COLUMN_NAME"));
+            rs.close();
+        }
+        catch (Exception ex) {
+            System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
+        }
     }
 
     public void close() throws SQLException
@@ -187,7 +190,20 @@ public abstract class SWAServerJDBCDBTable
         }
         return rs.getBoolean("exists");
     }
-
+        
+    public boolean exists_key(Object... keys) throws Exception
+    {
+        PreparedStatement ps = prepare_key("SELECT EXISTS(SELECT * FROM " + get_name(), keys, ") AS exists");
+        ResultSet rs = ps.executeQuery();
+        ps.close();
+        if (!rs.next())
+        {
+            rs.close();
+            return false;
+        }
+        return rs.getBoolean("exists");
+    }
+    
     public void commit() throws SQLException
     {
         c.commit();

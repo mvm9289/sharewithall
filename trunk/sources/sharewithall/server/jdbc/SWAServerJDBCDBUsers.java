@@ -3,13 +3,8 @@
  */
 package sharewithall.server.jdbc;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Authors:
  *    Alex Catarineu
@@ -21,7 +16,7 @@ import java.util.logging.Logger;
 public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
 {
 
-    public SWAServerJDBCDBUsers() throws FileNotFoundException, IOException, ClassNotFoundException, SQLException
+    public SWAServerJDBCDBUsers()
     {
         super();
     }
@@ -39,7 +34,7 @@ public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
         try {
             ret = new SWAServerJDBCUser(rs.getString("username"), rs.getString("password"));
         } catch (SQLException ex) {
-            Logger.getLogger(SWAServerJDBCDBUsers.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
         return ret;
     }
