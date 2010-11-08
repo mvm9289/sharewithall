@@ -4,7 +4,10 @@
 package sharewithall.server;
 
 import java.security.MessageDigest;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Random;
 
 import sharewithall.server.jdbc.SWAServerJDBCClient;
 import sharewithall.server.jdbc.SWAServerJDBCDBClients;
@@ -43,7 +46,7 @@ public class SWAServer
         String ret = "";
         for (int i = 0; i < b.length; ++i)
         {
-            for (int j = 0; j < 2; ++j)
+            for (int j = 1; j >= 0; --j)
             {
                 int val = (b[i] >> 4*j)&0xF;
                 if (val < 10) ret += (char)((int)'0' + val);
@@ -51,6 +54,12 @@ public class SWAServer
             }
         }
         return ret;
+    }
+    
+    private String sha256(String password) throws Exception {
+        MessageDigest d = MessageDigest.getInstance("SHA-256");
+        d.reset();
+        return bytes_to_hex(d.digest(password.getBytes("UTF-8")));
     }
     
     public void newUser(String username, String password) throws Exception
@@ -64,18 +73,19 @@ public class SWAServer
         }
         catch (Exception e)
         {
+            DBUsers.close();
             System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
             throw new Exception("Server error");
         }
         
-        if (exists) throw new Exception("This username already exists");
+        if (exists) {
+            DBUsers.close();
+            throw new Exception("This username already exists");
+        }
 
         try
         {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            digest.reset();
-            byte[] bytes = digest.digest(password.getBytes("UTF-8"));
-            DBUsers.insert_obj(new SWAServerJDBCUser(username, bytes_to_hex(bytes)));
+            DBUsers.insert_obj(new SWAServerJDBCUser(username, sha256(password)));
             DBUsers.commit();
         }
         catch (Exception e)
@@ -83,11 +93,58 @@ public class SWAServer
             System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
             throw new Exception("Server error");
         }
+        finally {
+            DBUsers.close();
+        }
     }
     
-    public String login(String username, String password, String name, boolean isPublic)
+    public String login(String username, String password, String name, boolean isPublic) throws Exception
     {
-        return "login( [" + username + "], [" + password + "], [" + name + "], [" + isPublic + "] ) called!";
+        SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
+        boolean exists = false;
+        
+        try
+        {
+            SWAServerJDBCPredicate p1 = new SWAServerJDBCPredicate("username", username);
+            SWAServerJDBCPredicate p2 = new SWAServerJDBCPredicate("password", sha256(password));
+            exists = DBUsers.exists_gen(p1, p2);
+        }
+        catch (Exception e)
+        {
+            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            throw new Exception("Server error");
+        }
+        finally {
+            DBUsers.close();
+        }
+        
+        if (!exists) throw new Exception("The username/password combination is not correct");
+        
+        SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+        String session_id = sha256(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
+        try
+        {
+            // TODO: Obtener ip y puerto
+            String ip = "10.0.0.1";
+            int port = 4242; 
+            Timestamp last_time = new Timestamp((new Date()).getTime());
+            
+            // TODO: Comprobar unicidad de (username, name)
+            
+            SWAServerJDBCClient cl = new SWAServerJDBCClient(ip, port, name, isPublic, last_time, username, session_id);
+            DBClients.insert_obj(cl);
+            DBClients.commit();
+        }
+        catch (Exception e)
+        {
+            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            throw new Exception("Server error");
+        }
+        finally {
+            DBClients.close();
+        }
+        
+        return session_id;
     }
     
     public void logout(String sessionID) throws Exception

@@ -62,16 +62,24 @@ public abstract class SWAServerJDBCDBTable
         }
     }
 
-    public void close() throws SQLException
+    public void close()
     {
-        if (c != null) c.close();
+        try {
+            c.close();
+        }
+        catch (Exception ex) {
+            System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
+        }
     }
 
     @Override
     protected void finalize() throws Throwable
     {
         try {
-            close();
+            if (c != null) c.close();
+        }
+        catch (Exception ex) {
+            System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
         finally {
             super.finalize();
