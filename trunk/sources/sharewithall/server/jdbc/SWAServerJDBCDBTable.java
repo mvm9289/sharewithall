@@ -82,6 +82,7 @@ public abstract class SWAServerJDBCDBTable
     {
         PreparedStatement ps = prepare_key("SELECT * FROM " + get_name(), keys);
         ResultSet rs = ps.executeQuery();
+        
         if (!rs.next()) {
             rs.close();
             ps.close();
@@ -183,26 +184,20 @@ public abstract class SWAServerJDBCDBTable
         PreparedStatement ps = prepare_gen("SELECT EXISTS(SELECT * FROM " + get_name(), preds, ") AS exists");
         fill_prepared(ps, preds);
         ResultSet rs = ps.executeQuery();
-        if (!rs.next())
-        {
-            rs.close();
-            ps.close();
-            return false;
-        }
-        return rs.getBoolean("exists");
+        boolean res = rs.next() && rs.getBoolean("exists");
+        rs.close();
+        ps.close();
+        return res;
     }
         
     public boolean exists_key(Object... keys) throws Exception
     {
         PreparedStatement ps = prepare_key("SELECT EXISTS(SELECT * FROM " + get_name(), keys, ") AS exists");
         ResultSet rs = ps.executeQuery();
-        if (!rs.next())
-        {
-            rs.close();
-            ps.close();
-            return false;
-        }
-        return rs.getBoolean("exists");
+        boolean res = rs.next() && rs.getBoolean("exists");
+        rs.close();
+        ps.close();
+        return res;
     }
     
     public void commit() throws SQLException
@@ -247,7 +242,7 @@ public abstract class SWAServerJDBCDBTable
         for (int i = 0; i < keys.length; ++i)
         {
             if (keys[i] == null) throw new Exception("Primary keys cannot be NULL");
-            else ps.setObject(i, keys[i]);
+            else ps.setObject(i + 1, keys[i]);
         }
 
         return ps;
