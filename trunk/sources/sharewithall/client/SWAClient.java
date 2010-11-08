@@ -3,6 +3,8 @@
  */
 package sharewithall.client;
 
+import java.util.Scanner;
+
 import sharewithall.client.sockets.SWAClientSockets;
 
 /**
@@ -16,21 +18,138 @@ import sharewithall.client.sockets.SWAClientSockets;
 public class SWAClient
 {
     
-    private static final String serverIP = "192.168.1.122";
+    private static final String serverIP = "mvm9289.dyndns.org";
     private static final int serverPort = 4040;
 
     public static void main(String[] args)
     {
         SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
-        
-        try
+
+        boolean end = false;
+        while(!end)
         {
-        	socketsModule.newUser("mvm9289", "mvm9289");
+    		System.out.println("Welcome: choose your commmand.");
+    		System.out.println("                   New User: 0 username password");
+    		System.out.println("                      Login: 1 username password name { 1 | 0 }");
+    		System.out.println("         Get Online Clients: 2");
+    		System.out.println("        IP and port request: 3 client");
+    		System.out.println("            Send Invitation: 4 friend");
+    		System.out.println("          Accept Invitation: 5 friend { 1 | 0 }");
+    		System.out.println("Pending invitations request: 6");
+    		System.out.println("                       Exit: 7");
+    		System.out.println("--------------------------------------------");
+            
+    		Scanner sc = new Scanner(System.in);
+    		sc.useDelimiter("[\\s]");
+    
+    		String username, password, friend, sessionID = null;
+    		
+    		int commandIndex = sc.nextInt();
+    		switch(commandIndex)
+    		{
+    		    case 0: //void newUser (String username, String password)
+                    username = sc.next();
+                    password = sc.next();
+                    try
+                    {
+                        socketsModule.newUser(username, password);
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 1: //String login(String username, String password, String name, boolean isPublic) 
+                    String name;
+                    boolean isPublic;
+                    username = sc.next();
+                    password = sc.next();
+                    name = sc.next();
+                    isPublic = sc.nextBoolean();
+                    try
+                    {
+                        sessionID = socketsModule.login(username, password, name, isPublic);
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                    break;
+                case 2: //String[] getOnlineClients(String sessionID) 
+                    String[] clients = null;
+                    try
+                    {
+                        clients = socketsModule.getOnlineClients(sessionID);
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    for(int i=0; i<clients.length; ++i)
+                        System.out.println(clients[i]);
+                    break;
+                case 3: //String[] ipAndPortRequest(String sessionID, String client) 
+                    String client = sc.next();
+                    try
+                    {
+                        String[] result = new String[2];
+                        result = socketsModule.ipAndPortRequest(sessionID, client);
+                        System.out.println(result[0] + ":" + result[1]);
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    break;
+                case 4: //void sendInvitation(String sessionID, String friend)
+                    friend = sc.next();
+                    try
+                    {
+                        socketsModule.sendInvitation(sessionID, friend);
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    break;
+                case 5: //void acceptInvitation(String sessionID, String friend, boolean accept) 
+                    friend = sc.next();
+                    boolean accept = sc.nextBoolean();
+                    try
+                    {
+                        socketsModule.acceptInvitation(sessionID, friend, accept);
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    break;
+                case 6: //String[] pendingInvitationsRequest(String sessionID)
+                    try
+                    {
+                        String[] result;
+                        result = socketsModule.pendingInvitationsRequest(sessionID);
+                        for(int i=0; i<result.length; ++i)
+                        {
+                            System.out.println(result[i]);
+                        }
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    
+                    break;
+                case 7: //String[] pendingInvitationsRequest(String sessionID)
+                    try
+                    {
+                        if(sessionID != null)
+                            socketsModule.logout(sessionID);
+                    } catch (Exception e)
+                    {
+                        e.printStackTrace();
+                    }
+                    end = true;
+                    break;
+                default:
+                    System.out.println("Wrong command, try again.");
+    		}
+    		System.out.println("Done!");
         }
-        catch (Exception e)
-        {
-            System.out.println("Exception: " + e.getMessage());
-        }
+
     }
 
 }

@@ -79,7 +79,7 @@ public class SWAClientSockets
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
     }
     
-    public int login(String username, String password, String name, boolean isPublic) throws Exception
+    public String login(String username, String password, String name, boolean isPublic) throws Exception
     {
         Object[] streams = new Object[2];
         getServerStreams(streams);
@@ -91,7 +91,7 @@ public class SWAClientSockets
         clientSocket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE) return Integer.valueOf(response[1]).intValue();
+        if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
         
         throw new Exception(response[1]);
     }
@@ -202,7 +202,7 @@ public class SWAClientSockets
          clientSocket.close();
          
          int responseCode = Integer.valueOf(response[0]).intValue();
-         if (responseCode == RETURN_VALUE) response[1].split(":");
+         if (responseCode == RETURN_VALUE) return response[1].split(":");
          
          throw new Exception(response[1]);
      }
