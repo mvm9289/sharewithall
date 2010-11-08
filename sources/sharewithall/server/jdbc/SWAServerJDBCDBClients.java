@@ -55,7 +55,7 @@ public class SWAServerJDBCDBClients extends SWAServerJDBCDBTable
         res[3] = new SWAServerJDBCPredicate("is_public", cl.is_public);
         res[4] = new SWAServerJDBCPredicate("last_time", cl.last_time);
         res[5] = new SWAServerJDBCPredicate("username", cl.username);
-        res[6] = new SWAServerJDBCPredicate("sesionID", cl.session_id);
+        res[6] = new SWAServerJDBCPredicate("sesion_id", cl.session_id);
 
         return res;
     }
