@@ -38,6 +38,21 @@ public class SWAServer
         socketsModule = new SWAServerSockets(port, this);
     }
     
+    private String bytes_to_hex(byte[] b)
+    {
+        String ret = "";
+        for (int i = 0; i < b.length; ++i)
+        {
+            for (int j = 0; j < 2; ++j)
+            {
+                int val = (b[i] >> 4*j)&0xF;
+                if (val < 10) ret += (char)((int)'0' + val);
+                else ret += (char)((int)'a' + val - 10);
+            }
+        }
+        return ret;
+    }
+    
     public void newUser(String username, String password) throws Exception
     {
         SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
@@ -60,8 +75,7 @@ public class SWAServer
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.reset();
             byte[] bytes = digest.digest(password.getBytes("UTF-8"));
-            
-            DBUsers.insert_obj(new SWAServerJDBCUser(username, new String(bytes)));
+            DBUsers.insert_obj(new SWAServerJDBCUser(username, bytes_to_hex(bytes)));
             DBUsers.commit();
         }
         catch (Exception e)
