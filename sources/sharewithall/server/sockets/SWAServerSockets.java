@@ -99,7 +99,7 @@ public class SWAServerSockets extends Thread
                             break;
                         case LOGIN:
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
-                                    String.valueOf(server.login(petition[1], petition[2], petition[3], Boolean.valueOf(petition[4]).booleanValue())));
+                                    String.valueOf(server.login(petition[1], petition[2], petition[3], Boolean.valueOf(petition[4]).booleanValue(), petition[4])));
                             break;
                         case LOGOUT:
                             server.logout(petition[1]);
