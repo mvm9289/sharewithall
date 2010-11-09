@@ -29,7 +29,7 @@ import sharewithall.server.sockets.SWAServerSockets;
  */
 public class SWAServer
 {
-    
+    private static final int FIRST_CLIENT_PORT = 4100;
     private static final int DEFAULT_SERVER_PORT = 4040;
     private static final int STATUS_PENDING = 1;
     private static final int STATUS_ACCEPTED = 2;
@@ -99,7 +99,7 @@ public class SWAServer
         }
     }
     
-    public String login(String username, String password, String name, boolean isPublic) throws Exception
+    public String login(String username, String password, String name, boolean isPublic, String ip) throws Exception
     {
         SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
         boolean exists = false;
@@ -125,9 +125,8 @@ public class SWAServer
         String session_id = sha256(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         try
         {
-            // TODO: Obtener ip y puerto
-            String ip = "10.0.0.1";
-            int port = 4242; 
+            ArrayList<Object> clientes = DBClients.select_gen(new SWAServerJDBCPredicate("ip", ip));
+            int port = FIRST_CLIENT_PORT + clientes.size(); 
             Timestamp last_time = new Timestamp((new Date()).getTime());
             
             // TODO: Comprobar unicidad de (username, name)
