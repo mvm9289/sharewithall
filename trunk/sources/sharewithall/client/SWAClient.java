@@ -24,17 +24,18 @@ public class SWAClient
     public static void main(String[] args)
     {
         SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
-
+        String username, password, friend, sessionID = null;
         boolean end = false;
+        
         while(!end)
         {
     		System.out.println("Welcome: choose your commmand.");
     		System.out.println("                   New User: 0 username password");
-    		System.out.println("                      Login: 1 username password name { 1 | 0 }");
+    		System.out.println("                      Login: 1 username password name { true | false }");
     		System.out.println("         Get Online Clients: 2");
     		System.out.println("        IP and port request: 3 client");
     		System.out.println("            Send Invitation: 4 friend");
-    		System.out.println("          Accept Invitation: 5 friend { 1 | 0 }");
+    		System.out.println("          Accept Invitation: 5 friend { true | false }");
     		System.out.println("Pending invitations request: 6");
     		System.out.println("                       Exit: 7");
     		System.out.println("--------------------------------------------");
@@ -42,7 +43,7 @@ public class SWAClient
     		Scanner sc = new Scanner(System.in);
     		sc.useDelimiter("[\\s]");
     
-    		String username, password, friend, sessionID = null;
+    		
     		
     		int commandIndex = sc.nextInt();
     		switch(commandIndex)
@@ -58,7 +59,12 @@ public class SWAClient
                         e.printStackTrace();
                     }
                     break;
-                case 1: //String login(String username, String password, String name, boolean isPublic) 
+                case 1: //String login(String username, String password, String name, boolean isPublic)
+                    if(sessionID != null)
+                    {
+                        System.out.println("Sorry, you are already logged in.");
+                        break;
+                    }
                     String name;
                     boolean isPublic;
                     username = sc.next();
@@ -75,6 +81,11 @@ public class SWAClient
                     break;
                 case 2: //String[] getOnlineClients(String sessionID) 
                     String[] clients = null;
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
                         clients = socketsModule.getOnlineClients(sessionID);
@@ -87,6 +98,11 @@ public class SWAClient
                     break;
                 case 3: //String[] ipAndPortRequest(String sessionID, String client) 
                     String client = sc.next();
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
                         String[] result = new String[2];
@@ -99,6 +115,11 @@ public class SWAClient
                     break;
                 case 4: //void sendInvitation(String sessionID, String friend)
                     friend = sc.next();
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
                         socketsModule.sendInvitation(sessionID, friend);
@@ -110,6 +131,11 @@ public class SWAClient
                 case 5: //void acceptInvitation(String sessionID, String friend, boolean accept) 
                     friend = sc.next();
                     boolean accept = sc.nextBoolean();
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
                         socketsModule.acceptInvitation(sessionID, friend, accept);
@@ -119,6 +145,11 @@ public class SWAClient
                     }
                     break;
                 case 6: //String[] pendingInvitationsRequest(String sessionID)
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
                         String[] result;
@@ -133,11 +164,16 @@ public class SWAClient
                     }
                     
                     break;
-                case 7: //String[] pendingInvitationsRequest(String sessionID)
+                case 7: //void logout(String sessionID)
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
                     try
                     {
-                        if(sessionID != null)
-                            socketsModule.logout(sessionID);
+                        socketsModule.logout(sessionID);
+                        sessionID = null;
                     } catch (Exception e)
                     {
                         e.printStackTrace();
