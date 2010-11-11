@@ -131,6 +131,7 @@ public class SWAServer
             
             // TODO: Comprobar unicidad de (username, name)
             
+            System.out.println("ip: " + ip + ", port: " + port);
             SWAServerJDBCClient cl = new SWAServerJDBCClient(ip, port, name, isPublic, last_time, username, session_id);
             DBClients.insert_obj(cl);
             DBClients.commit();
@@ -366,12 +367,67 @@ public class SWAServer
 
     public void acceptInvitation(String sessionID, String friend, boolean accept) throws Exception
     {
+        SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
+        SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+        boolean exists, isPendent, isDeclared;
         
+        try
+        {
+            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+
+            if (!exists) throw new Exception("Invalid session");
+
+            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+            SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
+            
+            isDeclared = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username));
+            isPendent = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username)
+                , new SWAServerJDBCPredicate("status", STATUS_PENDING));
+            
+            if(isPendent)
+            {
+                SWAServerJDBCFriends f = (SWAServerJDBCFriends) DBFriends.get_key(friend, client.username);
+                f.status = STATUS_ACCEPTED;
+                DBFriends.update_obj(f);
+                DBFriends.commit();
+                
+                //TODO: Actualizar la lista de clientes visibles con los clientes publicos del nuevo friend.
+            }
+            else if(!isDeclared)
+            {
+                DBFriends.insert_obj(new SWAServerJDBCFriends(client.username, friend, STATUS_PENDING));
+                DBFriends.commit();
+            }
+            
+            //TODO: Informar al friend
+        }
+        catch (Exception e)
+        {
+            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            throw new Exception("Server error");
+        }
     }
     
      public String pendingInvitationsRequest(String sessionID) throws Exception
      {
-         return "pendingInvitationsRequest( [" + sessionID + "] ) called!";
+         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+         SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
+         
+         try
+         {
+             exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             if (!exists) throw new Exception("Invalid session");
+             
+             String username = DBFriends.s
+             
+             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate(key, value))
+
+         }
+         catch (Exception e)
+         {
+             System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+             throw new Exception("Server error");
+         }
      }
     
     public static void main(String[] args)

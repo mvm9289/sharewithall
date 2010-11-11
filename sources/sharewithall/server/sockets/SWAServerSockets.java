@@ -99,7 +99,7 @@ public class SWAServerSockets extends Thread
                             break;
                         case LOGIN:
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" +
-                                    String.valueOf(server.login(petition[1], petition[2], petition[3], Boolean.valueOf(petition[4]).booleanValue(), petition[4])));
+                                    String.valueOf(server.login(petition[1], petition[2], petition[3], Boolean.valueOf(petition[4]).booleanValue(), clientSocket.getInetAddress().toString())));
                             break;
                         case LOGOUT:
                             server.logout(petition[1]);
@@ -124,7 +124,7 @@ public class SWAServerSockets extends Thread
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case PENDING_INVITATIONS_REQUEST:
-                            out.writeUTF(server.pendingInvitationsRequest(petition[1]));
+                            out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.pendingInvitationsRequest(petition[1]));
                             break;
                         default:
                             break;
