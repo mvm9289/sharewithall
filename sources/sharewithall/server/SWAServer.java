@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
+import sharewithall.client.SWAClient;
 import sharewithall.server.jdbc.SWAServerJDBCClient;
 import sharewithall.server.jdbc.SWAServerJDBCDBClients;
 import sharewithall.server.jdbc.SWAServerJDBCDBFriends;
@@ -412,16 +413,30 @@ public class SWAServer
      {
          SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
          SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-         
+         System.out.println("Starting pending invitations request...");
          try
          {
-             exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
              if (!exists) throw new Exception("Invalid session");
              
-             String username = DBFriends.s
+             ArrayList<Object> listaCliente = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
              
-             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate(key, value))
+             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
+             , new SWAServerJDBCPredicate("status", STATUS_PENDING));
 
+             if(relaciones.isEmpty())
+             {
+                 System.out.println("devolviendo lista vacia");
+                 return "";
+             }
+             System.out.println("Creating list of pendent invitations...");
+             String list = ((SWAServerJDBCFriends) relaciones.get(0)).user1;
+             for(int i=1; i<relaciones.size(); ++i)
+             {
+                 list += ":" + ((SWAServerJDBCFriends) relaciones.get(i)).user1;
+             }
+             return list;
          }
          catch (Exception e)
          {
