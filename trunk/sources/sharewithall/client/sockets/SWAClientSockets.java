@@ -202,7 +202,15 @@ public class SWAClientSockets
          clientSocket.close();
          
          int responseCode = Integer.valueOf(response[0]).intValue();
-         if (responseCode == RETURN_VALUE) return response[1].split(":");
+         if (responseCode == RETURN_VALUE)
+             if(response.length == 1)
+             {
+                 String[] result = new String[1];
+                 result[0] = "There isn't pending invitations"; 
+                 return result;
+             }
+             else
+                 return response[1].split(":");
          
          throw new Exception(response[1]);
      }
