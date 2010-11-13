@@ -38,6 +38,7 @@ public class SWAClient
     		System.out.println("          Accept Invitation: 5 friend { true | false }");
     		System.out.println("Pending invitations request: 6");
     		System.out.println("                       Exit: 7");
+    		System.out.println("       Show list of friends: 8");
     		System.out.println("--------------------------------------------");
             
     		Scanner sc = new Scanner(System.in);
@@ -179,6 +180,26 @@ public class SWAClient
                         e.printStackTrace();
                     }
                     end = true;
+                    break;
+                case 8: //String showListOfFriends(String sessionID)
+                    if(sessionID == null)
+                    {
+                        System.out.println("Sorry, you must be logged in.");
+                        break;
+                    }
+                    try
+                    {
+                        String[] result;
+                        result = socketsModule.showListOfFriends(sessionID);
+                        for(int i=0; i<result.length; ++i)
+                        {
+                            System.out.println(result[i]);
+                        }
+                    } catch (Exception e1)
+                    {
+                        e1.printStackTrace();
+                    }
+                    
                     break;
                 default:
                     System.out.println("Wrong command, try again.");

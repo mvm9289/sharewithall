@@ -444,6 +444,56 @@ public class SWAServer
              throw new Exception("Server error");
          }
      }
+     
+     public String showListOfFriends(String sessionID) throws Exception
+     {
+         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+         SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
+
+         try
+         {
+             boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             if (!exists) throw new Exception("Invalid session");
+             
+             ArrayList<Object> listaCliente = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
+             
+             ArrayList<Object> relaciones1 = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", cliente.username)
+             , new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+             
+             ArrayList<Object> relaciones2 = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
+             , new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+
+             if(relaciones1.isEmpty() && relaciones2.isEmpty())
+                 return "";
+
+             if(!relaciones1.isEmpty())
+             {
+                 String list = ((SWAServerJDBCFriends) relaciones1.get(0)).user2;
+
+                 for(int i=1; i<relaciones1.size(); ++i)
+                     list += ":" + ((SWAServerJDBCFriends) relaciones1.get(i)).user2;
+                 for(int i=0; i<relaciones2.size(); ++i)
+                     list += ":" + ((SWAServerJDBCFriends) relaciones2.get(i)).user1;
+                 
+                 return list;
+             }
+             else
+             {
+                 String list = ((SWAServerJDBCFriends) relaciones2.get(0)).user1;
+                 
+                 for(int i=1; i<relaciones2.size(); ++i)
+                     list += ":" + ((SWAServerJDBCFriends) relaciones2.get(i)).user1;
+                 
+                 return list;
+             }
+         }
+         catch (Exception e)
+         {
+             System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+             throw new Exception("Server error");
+         }
+     }     
     
     public static void main(String[] args)
     {
