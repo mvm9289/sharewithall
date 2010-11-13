@@ -23,9 +23,9 @@ public class SWAClientSockets
     private static final int LOGOUT = 3;
     private static final int GET_ONLINE_CLIENTS = 4;
     private static final int IP_AND_PORT_REQUEST = 5;
-    private static final int SEND_INVITATION = 6;
+    private static final int DECLARE_FRIEND = 6;
     private static final int UPDATE_TIMESTAMP = 7;
-    private static final int ACCEPT_INVITATION = 8;
+    private static final int IGNORE_USER = 8;
     private static final int PENDING_INVITATIONS_REQUEST = 9;
     private static final int SHOW_LIST_OF_FRIENDS = 10;
     private static final int RETURN_VALUE = 0;
@@ -146,14 +146,14 @@ public class SWAClientSockets
         throw new Exception(response[1]);
     }
     
-    public void sendInvitation(String sessionID, String friend) throws Exception
+    public void declareFriend(String sessionID, String friend) throws Exception
     {
         Object[] streams = new Object[2];
         getServerStreams(streams);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
-        out.writeUTF(String.valueOf(SEND_INVITATION) + ";" + sessionID + ";" + friend);
+        out.writeUTF(String.valueOf(DECLARE_FRIEND) + ";" + sessionID + ";" + friend);
         String[] response = in.readUTF().split(";");
         clientSocket.close();
         
@@ -161,6 +161,21 @@ public class SWAClientSockets
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
     }
 
+    public void ignoreUser(String sessionID, String friend) throws Exception
+    {
+        Object[] streams = new Object[2];
+        getServerStreams(streams);
+        DataInputStream in = (DataInputStream)streams[0];
+        DataOutputStream out = (DataOutputStream)streams[1];
+        
+        out.writeUTF(String.valueOf(IGNORE_USER) + ";" + sessionID + ";" + friend);
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
+        
+        int responseCode = Integer.valueOf(response[0]).intValue();
+        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+    }
+    
     public void updateTimestamp(String sessionID) throws Exception
     {
         Object[] streams = new Object[2];
@@ -169,21 +184,6 @@ public class SWAClientSockets
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(UPDATE_TIMESTAMP) + ";" + sessionID);
-        String[] response = in.readUTF().split(";");
-        clientSocket.close();
-        
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
-    }
-
-    public void acceptInvitation(String sessionID, String friend, boolean accept) throws Exception
-    {
-        Object[] streams = new Object[2];
-        getServerStreams(streams);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
-        
-        out.writeUTF(String.valueOf(ACCEPT_INVITATION) + ";" + sessionID + ";" + friend + ";" + String.valueOf(accept));
         String[] response = in.readUTF().split(";");
         clientSocket.close();
         
