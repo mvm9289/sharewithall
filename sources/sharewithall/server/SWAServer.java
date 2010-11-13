@@ -32,8 +32,8 @@ public class SWAServer
 {
     private static final int FIRST_CLIENT_PORT = 4100;
     private static final int DEFAULT_SERVER_PORT = 4040;
-    private static final int STATUS_PENDING = 1;
-    private static final int STATUS_ACCEPTED = 2;
+    private static final int STATUS_FRIEND = 1;
+    private static final int STATUS_IGNORE_USER = 0;
     
     private SWAServerSockets socketsModule;
     
@@ -182,7 +182,7 @@ public class SWAServer
             if (client.is_public)
             {
                 SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-                ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+                ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
                 for (int i = 0; i < friends.size(); i++)
                 {
                     clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user2));
@@ -192,7 +192,7 @@ public class SWAServer
                     }
                 }
                 
-                friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+                friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
                 for (int i = 0; i < friends.size(); i++)
                 {
                     clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user1));
@@ -241,7 +241,7 @@ public class SWAServer
             }
             
             SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-            ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+            ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
             for (int i = 0; i < friends.size(); i++)
             {
                 clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user2), new SWAServerJDBCPredicate("is_public", true));
@@ -252,7 +252,7 @@ public class SWAServer
                 }
             }
             
-            friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+            friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
             for (int i = 0; i < friends.size(); i++)
             {
                 clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user1), new SWAServerJDBCPredicate("is_public", true));
@@ -303,41 +303,72 @@ public class SWAServer
         }
     }
     
-    public void sendInvitation(String sessionID, String friend) throws Exception
+    public void declareFriend(String sessionID, String friend) throws Exception
     {
+        SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
         SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-        boolean exists, isPendent, isDeclared;
         
         try
         {
-            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
-
+            boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
             if (!exists) throw new Exception("Invalid session");
 
             ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
             SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
             
-            isDeclared = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username));
-            isPendent = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username)
-                , new SWAServerJDBCPredicate("status", STATUS_PENDING));
+            boolean friendExists = DBUsers.exists_gen(new SWAServerJDBCPredicate("username", friend));
+            if (!friendExists) throw new Exception("Friend doesn't exist");
             
-            if(isPendent)
-            {
-                SWAServerJDBCFriends f = (SWAServerJDBCFriends) DBFriends.get_key(friend, client.username);
-                f.status = STATUS_ACCEPTED;
-                DBFriends.update_obj(f);
-                DBFriends.commit();
-                
-                //TODO: Actualizar la lista de clientes visibles con los clientes publicos del nuevo friend.
-            }
-            else if(!isDeclared)
-            {
-                DBFriends.insert_obj(new SWAServerJDBCFriends(client.username, friend, STATUS_PENDING));
-                DBFriends.commit();
-            }
+            if(client.username == friend)
+                throw new Exception("You can't be your own friend");
             
-            //TODO: Informar al friend
+            boolean isDeclared = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("user2", friend)
+                , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
+            if(isDeclared) throw new Exception("Relation already declared.");
+            
+            //Execution
+            DBFriends.delete_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("user2", friend)
+                    , new SWAServerJDBCPredicate("status", STATUS_IGNORE_USER));
+            DBFriends.insert_obj(new SWAServerJDBCFriends(client.username, friend, STATUS_FRIEND));
+            DBFriends.commit();
+        }
+        catch (Exception e)
+        {
+            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            throw new Exception("Server error");
+        }
+    }
+    
+    public void ignoreUser(String sessionID, String user) throws Exception
+    {
+        SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
+        SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+        SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
+        
+        try
+        {
+            boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+            if (!exists) throw new Exception("Invalid session");
+
+            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+            SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
+            
+            boolean userExists = DBUsers.exists_gen(new SWAServerJDBCPredicate("username", user));
+            if (!userExists) throw new Exception("User doesn't exist");
+            
+            if(client.username == user)
+                throw new Exception("You can't ignore yourself");
+            
+            boolean isDeclared = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("user2", user)
+                , new SWAServerJDBCPredicate("status", STATUS_IGNORE_USER));
+            if(isDeclared) throw new Exception("Relation already declared.");
+            
+            //Execution
+            DBFriends.delete_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("user2", user)
+                    , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
+            DBFriends.insert_obj(new SWAServerJDBCFriends(client.username, user, STATUS_IGNORE_USER));
+            DBFriends.commit();
         }
         catch (Exception e)
         {
@@ -366,48 +397,6 @@ public class SWAServer
         }
     }
 
-    public void acceptInvitation(String sessionID, String friend, boolean accept) throws Exception
-    {
-        SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-        SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
-        boolean exists, isPendent, isDeclared;
-        
-        try
-        {
-            exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
-
-            if (!exists) throw new Exception("Invalid session");
-
-            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
-            SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
-            
-            isDeclared = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username));
-            isPendent = DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friend), new SWAServerJDBCPredicate("user2", client.username)
-                , new SWAServerJDBCPredicate("status", STATUS_PENDING));
-            
-            if(isPendent)
-            {
-                SWAServerJDBCFriends f = (SWAServerJDBCFriends) DBFriends.get_key(friend, client.username);
-                f.status = STATUS_ACCEPTED;
-                DBFriends.update_obj(f);
-                DBFriends.commit();
-                
-                //TODO: Actualizar la lista de clientes visibles con los clientes publicos del nuevo friend.
-            }
-            else if(!isDeclared)
-            {
-                DBFriends.insert_obj(new SWAServerJDBCFriends(client.username, friend, STATUS_PENDING));
-                DBFriends.commit();
-            }
-            
-            //TODO: Informar al friend
-        }
-        catch (Exception e)
-        {
-            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
-            throw new Exception("Server error");
-        }
-    }
     
      public String pendingInvitationsRequest(String sessionID) throws Exception
      {
@@ -423,14 +412,11 @@ public class SWAServer
              SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
              
              ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
-             , new SWAServerJDBCPredicate("status", STATUS_PENDING));
+             , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
 
              if(relaciones.isEmpty())
-             {
-                 System.out.println("devolviendo lista vacia");
                  return "";
-             }
-             System.out.println("Creating list of pendent invitations...");
+
              String list = ((SWAServerJDBCFriends) relaciones.get(0)).user1;
              for(int i=1; i<relaciones.size(); ++i)
              {
@@ -459,10 +445,10 @@ public class SWAServer
              SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
              
              ArrayList<Object> relaciones1 = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", cliente.username)
-             , new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+             , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
              
              ArrayList<Object> relaciones2 = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
-             , new SWAServerJDBCPredicate("status", STATUS_ACCEPTED));
+             , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
 
              if(relaciones1.isEmpty() && relaciones2.isEmpty())
                  return "";

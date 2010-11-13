@@ -63,9 +63,9 @@ public class SWAServerSockets extends Thread
         private static final int LOGOUT = 3;
         private static final int GET_ONLINE_CLIENTS = 4;
         private static final int IP_AND_PORT_REQUEST = 5;
-        private static final int SEND_INVITATION = 6;
+        private static final int DECLARE_FRIEND = 6;
         private static final int UPDATE_TIMESTAMP = 7;
-        private static final int ACCEPT_INVITATION = 8;
+        private static final int IGNORE_USER = 8;
         private static final int PENDING_INVITATIONS_REQUEST = 9;
         private static final int SHOW_LIST_OF_FRIENDS = 10;
         private static final int RETURN_VALUE = 0;
@@ -112,16 +112,16 @@ public class SWAServerSockets extends Thread
                         case IP_AND_PORT_REQUEST:
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.ipAndPortRequest(petition[1],petition[2]));
                             break;
-                        case SEND_INVITATION:
-                            server.sendInvitation(petition[1], petition[2]);
+                        case DECLARE_FRIEND:
+                            server.declareFriend(petition[1], petition[2]);
+                            out.writeUTF(String.valueOf(RETURN_VALUE));
+                            break;
+                        case IGNORE_USER:
+                            server.ignoreUser(petition[1], petition[2]);
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case UPDATE_TIMESTAMP:
                             server.updateTimestamp(petition[1]);
-                            out.writeUTF(String.valueOf(RETURN_VALUE));
-                            break;
-                        case ACCEPT_INVITATION:
-                            server.acceptInvitation(petition[1], petition[2], Boolean.valueOf(petition[3]).booleanValue());
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case PENDING_INVITATIONS_REQUEST:

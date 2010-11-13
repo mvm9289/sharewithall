@@ -29,16 +29,16 @@ public class SWAClient
         
         while(!end)
         {
-    		System.out.println("Welcome: choose your commmand.");
+    		System.out.println("Choose your commmand.");
     		System.out.println("                   New User: 0 username password");
     		System.out.println("                      Login: 1 username password name { true | false }");
     		System.out.println("         Get Online Clients: 2");
     		System.out.println("        IP and port request: 3 client");
-    		System.out.println("            Send Invitation: 4 friend");
-    		System.out.println("          Accept Invitation: 5 friend { true | false }");
+    		System.out.println("             Declare friend: 4 friend");
+    		System.out.println("                Ignore user: 5 user");
     		System.out.println("Pending invitations request: 6");
+            System.out.println("       Show list of friends: 8");
     		System.out.println("                       Exit: 7");
-    		System.out.println("       Show list of friends: 8");
     		System.out.println("--------------------------------------------");
             
     		Scanner sc = new Scanner(System.in);
@@ -50,6 +50,11 @@ public class SWAClient
     		switch(commandIndex)
     		{
     		    case 0: //void newUser (String username, String password)
+                    if(sessionID != null)
+                    {
+                        System.out.println("Sorry, you are already logged in.");
+                        break;
+                    }    		        
                     username = sc.next();
                     password = sc.next();
                     try
@@ -114,7 +119,7 @@ public class SWAClient
                         e1.printStackTrace();
                     }
                     break;
-                case 4: //void sendInvitation(String sessionID, String friend)
+                case 4: //void declareFriend(sessionID, friend)
                     friend = sc.next();
                     if(sessionID == null)
                     {
@@ -123,15 +128,14 @@ public class SWAClient
                     }
                     try
                     {
-                        socketsModule.sendInvitation(sessionID, friend);
+                        socketsModule.declareFriend(sessionID, friend);
                     } catch (Exception e1)
                     {
                         e1.printStackTrace();
                     }
                     break;
-                case 5: //void acceptInvitation(String sessionID, String friend, boolean accept) 
+                case 5: //void ignoreUser(String sessionID, String user)
                     friend = sc.next();
-                    boolean accept = sc.nextBoolean();
                     if(sessionID == null)
                     {
                         System.out.println("Sorry, you must be logged in.");
@@ -139,7 +143,7 @@ public class SWAClient
                     }
                     try
                     {
-                        socketsModule.acceptInvitation(sessionID, friend, accept);
+                        socketsModule.ignoreUser(sessionID, friend);
                     } catch (Exception e1)
                     {
                         e1.printStackTrace();
