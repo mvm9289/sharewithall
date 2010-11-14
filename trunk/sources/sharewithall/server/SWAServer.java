@@ -402,17 +402,24 @@ public class SWAServer
      {
          SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
          SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-         System.out.println("Starting pending invitations request...");
+
          try
          {
              boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
              if (!exists) throw new Exception("Invalid session");
              
              ArrayList<Object> listaCliente = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
-             SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
+             SWAServerJDBCClient client = (SWAServerJDBCClient) listaCliente.get(0);
              
-             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
+             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username)
              , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
+             
+             for(int i=relaciones.size()-1; i>=0; --i)
+             {
+                 String originUser = ((SWAServerJDBCFriends) relaciones.get(i)).user1;
+                 if(DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("user2", originUser)))
+                     relaciones.remove(i);
+             }
 
              if(relaciones.isEmpty())
                  return "";
@@ -442,37 +449,28 @@ public class SWAServer
              if (!exists) throw new Exception("Invalid session");
              
              ArrayList<Object> listaCliente = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
-             SWAServerJDBCClient cliente = (SWAServerJDBCClient) listaCliente.get(0);
+             SWAServerJDBCClient client = (SWAServerJDBCClient) listaCliente.get(0);
              
-             ArrayList<Object> relaciones1 = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", cliente.username)
+             ArrayList<Object> relaciones = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username)
              , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
              
-             ArrayList<Object> relaciones2 = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", cliente.username)
-             , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
-
-             if(relaciones1.isEmpty() && relaciones2.isEmpty())
+             ArrayList<Object> result = new ArrayList<Object>();
+             for(int i=0; i<relaciones.size(); ++i)
+             {
+                 String friendName = ((SWAServerJDBCFriends) relaciones.get(i)).user2;
+                 if(DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", friendName), new SWAServerJDBCPredicate("user2", client.username), 
+                         new SWAServerJDBCPredicate("status", STATUS_FRIEND)))
+                     result.add(relaciones.get(i));
+             }
+             
+             if(result.isEmpty())
                  return "";
 
-             if(!relaciones1.isEmpty())
-             {
-                 String list = ((SWAServerJDBCFriends) relaciones1.get(0)).user2;
+             String list = ((SWAServerJDBCFriends) result.get(0)).user2;
+             for(int i=1; i<relaciones.size(); ++i)
+                 list += ":" + ((SWAServerJDBCFriends) result.get(i)).user2;
 
-                 for(int i=1; i<relaciones1.size(); ++i)
-                     list += ":" + ((SWAServerJDBCFriends) relaciones1.get(i)).user2;
-                 for(int i=0; i<relaciones2.size(); ++i)
-                     list += ":" + ((SWAServerJDBCFriends) relaciones2.get(i)).user1;
-                 
-                 return list;
-             }
-             else
-             {
-                 String list = ((SWAServerJDBCFriends) relaciones2.get(0)).user1;
-                 
-                 for(int i=1; i<relaciones2.size(); ++i)
-                     list += ":" + ((SWAServerJDBCFriends) relaciones2.get(i)).user1;
-                 
-                 return list;
-             }
+             return list;
          }
          catch (Exception e)
          {
