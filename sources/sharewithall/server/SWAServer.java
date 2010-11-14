@@ -10,7 +10,6 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
-import sharewithall.client.SWAClient;
 import sharewithall.server.jdbc.SWAServerJDBCClient;
 import sharewithall.server.jdbc.SWAServerJDBCDBClients;
 import sharewithall.server.jdbc.SWAServerJDBCDBFriends;
@@ -18,7 +17,6 @@ import sharewithall.server.jdbc.SWAServerJDBCDBUsers;
 import sharewithall.server.jdbc.SWAServerJDBCFriends;
 import sharewithall.server.jdbc.SWAServerJDBCPredicate;
 import sharewithall.server.jdbc.SWAServerJDBCUser;
-import sharewithall.server.sockets.SWAServerSockets;
 
 /**
  * Authors:
@@ -35,12 +33,9 @@ public class SWAServer
     private static final int STATUS_FRIEND = 1;
     private static final int STATUS_IGNORE_USER = 0;
     
-    private SWAServerSockets socketsModule;
-    
     public SWAServer(int port)
     {
         super();
-        socketsModule = new SWAServerSockets(port, this);
     }
     
     private String bytes_to_hex(byte[] b)
@@ -240,30 +235,17 @@ public class SWAServer
                 list += ((SWAServerJDBCClient)clients.get(i)).name.trim();
             }
             
-            SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
-            ArrayList<Object> friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
-            for (int i = 0; i < friends.size(); i++)
-            {
-                clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user2), new SWAServerJDBCPredicate("is_public", true));
-                for (int j = 0; j < clients.size(); j++)
-                {
-                    list += ":";
-                    list += (((SWAServerJDBCClient)clients.get(i)).name.trim() + " - " + ((SWAServerJDBCFriends)friends.get(i)).user2.trim());
-                }
-            }
+            String stringFriends = showListOfFriends(sessionID);
+            String[] friends = stringFriends.split(":");
             
-            friends = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username), new SWAServerJDBCPredicate("status", STATUS_FRIEND));
-            for (int i = 0; i < friends.size(); i++)
+            for(int i=0; i<friends.length; ++i)
             {
-                clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", ((SWAServerJDBCFriends)friends.get(i)).user1), new SWAServerJDBCPredicate("is_public", true));
-                for (int j = 0; j < clients.size(); j++)
-                {
-                    list += ":";
-                    list += (((SWAServerJDBCClient)clients.get(i)).name.trim() + " - " + ((SWAServerJDBCFriends)friends.get(i)).user1.trim());
-                }
+                ArrayList<Object> publicClients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friends[i]), new SWAServerJDBCPredicate("is_public", true));
+                for(int j=0; j<publicClients.size(); ++j)
+                    list += ":" + ((SWAServerJDBCClient) publicClients.get(i)).username + " - " + ((SWAServerJDBCClient) publicClients.get(i)).name;
             }
-            
             return list;
+                
         }
         catch (Exception e)
         {
