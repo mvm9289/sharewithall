@@ -17,6 +17,7 @@ import sharewithall.server.jdbc.SWAServerJDBCDBUsers;
 import sharewithall.server.jdbc.SWAServerJDBCFriends;
 import sharewithall.server.jdbc.SWAServerJDBCPredicate;
 import sharewithall.server.jdbc.SWAServerJDBCUser;
+import sharewithall.server.sockets.SWAServerSockets;
 
 /**
  * Authors:
@@ -33,9 +34,12 @@ public class SWAServer
     private static final int STATUS_FRIEND = 1;
     private static final int STATUS_IGNORE_USER = 0;
     
+    SWAServerSockets socketsModule;
+    
     public SWAServer(int port)
     {
         super();
+        socketsModule = new SWAServerSockets(port, this);
     }
     
     private String bytes_to_hex(byte[] b)
