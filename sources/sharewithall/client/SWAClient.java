@@ -35,7 +35,7 @@ public class SWAClient
     		System.out.println("         Get Online Clients: 2");
     		System.out.println("        IP and port request: 3 client");
     		System.out.println("             Declare friend: 4 friend");
-    		System.out.println("                Ignore user: 5 user");
+    		System.out.println("                Ignore user: 5 users  ");
     		System.out.println("Pending invitations request: 6");
             System.out.println("       Show list of friends: 8");
     		System.out.println("                       Exit: 7");
