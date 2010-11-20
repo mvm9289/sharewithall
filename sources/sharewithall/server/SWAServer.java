@@ -246,7 +246,7 @@ public class SWAServer
             {
                 ArrayList<Object> publicClients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friends[i]), new SWAServerJDBCPredicate("is_public", true));
                 for(int j=0; j<publicClients.size(); ++j)
-                    list += ":" + ((SWAServerJDBCClient) publicClients.get(i)).username + " - " + ((SWAServerJDBCClient) publicClients.get(i)).name;
+                    list += ":" + ((SWAServerJDBCClient) publicClients.get(i)).username + "." + ((SWAServerJDBCClient) publicClients.get(i)).name;
             }
             return list;
                 
@@ -258,7 +258,7 @@ public class SWAServer
         }
     }
     
-    public String ipAndPortRequest(String sessionID, String client) throws Exception
+    public String ipAndPortRequest(String sessionID, String clientName) throws Exception
     {
         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
         boolean exists;
@@ -277,10 +277,40 @@ public class SWAServer
         
         try
         {
-            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", client));
-            SWAServerJDBCClient client_ = (SWAServerJDBCClient)clients.get(0);
-            
-            return (client_.ip.trim() + ":" + String.valueOf(client_.port));
+            //If the clientName is from a client of our own possession.
+            if(clientName.indexOf(".") == -1)
+            {
+                ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", clientName));
+                if(clients.size() == 0)
+                    return "Inexistent Client.";
+                SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
+                
+                return (client.ip.trim() + ":" + String.valueOf(client.port));
+            }
+            //If the clientName is from our friend's clients.
+            else{
+                String stringFriends = showListOfFriends(sessionID);
+                String[] friends = stringFriends.split(":");
+                String friendName = clientName.substring(0, clientName.indexOf("."));
+                System.out.println("FriendName = " + friendName);
+                String clientFriendName = clientName.substring(clientName.indexOf("."), clientName.length());
+                System.out.println("ClientFriendName = " + clientFriendName);
+                for(int i=0; i<friends.length; ++i)
+                {
+                    if(friends[i] == friendName)
+                    {
+                        ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friendName)
+                            , new SWAServerJDBCPredicate("name", clientName)
+                            , new SWAServerJDBCPredicate("name", clientName)
+                                );
+                        if(clients.size() == 0)
+                            throw new Exception("Client " + clientFriendName + " doesn't exists.");
+                        SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
+                        return (client.ip.trim() + ":" + String.valueOf(client.port));
+                    }
+                }
+                throw new Exception("Friend "+ friendName +" doesn't exists.");
+            }
         }
         catch (Exception e)
         {
