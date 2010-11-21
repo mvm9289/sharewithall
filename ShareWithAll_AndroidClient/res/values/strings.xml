@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">ShareWithAll</string>
+<string name="login_message">Enter your user and password to login at ShareWithAll Server:</string>
+<string name="usernameLabel">Username:</string>
+<string name="passwordLabel">Password:</string>
+<string name="loginButtonText">Login</string>
+</resources>
