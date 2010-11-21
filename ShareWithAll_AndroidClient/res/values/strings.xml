@@ -6,4 +6,6 @@
 <string name="usernameLabel">Username:</string>
 <string name="passwordLabel">Password:</string>
 <string name="loginButtonText">Login</string>
+<string name="createAccMenu">Create account</string>
+<string name="optionsMenu">Options</string>
 </resources>

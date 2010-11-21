@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="300dip"
+    android:layout_height="350dip"
     android:gravity="center_horizontal">
     <ImageView
 	    android:layout_width="wrap_content"
@@ -29,25 +29,23 @@
 	    <EditText
 	    	android:id="@+id/usernameEdit"
 	        android:layout_width="200dip"
-	        android:layout_height="wrap_content"
-	        android:layout_toRightOf="@id/usernameLabel"
-	        android:layout_alignTop="@id/usernameLabel"
+	        android:layout_height="45dip"
+	        android:layout_below="@id/usernameLabel"
 	        android:layout_marginLeft="10dip"
 	        android:background="@android:drawable/editbox_background"/>
 	    <TextView
 	    	android:id="@+id/passwordLabel"
 	    	android:layout_width="wrap_content"
 	    	android:layout_height="wrap_content"
-	        android:layout_below="@id/usernameLabel"
-	        android:layout_alignRight="@id/usernameLabel"
+	        android:layout_below="@id/usernameEdit"
+	        android:layout_alignLeft="@id/usernameLabel"
 	        android:layout_marginTop="15dip"
 	    	android:text="@string/passwordLabel"/>
 	    <EditText
 	    	android:id="@+id/passwordEdit"
 	        android:layout_width="200dip"
-	        android:layout_height="wrap_content"
-	        android:layout_toRightOf="@id/passwordLabel"
-	        android:layout_alignTop="@id/passwordLabel"
+	        android:layout_height="45dip"
+	        android:layout_below="@id/passwordLabel"
 	        android:layout_alignLeft="@id/usernameEdit"
 	        android:background="@android:drawable/editbox_background"
 	        android:inputType="textPassword"/>
