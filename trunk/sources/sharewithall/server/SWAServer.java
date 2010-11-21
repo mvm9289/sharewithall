@@ -34,7 +34,8 @@ public class SWAServer
     private static final int STATUS_FRIEND = 1;
     private static final int STATUS_IGNORE_USER = 0;
     
-    SWAServerSockets socketsModule;
+    @SuppressWarnings("unused")
+    private static SWAServerSockets socketsModule;
     
     public SWAServer(int port)
     {
@@ -501,8 +502,10 @@ public class SWAServer
         else if (args.length == 0) new SWAServer(DEFAULT_SERVER_PORT);
         else
         {
-            System.out.println("\n\tUSAGE:\n\t\tjava sharewithall.server.SWAServer [port]" +
-            		"\n\n\t*Arguments between [] are optional. Default port is 4040.\n");
+            System.out.println(
+                "\n\tUSAGE:\n\t\t" +
+                    "java sharewithall.server.SWAServer [port]" +
+        		"\n\n\t*Arguments between [] are optional. Default port is " + DEFAULT_SERVER_PORT + ".\n");
         }
     }
 
