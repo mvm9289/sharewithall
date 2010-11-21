@@ -18,199 +18,295 @@ import sharewithall.client.sockets.SWAClientSockets;
 public class SWAClient
 {
     
-    private static final String serverIP = "mvm9289.dyndns.org";
-    private static final int serverPort = 4040;
-
-    public static void main(String[] args)
+    private static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
+    private static final int DEFAULT_SERVER_PORT = 4040;
+    
+    private static SWAClientSockets socketsModule;
+    private String sessionID;
+    private String username;
+    private String password;
+    
+    public SWAClient(String serverIP, int serverPort)
     {
-        SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
-        String username, password, friend, sessionID = null;
+        super();
+        socketsModule = new SWAClientSockets(serverIP, serverPort);
+        SWAClientLoop();
+    }
+
+    private void newUserCommand()
+    {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+        
+        if(sessionID != null)
+        {
+            System.out.println("Sorry, you are already logged in.");
+            return;
+        }                   
+        username = sc.next();
+        password = sc.next();
+        try
+        {
+            socketsModule.newUser(username, password);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void loginCommand()
+    {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+        
+        if(sessionID != null)
+        {
+            System.out.println("Sorry, you are already logged in.");
+            return;
+        }
+        username = sc.next();
+        password = sc.next();
+        String name = sc.next();
+        boolean isPublic = sc.nextBoolean();
+        try
+        {
+            sessionID = socketsModule.login(username, password, name, isPublic);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void getOnlineClientsCommand()
+    {
+        String[] clients = null;
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            clients = socketsModule.getOnlineClients(sessionID);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        for(int i=0; i<clients.length; ++i)
+            System.out.println(clients[i]);
+    }
+    
+    private void ipAndPortRequestCommand()
+    {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+
+        String client = sc.next();
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            String[] result = new String[2];
+            result = socketsModule.ipAndPortRequest(sessionID, client);
+            System.out.println(result[0] + ":" + result[1]);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void declareFriendCommand()
+    {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+
+        String friend = sc.next();
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            socketsModule.declareFriend(sessionID, friend);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void ignoreUserCommand()
+    {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+
+        String friend = sc.next();
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            socketsModule.ignoreUser(sessionID, friend);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void pendingInvitationsRequesCommand()
+    {
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            String[] result;
+            result = socketsModule.pendingInvitationsRequest(sessionID);
+            for(int i=0; i<result.length; ++i)
+            {
+                System.out.println(result[i]);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void showListOfFriendsCommand()
+    {
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            String[] result;
+            result = socketsModule.showListOfFriends(sessionID);
+            for(int i=0; i<result.length; ++i)
+            {
+                System.out.println(result[i]);
+            }
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void logoutCommand()
+    {
+        if(sessionID == null) return;
+        try
+        {
+            socketsModule.logout(sessionID);
+            sessionID = null;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void SWAClientLoop()
+    {
         boolean end = false;
         
         while(!end)
         {
-    		System.out.println("Choose your commmand.");
-    		System.out.println("                   New User: 0 username password");
-    		System.out.println("                      Login: 1 username password name { true | false }");
-    		System.out.println("         Get Online Clients: 2");
-    		System.out.println("        IP and port request: 3 client");
-    		System.out.println("             Declare friend: 4 friend");
-    		System.out.println("                Ignore user: 5 users  ");
-    		System.out.println("Pending invitations request: 6");
-            System.out.println("       Show list of friends: 8");
-    		System.out.println("                       Exit: 7");
-    		System.out.println("--------------------------------------------");
+            System.out.println(
+                    "Choose your commmand.\n" +
+                    "                   New User: 0 username password\n" +
+                    "                      Login: 1 username password name { true | false }\n" +
+                    "         Get Online Clients: 2\n" +
+                    "        IP and port request: 3 client\n" +
+                    "             Declare friend: 4 friend\n" +
+                    "                Ignore user: 5 users\n" +
+                    "Pending invitations request: 6\n" +
+                    "       Show list of friends: 7\n" +
+                    "                       Exit: 8\n" +
+                    "--------------------------------------------");
             
-    		Scanner sc = new Scanner(System.in);
-    		sc.useDelimiter("[\\s]");
+            Scanner sc = new Scanner(System.in);
+            sc.useDelimiter("[\\s]");
     
-    		
-    		
-    		int commandIndex = sc.nextInt();
-    		switch(commandIndex)
-    		{
-    		    case 0: //void newUser (String username, String password)
-                    if(sessionID != null)
-                    {
-                        System.out.println("Sorry, you are already logged in.");
-                        break;
-                    }    		        
-                    username = sc.next();
-                    password = sc.next();
-                    try
-                    {
-                        socketsModule.newUser(username, password);
-                    } catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
+            
+            
+            int commandIndex = sc.nextInt();
+            switch(commandIndex)
+            {
+                case 0:
+                    newUserCommand();
                     break;
-                case 1: //String login(String username, String password, String name, boolean isPublic)
-                    if(sessionID != null)
-                    {
-                        System.out.println("Sorry, you are already logged in.");
-                        break;
-                    }
-                    String name;
-                    boolean isPublic;
-                    username = sc.next();
-                    password = sc.next();
-                    name = sc.next();
-                    isPublic = sc.nextBoolean();
-                    try
-                    {
-                        sessionID = socketsModule.login(username, password, name, isPublic);
-                    } catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
+                case 1:
+                    loginCommand();
                     break;
-                case 2: //String[] getOnlineClients(String sessionID) 
-                    String[] clients = null;
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        clients = socketsModule.getOnlineClients(sessionID);
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
-                    for(int i=0; i<clients.length; ++i)
-                        System.out.println(clients[i]);
+                case 2:
+                    getOnlineClientsCommand();
                     break;
-                case 3: //String[] ipAndPortRequest(String sessionID, String client) 
-                    String client = sc.next();
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        String[] result = new String[2];
-                        result = socketsModule.ipAndPortRequest(sessionID, client);
-                        System.out.println(result[0] + ":" + result[1]);
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
+                case 3:
+                    ipAndPortRequestCommand();
                     break;
-                case 4: //void declareFriend(sessionID, friend)
-                    friend = sc.next();
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        socketsModule.declareFriend(sessionID, friend);
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
+                case 4:
+                    declareFriendCommand();
                     break;
-                case 5: //void ignoreUser(String sessionID, String user)
-                    friend = sc.next();
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        socketsModule.ignoreUser(sessionID, friend);
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
+                case 5:
+                    ignoreUserCommand();
                     break;
-                case 6: //String[] pendingInvitationsRequest(String sessionID)
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        String[] result;
-                        result = socketsModule.pendingInvitationsRequest(sessionID);
-                        for(int i=0; i<result.length; ++i)
-                        {
-                            System.out.println(result[i]);
-                        }
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
-                    
+                case 6:
+                    pendingInvitationsRequesCommand();
                     break;
-                case 7: //void logout(String sessionID)
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        socketsModule.logout(sessionID);
-                        sessionID = null;
-                    } catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
+                case 7:
+                    showListOfFriendsCommand();
+                    break;
+                case 8:
+                    logoutCommand();
                     end = true;
-                    break;
-                case 8: //String showListOfFriends(String sessionID)
-                    if(sessionID == null)
-                    {
-                        System.out.println("Sorry, you must be logged in.");
-                        break;
-                    }
-                    try
-                    {
-                        String[] result;
-                        result = socketsModule.showListOfFriends(sessionID);
-                        for(int i=0; i<result.length; ++i)
-                        {
-                            System.out.println(result[i]);
-                        }
-                    } catch (Exception e1)
-                    {
-                        e1.printStackTrace();
-                    }
-                    
                     break;
                 default:
                     System.out.println("Wrong command, try again.");
-    		}
-    		System.out.println("Done!");
+                    break;
+            }
+            System.out.println("Done!");
         }
-
+    }
+    
+    private static void printUsage()
+    {
+        System.out.println(
+            "\n\tUSAGE:\n\t\t" +
+                "java sharewithall.server.SWAClient [serverIP:serverPort]" +
+                "\n\n\t\tor\n\n\t\t" +
+                "java sharewithall.server.SWAClient [serverIP]" +
+            "\n\n\t*Arguments between [] are optional." +
+            "Default server IP and port are " + DEFAULT_SERVER_IP + ":" + DEFAULT_SERVER_PORT + ".\n");
+    }
+    
+    public static void main(String[] args)
+    {
+        if (args.length == 1)
+        {
+            String[] aux = args[0].split(":");
+            if (aux.length == 1) new SWAClient(aux[0], DEFAULT_SERVER_PORT);
+            else if (aux.length == 2) new SWAClient(aux[0], Integer.valueOf(aux[1]).intValue());
+            else printUsage();
+        }
+        else if (args.length == 0) new SWAClient(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
+        else printUsage();
     }
 
 }
