@@ -188,6 +188,11 @@ public class SWAClient
     
     private void showListOfFriendsCommand()
     {
+        Scanner sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
+        
+        int property = sc.nextInt();
+        
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
@@ -196,7 +201,7 @@ public class SWAClient
         try
         {
             String[] result;
-            result = socketsModule.showListOfFriends(sessionID);
+            result = socketsModule.showListOfFriends(sessionID, property);
             for(int i=0; i<result.length; ++i)
             {
                 System.out.println(result[i]);
@@ -310,3 +315,4 @@ public class SWAClient
     }
 
 }
+

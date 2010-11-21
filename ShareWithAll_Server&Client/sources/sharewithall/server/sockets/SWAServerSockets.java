@@ -67,7 +67,7 @@ public class SWAServerSockets extends Thread
         private static final int UPDATE_TIMESTAMP = 7;
         private static final int IGNORE_USER = 8;
         private static final int PENDING_INVITATIONS_REQUEST = 9;
-        private static final int SHOW_LIST_OF_FRIENDS = 10;
+        private static final int GET_LIST_OF_FRIENDS = 10;
         private static final int RETURN_VALUE = 0;
         private static final int EXCEPTION = -1;
         
@@ -127,8 +127,8 @@ public class SWAServerSockets extends Thread
                         case PENDING_INVITATIONS_REQUEST:
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.pendingInvitationsRequest(petition[1]));
                             break;
-                        case SHOW_LIST_OF_FRIENDS:
-                            out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.showListOfFriends(petition[1]));
+                        case GET_LIST_OF_FRIENDS:
+                            out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.getListOfFriends(petition[1], Integer.valueOf(petition[2])));
                             break;
                         default:
                             //TODO: informar error?
@@ -162,3 +162,4 @@ public class SWAServerSockets extends Thread
     }
 
 }
+

@@ -27,7 +27,7 @@ public class SWAClientSockets
     private static final int UPDATE_TIMESTAMP = 7;
     private static final int IGNORE_USER = 8;
     private static final int PENDING_INVITATIONS_REQUEST = 9;
-    private static final int SHOW_LIST_OF_FRIENDS = 10;
+    private static final int GET_LIST_OF_FRIENDS = 10;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     
@@ -216,14 +216,14 @@ public class SWAClientSockets
          throw new Exception(response[1]);
      }
 
-     public String[] showListOfFriends(String sessionID) throws Exception
+     public String[] showListOfFriends(String sessionID, int property) throws Exception
      {
          Object[] streams = new Object[2];
          getServerStreams(streams);
          DataInputStream in = (DataInputStream)streams[0];
          DataOutputStream out = (DataOutputStream)streams[1];
          
-         out.writeUTF(String.valueOf(SHOW_LIST_OF_FRIENDS) + ";" + sessionID);
+         out.writeUTF(String.valueOf(GET_LIST_OF_FRIENDS) + ";" + sessionID + ";" + String.valueOf(property));
          String[] response = in.readUTF().split(";");
          clientSocket.close();
          
@@ -240,5 +240,11 @@ public class SWAClientSockets
          
          throw new Exception(response[1]);
      }
+
+    public void sendURL(String sessionID, String ip, int port, String url)
+    {
+        
+    }
      
 }
+
