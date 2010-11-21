@@ -33,6 +33,10 @@ public class SWAServer
     private static final int DEFAULT_SERVER_PORT = 4040;
     private static final int STATUS_FRIEND = 1;
     private static final int STATUS_IGNORE_USER = 0;
+    private static final int PROPERTY_FRIENDS = 0;
+    private static final int PROPERTY_DECLARED_FRIEND = 1;
+    private static final int PROPERTY_EXPECTING = 2;
+    private static final int PROPERTY_IGNORED = 3;
     
     @SuppressWarnings("unused")
     private static SWAServerSockets socketsModule;
@@ -278,6 +282,7 @@ public class SWAServer
         try
         {
             //If the clientName is from a client of our own possession.
+            //TODO: Don't allow user names to be registered with a '.'.
             if(clientName.indexOf(".") == -1)
             {
                 ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", clientName));
@@ -414,8 +419,8 @@ public class SWAServer
     }
 
     
-     public String pendingInvitationsRequest(String sessionID) throws Exception
-     {
+    public String pendingInvitationsRequest(String sessionID) throws Exception
+    {
          SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
          SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
 
@@ -452,10 +457,10 @@ public class SWAServer
              System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
              throw new Exception("Server error");
          }
-     }
+    }
      
-     public String showListOfFriends(String sessionID) throws Exception
-     {
+    private String showListOfFriends(String sessionID) throws Exception
+    {
          SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
          SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
 
@@ -493,7 +498,73 @@ public class SWAServer
              System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
              throw new Exception("Server error");
          }
-     }     
+    }     
+    
+    public String getListOfFriends(String sessionID, int property) throws Exception
+    {
+         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
+         SWAServerJDBCDBFriends DBFriends = new SWAServerJDBCDBFriends();
+
+         try
+         {
+             boolean exists = DBClients.exists_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             if (!exists) throw new Exception("Invalid session");
+             
+             ArrayList<Object> listaCliente = DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID));
+             SWAServerJDBCClient client = (SWAServerJDBCClient) listaCliente.get(0);
+             
+             if(property == PROPERTY_FRIENDS)
+                 return showListOfFriends(sessionID);
+             
+             ArrayList<Object> relations = new ArrayList<Object>();
+             if(property == PROPERTY_DECLARED_FRIEND)
+             {
+                 relations = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username)
+                         , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
+                 for(int i=relations.size()-1; i >= 0; --i)
+                 {
+                     String otherUser = ((SWAServerJDBCFriends) relations.get(i)).user2;
+                     if(DBFriends.exists_gen(new SWAServerJDBCPredicate("user1", otherUser)
+                             , new SWAServerJDBCPredicate("user2", client.username)
+                             , new SWAServerJDBCPredicate("status", STATUS_FRIEND)))
+                         relations.remove(i);
+                 }
+             }
+             else if(property == PROPERTY_EXPECTING)
+             {
+                 relations = DBFriends.select_gen(new SWAServerJDBCPredicate("user2", client.username)
+                         , new SWAServerJDBCPredicate("status", STATUS_FRIEND));
+                 for(int i=relations.size()-1; i >= 0; --i)
+                 {
+                     String otherUser = ((SWAServerJDBCFriends) relations.get(i)).user1;
+                     if(DBFriends.exists_gen(new SWAServerJDBCPredicate("user2", otherUser)
+                             , new SWAServerJDBCPredicate("user1", client.username)
+                             , new SWAServerJDBCPredicate("status", STATUS_FRIEND)))
+                         relations.remove(i);
+                 }
+             }
+             else if(property == PROPERTY_IGNORED)
+             {
+                 relations = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username)
+                 , new SWAServerJDBCPredicate("status", STATUS_IGNORE_USER));
+             }
+                 
+             if(relations.size() == 0)
+                 return "";
+             
+             String result = ((SWAServerJDBCFriends) relations.get(0)).user2;
+             for(int i=1; i<relations.size(); ++i)
+                 result += ":" + ((SWAServerJDBCFriends) relations.get(i)).user2;
+             
+             return result;
+             
+         }
+         catch (Exception e)
+         {
+             System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+             throw new Exception("Server error");
+         }
+    }
     
     public static void main(String[] args)
     {
@@ -508,4 +579,3 @@ public class SWAServer
         }
     }
 
-}
