@@ -126,13 +126,12 @@ public class SWAServer
         String session_id = sha256(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         try
         {
-            ArrayList<Object> clientes = DBClients.select_gen(new SWAServerJDBCPredicate("ip", ip));
-            int port = FIRST_CLIENT_PORT + clientes.size(); 
+            ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("ip", ip));
+            int port = FIRST_CLIENT_PORT + clients.size(); 
             Timestamp last_time = new Timestamp((new Date()).getTime());
             
             // TODO: Comprobar unicidad de (username, name)
             
-            System.out.println("ip: " + ip + ", port: " + port);
             SWAServerJDBCClient cl = new SWAServerJDBCClient(ip, port, name, isPublic, last_time, username, session_id);
             DBClients.insert_obj(cl);
             DBClients.commit();
