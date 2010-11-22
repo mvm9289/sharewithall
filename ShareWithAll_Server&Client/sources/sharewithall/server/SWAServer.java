@@ -578,4 +578,5 @@ public class SWAServer
         		"\n\n\t*Arguments between [] are optional. Default port is " + DEFAULT_SERVER_PORT + ".\n");
         }
     }
+}
 
