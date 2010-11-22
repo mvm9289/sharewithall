@@ -25,19 +25,19 @@ public class SWAClient
     private String sessionID;
     private String username;
     private String password;
+    private Scanner sc;
     
     public SWAClient(String serverIP, int serverPort)
     {
         super();
         socketsModule = new SWAClientSockets(serverIP, serverPort);
+        sc = new Scanner(System.in);
+        sc.useDelimiter("[\\s]");
         SWAClientLoop();
     }
 
     private void newUserCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-        
         if(sessionID != null)
         {
             System.out.println("Sorry, you are already logged in.");
@@ -57,9 +57,6 @@ public class SWAClient
     
     private void loginCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-        
         if(sessionID != null)
         {
             System.out.println("Sorry, you are already logged in.");
@@ -101,9 +98,6 @@ public class SWAClient
     
     private void ipAndPortRequestCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-
         String client = sc.next();
         if(sessionID == null)
         {
@@ -124,9 +118,6 @@ public class SWAClient
     
     private void declareFriendCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-
         String friend = sc.next();
         if(sessionID == null)
         {
@@ -145,9 +136,6 @@ public class SWAClient
     
     private void ignoreUserCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-
         String friend = sc.next();
         if(sessionID == null)
         {
@@ -188,9 +176,6 @@ public class SWAClient
     
     private void showListOfFriendsCommand()
     {
-        Scanner sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
-        
         int property = sc.nextInt();
         
         if(sessionID == null)
@@ -245,11 +230,6 @@ public class SWAClient
                     "       Show list of friends: 7\n" +
                     "                       Exit: 8\n" +
                     "--------------------------------------------");
-            
-            Scanner sc = new Scanner(System.in);
-            sc.useDelimiter("[\\s]");
-    
-            
             
             int commandIndex = sc.nextInt();
             switch(commandIndex)
