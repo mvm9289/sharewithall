@@ -8,4 +8,5 @@
 <string name="loginButtonText">Login</string>
 <string name="createAccMenu">Create account</string>
 <string name="optionsMenu">Options</string>
+<string name="preferences">SWAPreferences</string>
 </resources>
