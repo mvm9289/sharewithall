@@ -288,7 +288,9 @@ public class SWAServer
             //If the clientName is from a client of our own possession.
             if(clientName.indexOf("-") == -1)
             {
-                ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", clientName));
+            	String username = ((SWAServerJDBCClient) (DBClients.select_gen(new SWAServerJDBCPredicate("session_id", sessionID))).get(0)).username;
+                ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", username)
+                		, new SWAServerJDBCPredicate("name", clientName));
                 if(clients.size() == 0)
                     return "Inexistent Client.";
                 SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
@@ -329,6 +331,7 @@ public class SWAServer
     
     private boolean friendMatch(String friendName, String DBNameComplete) {
     	String DBName = DBNameComplete.substring(0, DBNameComplete.indexOf(" "));
+    	System.out.println("DBName:"+DBName+".");
 		return friendName == DBName;
 	}
 
