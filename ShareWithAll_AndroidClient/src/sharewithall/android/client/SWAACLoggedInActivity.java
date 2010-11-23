@@ -1,6 +1,7 @@
 package sharewithall.android.client;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -9,11 +10,13 @@ public class SWAACLoggedInActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setContentView(R.layout.swaac_loggedinactivity);
-    	
-    	Bundle data = getIntent().getExtras();
-    	String username = data.getString("username");
-    	String password = data.getString("password");
+
+    	String swaprefs = getResources().getString(R.string.preferences);
+    	SharedPreferences preferences = getSharedPreferences(swaprefs, MODE_PRIVATE);
+    	String username = preferences.getString("username", "null");
+    	String password = preferences.getString("password", "null");
+    	String sessionID = preferences.getString("sessionID", "null");
     	TextView loggedInTextview = (TextView) findViewById(R.id.loggedInTextview);
-    	loggedInTextview.setText("Username: " + username + " Password: " + password);
+    	loggedInTextview.setText("Username: " + username + " Password: " + password + " SessionID: " + sessionID);
     }
 }
