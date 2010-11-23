@@ -9,4 +9,12 @@
 <string name="createAccMenu">Create account</string>
 <string name="optionsMenu">Options</string>
 <string name="preferences">SWAPreferences</string>
+<string name="createButtonText">Create account</string>
+<string name="retryPassword">Re-enter the password:</string>
+<string name="create_message">Enter an user and password to create a new account:</string>
+<string name="userAndPassMinimum">Username and password must have 6 characters as minimum.</string>
+<string name="logginInMessage">Loggin in...</string>
+<string name="passwordsNotMatch">Entered passwords do not match.</string>
+<string name="creatingAccMessage">Creating account...</string>
+<string name="createdSuccessful">Account created successfuly.</string>
 </resources>

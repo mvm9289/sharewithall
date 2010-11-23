@@ -2,9 +2,12 @@ package sharewithall.android.client;
 
 import sharewithall.client.sockets.SWAClientSockets;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -14,7 +17,10 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-public class SWAACMainActivity extends Activity {
+public class SWAACMainActivity extends Activity
+{
+    ProgressDialog progressDialog;
+    ProgressThread progressThread;
     
     private void setDefaultPreferences()
     {
@@ -25,7 +31,7 @@ public class SWAACMainActivity extends Activity {
     	editor.putBoolean("autoLogin", false);
     	editor.putString("serverIP", "mvm9289.dyndns.org");
     	editor.putInt("serverPort", 4040);
-    	editor.putString("deviceName", "default-device");
+    	editor.putString("deviceName", "Android-Device");
     	editor.putBoolean("isPublic", false);
     	editor.commit();
     }
@@ -37,9 +43,15 @@ public class SWAACMainActivity extends Activity {
 		finish();
     }
     
+    private void toCreateAccActivity()
+    {
+    	Intent intent = new Intent().setClass(this, SWAACCreateAccActivity.class);
+		startActivity(intent);
+    }
+    
     private void printMessage(String message)
     {
-    	Toast.makeText(SWAACMainActivity.this, message, Toast.LENGTH_SHORT).show();
+    	Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
     }
 
     private void setUsernameEdit(String username)
@@ -66,10 +78,10 @@ public class SWAACMainActivity extends Activity {
 		return passwordEdit.getText().toString();
     }
     
-    private boolean login(String username, String password)
+    private void login(String username, String password)
     {
 		if (username.length() < 6 || password.length() < 6)
-			printMessage("Username and password must have 6 characters as minimum");
+			printMessage(getResources().getString(R.string.userAndPassMinimum));
 		else
 		{
 			String swaprefs = getResources().getString(R.string.preferences);
@@ -79,30 +91,22 @@ public class SWAACMainActivity extends Activity {
 	    	editor.putString("password", password);
 	    	editor.commit();
 	    	
-	    	String serverIP = preferences.getString("serverIP", "mvm9289.dyndns.org")/*"87.221.160.129"*/;
-	    	int serverPort = preferences.getInt("serverPort", 4040);
-	    	SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
-	    	
-	    	String deviceName = preferences.getString("deviceName", "default-device");
-	    	boolean isPublic = preferences.getBoolean("isPublic", false);
-	    	String sessionID = null;
-			try
-			{
-				sessionID = socketsModule.login(username, password, deviceName, isPublic);
-			}
-			catch (Exception e)
-			{
-				printMessage("Error: " + e.getMessage());
-				return false;
-			}
-	    	
-	    	editor.putBoolean("loggedIn", true);
-	    	editor.putString("sessionID", sessionID);
-	    	editor.commit();
-			return true;
+	    	progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.logginInMessage), true);
+	    	progressThread = new ProgressThread(handler);
+	    	progressThread.start();
 		}
-		
-		return false;
+    }
+    
+    private void logged(String sessionID)
+    {
+    	progressDialog.dismiss();
+		String swaprefs = getResources().getString(R.string.preferences);
+    	SharedPreferences preferences = getSharedPreferences(swaprefs, MODE_PRIVATE);
+    	SharedPreferences.Editor editor = preferences.edit();
+    	editor.putBoolean("loggedIn", true);
+    	editor.putString("sessionID", sessionID);
+    	editor.commit();
+    	toNextActivity();
     }
     
     private void executeThis()
@@ -113,10 +117,7 @@ public class SWAACMainActivity extends Activity {
     	String username = preferences.getString("username", null);
     	String password = preferences.getString("password", null);
     	if (preferences.getBoolean("autoLogin", false) && username != null && password != null)
-    	{
-    		if (login(username, password)) toNextActivity();
-    		else printMessage("Error: Couldn't connect to SWAServer.");
-    	}
+    		login(username, password);
     	else
     	{
     		if (username != null) setUsernameEdit(username);
@@ -132,8 +133,7 @@ public class SWAACMainActivity extends Activity {
         loginButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (login(getUsernameEdit(), getPasswordEdit()))
-					toNextActivity();
+				login(getUsernameEdit(), getPasswordEdit());
 			}
 		});
     }
@@ -166,7 +166,7 @@ public class SWAACMainActivity extends Activity {
         switch (item.getItemId())
         {
 	        case R.id.createAccMenu:
-	        	printMessage("Create account");
+	        	toCreateAccActivity();
 	            return true;
 	        case R.id.optionsMenu:
 	        	printMessage("Options");
@@ -174,6 +174,63 @@ public class SWAACMainActivity extends Activity {
 	        default:
 	            return super.onOptionsItemSelected(item);
         }
+    }
+    
+    
+    
+    final Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            progressDialog.dismiss();
+            if (msg.getData().getBoolean("exception"))
+            	printMessage("Error: " + msg.getData().getString("message"));
+            else logged(msg.getData().getString("sessionID"));
+        }
+    };
+    
+    private class ProgressThread extends Thread
+    {
+    	Handler handler;
+       
+        ProgressThread(Handler handler)
+        {
+        	this.handler = handler;
+        }
+       
+        public void run()
+        {
+        	String swaprefs = getResources().getString(R.string.preferences);
+        	SharedPreferences preferences = getSharedPreferences(swaprefs, MODE_PRIVATE);
+    		String serverIP = preferences.getString("serverIP", "mvm9289.dyndns.org");
+        	int serverPort = preferences.getInt("serverPort", 4040);
+        	SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
+        	
+        	String username = preferences.getString("username", null);
+        	String password = preferences.getString("password", null);
+        	String deviceName = preferences.getString("deviceName", "default-device");
+        	boolean isPublic = preferences.getBoolean("isPublic", false);
+        	
+        	String sessionID = null;
+    		try
+    		{
+    			sessionID = socketsModule.login(username, password, deviceName, isPublic);
+    			Bundle b = new Bundle();
+    			b.putBoolean("exception", false);
+    			b.putString("sessionID", sessionID);
+    			Message msg = handler.obtainMessage();
+    			msg.setData(b);
+    			handler.sendMessage(msg);
+    		}
+    		catch (Exception e)
+    		{
+    			Bundle b = new Bundle();
+    			b.putBoolean("exception", true);
+    			b.putString("message", e.getMessage());
+    			Message msg = handler.obtainMessage();
+    			msg.setData(b);
+    			handler.sendMessage(msg);
+    		}
+        }
+        
     }
     
 }
