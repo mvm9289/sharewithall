@@ -332,7 +332,8 @@ public class SWAServer
     private boolean friendMatch(String friendName, String DBNameComplete) {
     	String DBName = DBNameComplete.substring(0, DBNameComplete.indexOf(" "));
     	System.out.println("DBName:"+DBName+".");
-		return friendName == DBName;
+    	System.out.println("friendName:"+friendName+".");
+		return friendName.equals(DBName);
 	}
 
 	public void declareFriend(String sessionID, String friend) throws Exception
