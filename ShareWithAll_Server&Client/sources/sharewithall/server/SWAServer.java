@@ -220,7 +220,7 @@ public class SWAServer
                 throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
             JDBCClient client = (JDBCClient) clients.get(0);
             
-            if (requester != friendName) {
+            if (!requester.equals(friendName)) {
                 JDBCDBFriends DBFriends = new JDBCDBFriends();
                 boolean exists1 = DBFriends.exists_gen(new JDBCPredicate("user1", requester), new JDBCPredicate("user2", friendName),
                   new JDBCPredicate("status", STATUS_FRIEND));
@@ -248,7 +248,7 @@ public class SWAServer
         JDBCClient client = (JDBCClient) clients.get(0);
         String user2 = client.username;
         
-        if (user1 != user2) {
+        if (!user1.equals(user2)) {
             JDBCDBFriends DBFriends = new JDBCDBFriends();
             boolean exists1 = DBFriends.exists_gen(new JDBCPredicate("user1", user1), new JDBCPredicate("user2", user2), new JDBCPredicate("status", STATUS_FRIEND));
             boolean exists2 = DBFriends.exists_gen(new JDBCPredicate("user1", user2), new JDBCPredicate("user2", user1), new JDBCPredicate("status", STATUS_FRIEND));
@@ -272,7 +272,7 @@ public class SWAServer
         boolean friendExists = DBUsers.exists_gen(new JDBCPredicate("username", friend));
         if (!friendExists) throw new Exception("Friend doesn't exist");
         
-        if(client.username == friend)
+        if(client.username.equals(friend))
             throw new Exception("You can't be your own friend");
         
         boolean isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", client.username), new JDBCPredicate("user2", friend)
@@ -301,7 +301,7 @@ public class SWAServer
         boolean userExists = DBUsers.exists_gen(new JDBCPredicate("username", user));
         if (!userExists) throw new Exception("User doesn't exist");
         
-        if(client.username == user)
+        if(client.username.equals(user))
             throw new Exception("You can't ignore yourself");
         
         boolean isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", client.username), new JDBCPredicate("user2", user)
