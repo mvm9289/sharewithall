@@ -3,7 +3,12 @@
  */
 package sharewithall.client;
 
+import java.io.File;
+import java.net.URL;
 import java.util.Scanner;
+
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicMatch;
 
 import sharewithall.client.sockets.SWAClientSockets;
 
@@ -32,7 +37,8 @@ public class SWAClient
         super();
         socketsModule = new SWAClientSockets(serverIP, serverPort);
         sc = new Scanner(System.in);
-        sc.useDelimiter("[\\s]");
+        //Esto me daba problemas para leer, lo he comentado (alex)
+        //sc.useDelimiter("[\\s]");
         SWAClientLoop();
     }
 
@@ -205,6 +211,116 @@ public class SWAClient
         {
             socketsModule.logout(sessionID);
             sessionID = null;
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void sendURLCommand()
+    {
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        
+        String url = sc.next();
+        String username = sc.next();
+        String client = sc.next();
+        
+        try
+        {
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
+            socketsModule.sendURL(username, res[0], Integer.parseInt(res[1]), url);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void sendTextCommand()
+    {
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        
+        String text = sc.next();
+        String username = sc.next();
+        String client = sc.next();
+        
+        try
+        {
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
+            socketsModule.sendText(username, res[0], Integer.parseInt(res[1]), text);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+    
+    private void sendFileCommand()
+    {
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        
+        String path = sc.next();
+        String username = sc.next();
+        String client = sc.next();
+        
+        try
+        {
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
+            socketsModule.sendFile(username, res[0], Integer.parseInt(res[1]), path);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    private void receiveURL(String username, String client, String url)
+    {
+        boolean ok = false;
+        java.awt.Desktop desktop = null;
+        if (java.awt.Desktop.isDesktopSupported() ) {
+            desktop = java.awt.Desktop.getDesktop();
+            ok = desktop.isSupported(java.awt.Desktop.Action.BROWSE);
+        }
+
+        System.out.println("[" + username + "#" + client + "] has sent you the URL '" + url + "'");
+        if (ok) {
+            System.out.println("Trying to open it in your default browser...");
+            try {
+                java.net.URI uri = new java.net.URI( url );
+                desktop.browse( uri );
+            }
+            catch ( Exception e ) {
+                e.printStackTrace();
+            }
+        }
+        else System.out.println("Cannot open it in your default browser");
+    }
+    
+    private void receiveText(String username, String client, String text)
+    {
+        System.out.println("[" + username + "#" + client + "] says: " + text);
+    }
+    
+    private void receiveFile(String username, String client, String file)
+    {
+        try {
+            File f = new File(file);
+            MagicMatch match = Magic.getMagicMatch(f, true);
+            System.out.println("[" + username + "#" + client + "] has sent you the file '" + file + "' with type '" + match.print() + "'");
         }
         catch (Exception e)
         {

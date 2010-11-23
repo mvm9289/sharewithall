@@ -58,7 +58,7 @@ public class SWAClientSockets
         {
             System.out.println("Exception: " + e.getMessage());
             clientSocket.close();
-            throw new Exception("Can not open a connection with server.");
+            throw new Exception("Cannot open a connection with server.");
         }
         
         streams[0] = in;
@@ -245,6 +245,13 @@ public class SWAClientSockets
     {
         
     }
-     
+    public void sendText(String sessionID, String ip, int port, String text)
+    {
+        
+    }
+    public void sendFile(String sessionID, String ip, int port, String path)
+    {
+        
+    }
 }
 
