@@ -232,7 +232,7 @@ public class SWAClientSockets
              if(response.length == 1)
              {
                  String[] result = new String[1];
-                 result[0] = "Your list of friends is empty."; 
+                 result[0] = "There aren't users with this property."; 
                  return result;
              }
              else

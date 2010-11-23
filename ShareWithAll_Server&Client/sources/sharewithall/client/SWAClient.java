@@ -227,7 +227,7 @@ public class SWAClient
                     "             Declare friend: 4 friend\n" +
                     "                Ignore user: 5 users\n" +
                     "Pending invitations request: 6\n" +
-                    "       Show list of friends: 7\n" +
+                    "       Show list of friends: 7 property\n" +
                     "                       Exit: 8\n" +
                     "--------------------------------------------");
             

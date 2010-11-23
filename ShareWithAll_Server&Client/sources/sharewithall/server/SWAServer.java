@@ -88,6 +88,10 @@ public class SWAServer
             DBUsers.close();
             throw new Exception("This username already exists");
         }
+        if (username.contains("-")) {
+        	DBUsers.close();
+            throw new Exception("This username contains illegal characters: '-'.");
+        }
 
         try
         {
@@ -250,7 +254,7 @@ public class SWAServer
             {
                 ArrayList<Object> publicClients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friends[i]), new SWAServerJDBCPredicate("is_public", true));
                 for(int j=0; j<publicClients.size(); ++j)
-                    list += ":" + ((SWAServerJDBCClient) publicClients.get(i)).username + "." + ((SWAServerJDBCClient) publicClients.get(i)).name;
+                    list += ":" + ((SWAServerJDBCClient) publicClients.get(i)).username + "-" + ((SWAServerJDBCClient) publicClients.get(i)).name;
             }
             return list;
                 
@@ -282,8 +286,7 @@ public class SWAServer
         try
         {
             //If the clientName is from a client of our own possession.
-            //TODO: Don't allow user names to be registered with a '.'.
-            if(clientName.indexOf(".") == -1)
+            if(clientName.indexOf("-") == -1)
             {
                 ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", clientName));
                 if(clients.size() == 0)
@@ -296,9 +299,9 @@ public class SWAServer
             else{
                 String stringFriends = showListOfFriends(sessionID);
                 String[] friends = stringFriends.split(":");
-                String friendName = clientName.substring(0, clientName.indexOf("."));
+                String friendName = clientName.substring(0, clientName.indexOf("-"));
                 System.out.println("FriendName = " + friendName);
-                String clientFriendName = clientName.substring(clientName.indexOf("."), clientName.length());
+                String clientFriendName = clientName.substring(clientName.indexOf("-"), clientName.length());
                 System.out.println("ClientFriendName = " + clientFriendName);
                 for(int i=0; i<friends.length; ++i)
                 {
@@ -529,6 +532,15 @@ public class SWAServer
                              , new SWAServerJDBCPredicate("status", STATUS_FRIEND)))
                          relations.remove(i);
                  }
+                 
+                 if(relations.size() == 0)
+                     return "";
+                 
+                 String result = ((SWAServerJDBCFriends) relations.get(0)).user2;
+                 for(int i=1; i<relations.size(); ++i)
+                     result += ":" + ((SWAServerJDBCFriends) relations.get(i)).user2;
+                 
+                 return result;
              }
              else if(property == PROPERTY_EXPECTING)
              {
@@ -542,22 +554,31 @@ public class SWAServer
                              , new SWAServerJDBCPredicate("status", STATUS_FRIEND)))
                          relations.remove(i);
                  }
+                 
+                 if(relations.size() == 0)
+                     return "";
+                 
+                 String result = ((SWAServerJDBCFriends) relations.get(0)).user1;
+                 for(int i=1; i<relations.size(); ++i)
+                     result += ":" + ((SWAServerJDBCFriends) relations.get(i)).user1;
+                 
+                 return result;
              }
              else if(property == PROPERTY_IGNORED)
              {
                  relations = DBFriends.select_gen(new SWAServerJDBCPredicate("user1", client.username)
                  , new SWAServerJDBCPredicate("status", STATUS_IGNORE_USER));
-             }
                  
-             if(relations.size() == 0)
-                 return "";
-             
-             String result = ((SWAServerJDBCFriends) relations.get(0)).user2;
-             for(int i=1; i<relations.size(); ++i)
-                 result += ":" + ((SWAServerJDBCFriends) relations.get(i)).user2;
-             
-             return result;
-             
+                 if(relations.size() == 0)
+                     return "";
+                 
+                 String result = ((SWAServerJDBCFriends) relations.get(0)).user2;
+                 for(int i=1; i<relations.size(); ++i)
+                     result += ":" + ((SWAServerJDBCFriends) relations.get(i)).user2;
+                 
+                 return result;
+             }
+             throw new Exception("Wrong property identifier.");
          }
          catch (Exception e)
          {
