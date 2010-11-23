@@ -11,18 +11,18 @@ package sharewithall.server.jdbc;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCUser
+public class JDBCUser
 {
     
     String username;
     String password;
     
-    public SWAServerJDBCUser()
+    public JDBCUser()
     {
         super();
     }
 
-    public SWAServerJDBCUser(String username, String password)
+    public JDBCUser(String username, String password)
     {
         super();
         this.username = username;

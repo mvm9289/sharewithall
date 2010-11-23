@@ -11,14 +11,14 @@ package sharewithall.server.jdbc;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCPredicate
+public class JDBCPredicate
 {
     
     public String key;
     public Object value;
     public String operator; // EQ, NEQ, GT, LT, GE, LE
 
-    public SWAServerJDBCPredicate(String key, Object value)
+    public JDBCPredicate(String key, Object value)
     {
         super();
         this.key = key;
@@ -26,7 +26,7 @@ public class SWAServerJDBCPredicate
         this.operator = "=";
     }
     
-    public SWAServerJDBCPredicate(String key, Object value, String operator)
+    public JDBCPredicate(String key, Object value, String operator)
     {
         super();
         this.key = key;

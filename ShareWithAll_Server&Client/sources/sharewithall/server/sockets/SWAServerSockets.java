@@ -68,6 +68,7 @@ public class SWAServerSockets extends Thread
         private static final int IGNORE_USER = 8;
         private static final int PENDING_INVITATIONS_REQUEST = 9;
         private static final int GET_LIST_OF_FRIENDS = 10;
+        private static final int CLIENT_NAME_REQUEST = 11;
         private static final int RETURN_VALUE = 0;
         private static final int EXCEPTION = -1;
         
@@ -130,13 +131,17 @@ public class SWAServerSockets extends Thread
                         case GET_LIST_OF_FRIENDS:
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.getListOfFriends(petition[1], Integer.valueOf(petition[2])));
                             break;
+                        case CLIENT_NAME_REQUEST:
+                            out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.clientNameRequest(petition[1], petition[2], Integer.valueOf(petition[3])));
+                            break;
                         default:
                         	throw new Exception("Wrong instruction identifier.");
                     }
                 }
                 catch (Exception e)
                 {
-                    out.writeUTF(String.valueOf(EXCEPTION) + ";" + e.getMessage());
+                    if (e.getClass() == Exception.class) out.writeUTF(String.valueOf(EXCEPTION) + ";" + e.getMessage());
+                    else out.writeUTF(String.valueOf(EXCEPTION) + ";Server Exception");
                 }
             }
             catch (Exception e)
