@@ -5,11 +5,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 
-public class SWAACLoggedInActivity extends Activity {
+public class SWAACLoggedInActivity extends Activity
+{
+	
 	@Override
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
-    	setContentView(R.layout.swaac_loggedinactivity);
+    	setContentView(R.layout.swaac_loggedin);
 
     	String swaprefs = getResources().getString(R.string.preferences);
     	SharedPreferences preferences = getSharedPreferences(swaprefs, MODE_PRIVATE);
@@ -19,4 +21,5 @@ public class SWAACLoggedInActivity extends Activity {
     	TextView loggedInTextview = (TextView) findViewById(R.id.loggedInTextview);
     	loggedInTextview.setText("Username: " + username + " Password: " + password + " SessionID: " + sessionID);
     }
+	
 }
