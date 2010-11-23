@@ -299,27 +299,19 @@ public class SWAServer
             }
             //If the clientName is from our friend's clients.
             else{
-                String stringFriends = showListOfFriends(sessionID);
-                String[] friends = stringFriends.split(":");
                 String friendName = clientName.substring(0, clientName.indexOf("-"));
                 System.out.println("FriendName = " + friendName);
                 String clientFriendName = clientName.substring(clientName.indexOf("-") + 1, clientName.length());
                 System.out.println("ClientFriendName = " + clientFriendName);
-                for(int i=0; i<friends.length; ++i)
-                {
-                    if(friendMatch(friendName, friends[i]))
-                    {
-                        ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friendName)
-                            , new SWAServerJDBCPredicate("name", clientName)
-                            , new SWAServerJDBCPredicate("name", clientName)
-                                );
-                        if(clients.size() == 0)
-                            throw new Exception("Client " + clientFriendName + " doesn't exists.");
-                        SWAServerJDBCClient client = (SWAServerJDBCClient)clients.get(0);
-                        return (client.ip.trim() + ":" + String.valueOf(client.port));
-                    }
-                }
-                throw new Exception("Friend "+ friendName +" doesn't exists.");
+
+                ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("name", clientFriendName)
+                		, new SWAServerJDBCPredicate("username", friendName));
+                if(clients.size() == 0)
+                    throw new Exception("Client " + clientFriendName + " doesn't exists.");
+                SWAServerJDBCClient client = (SWAServerJDBCClient) clients.get(0);
+                return (client.ip.trim() + ":" + String.valueOf(client.port));
+
+
             }
         }
         catch (Exception e)
@@ -328,14 +320,6 @@ public class SWAServer
             throw new Exception("Server error");
         }
     }
-    
-    private boolean friendMatch(String friendName, String DBNameComplete) {
-    	String DBName = DBNameComplete.substring(0, DBNameComplete.indexOf(" "));
-    	System.out.println("DBName:"+DBName+".");
-    	System.out.println("friendName:"+friendName+".");
-    	System.out.println("friendMatch result: "+friendName.equals(DBName)+".");
-		return friendName.equals(DBName);
-	}
 
 	public void declareFriend(String sessionID, String friend) throws Exception
     {
