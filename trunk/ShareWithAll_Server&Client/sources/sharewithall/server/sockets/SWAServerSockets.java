@@ -131,8 +131,7 @@ public class SWAServerSockets extends Thread
                             out.writeUTF(String.valueOf(RETURN_VALUE) + ";" + server.getListOfFriends(petition[1], Integer.valueOf(petition[2])));
                             break;
                         default:
-                            //TODO: informar error?
-                            break;
+                        	throw new Exception("Wrong instruction identifier.");
                     }
                 }
                 catch (Exception e)
