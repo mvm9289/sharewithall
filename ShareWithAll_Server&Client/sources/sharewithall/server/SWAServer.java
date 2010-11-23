@@ -129,7 +129,7 @@ public class SWAServer
         }
         
         if (!exists) throw new Exception("The username/password combination is not correct");
-        
+        exists = false;
         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
         String session_id = sha256(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         try
@@ -137,12 +137,13 @@ public class SWAServer
             ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("ip", ip));
             int port = FIRST_CLIENT_PORT + clients.size(); 
             Timestamp last_time = new Timestamp((new Date()).getTime());
-            
-            // TODO: Comprobar unicidad de (username, name)
-            
-            SWAServerJDBCClient cl = new SWAServerJDBCClient(ip, port, name, isPublic, last_time, username, session_id);
-            DBClients.insert_obj(cl);
-            DBClients.commit();
+
+            if (!DBClients.exists_key(name, username)) {
+                SWAServerJDBCClient cl = new SWAServerJDBCClient(ip, port, name, isPublic, last_time, username, session_id);
+                DBClients.insert_obj(cl);
+                DBClients.commit();
+            }
+            else exists = true;
         }
         catch (Exception e)
         {
@@ -152,6 +153,8 @@ public class SWAServer
         finally {
             DBClients.close();
         }
+        
+        if (exists) throw new Exception("A client with the same name for the user already exists");
         
         return session_id;
     }
