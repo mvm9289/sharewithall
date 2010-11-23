@@ -28,6 +28,7 @@ public class SWAClientSockets
     private static final int IGNORE_USER = 8;
     private static final int PENDING_INVITATIONS_REQUEST = 9;
     private static final int GET_LIST_OF_FRIENDS = 10;
+    private static final int CLIENT_NAME_REQUEST = 11;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     
@@ -93,7 +94,7 @@ public class SWAClientSockets
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
-        
+
         throw new Exception(response[1]);
     }
     
@@ -142,6 +143,23 @@ public class SWAClientSockets
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return response[1].split(":");
+            
+        throw new Exception(response[1]);
+    }
+    
+    public String clientNameRequest(String sessionID, String ip, int port) throws Exception
+    {
+        Object[] streams = new Object[2];
+        getServerStreams(streams);
+        DataInputStream in = (DataInputStream)streams[0];
+        DataOutputStream out = (DataOutputStream)streams[1];
+        
+        out.writeUTF(String.valueOf(CLIENT_NAME_REQUEST) + ";" + sessionID + ";" + ip + ";" + port);
+        String[] response = in.readUTF().split(";");
+        clientSocket.close();
+        
+        int responseCode = Integer.valueOf(response[0]).intValue();
+        if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
             
         throw new Exception(response[1]);
     }

@@ -13,7 +13,7 @@ import java.sql.Timestamp;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCClient
+public class JDBCClient
 {
     
     public String ip;
@@ -24,12 +24,12 @@ public class SWAServerJDBCClient
     public String username;
     public String session_id;
     
-    public SWAServerJDBCClient()
+    public JDBCClient()
     {
         super();
     }
     
-    public SWAServerJDBCClient(String ip, int port, String name, boolean is_public, Timestamp last_time, String username, String session_id)
+    public JDBCClient(String ip, int port, String name, boolean is_public, Timestamp last_time, String username, String session_id)
     {
         super();
         this.ip = ip;

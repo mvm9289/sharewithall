@@ -14,10 +14,10 @@ import java.sql.SQLException;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCDBFriends extends SWAServerJDBCDBTable
+public class JDBCDBFriends extends JDBCDBTable
 {
 
-    public SWAServerJDBCDBFriends()
+    public JDBCDBFriends()
     {
         super();
     }
@@ -31,9 +31,9 @@ public class SWAServerJDBCDBFriends extends SWAServerJDBCDBTable
     @Override
     protected Object read_obj(ResultSet rs)
     {
-        SWAServerJDBCFriends ret = null;
+        JDBCFriends ret = null;
         try {
-            ret = new SWAServerJDBCFriends(rs.getString("user1"), rs.getString("user2"), rs.getInt("status"));
+            ret = new JDBCFriends(rs.getString("user1"), rs.getString("user2"), rs.getInt("status"));
         } catch (SQLException ex) {
             System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
@@ -41,14 +41,14 @@ public class SWAServerJDBCDBFriends extends SWAServerJDBCDBTable
     }
 
     @Override
-    protected SWAServerJDBCPredicate[] write_obj(Object obj)
+    protected JDBCPredicate[] write_obj(Object obj)
     {
-        SWAServerJDBCFriends f = (SWAServerJDBCFriends) obj;
+        JDBCFriends f = (JDBCFriends) obj;
 
-        SWAServerJDBCPredicate[] res = new SWAServerJDBCPredicate[3];
-        res[0] = new SWAServerJDBCPredicate("user1", f.user1);
-        res[1] = new SWAServerJDBCPredicate("user2", f.user2);
-        res[2] = new SWAServerJDBCPredicate("status", f.status);
+        JDBCPredicate[] res = new JDBCPredicate[3];
+        res[0] = new JDBCPredicate("user1", f.user1);
+        res[1] = new JDBCPredicate("user2", f.user2);
+        res[2] = new JDBCPredicate("status", f.status);
         
         return res;
     }

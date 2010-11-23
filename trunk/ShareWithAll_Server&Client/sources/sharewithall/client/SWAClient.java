@@ -121,7 +121,25 @@ public class SWAClient
             e.printStackTrace();
         }
     }
-    
+    private void clientNameRequestCommand()
+    {
+        String ip = sc.next();
+        int port = sc.nextInt();
+        if(sessionID == null)
+        {
+            System.out.println("Sorry, you must be logged in.");
+            return;
+        }
+        try
+        {
+            String result = socketsModule.clientNameRequest(sessionID, ip, port);
+            System.out.println(result);
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
     private void declareFriendCommand()
     {
         String friend = sc.next();
@@ -344,7 +362,8 @@ public class SWAClient
                     "                Ignore user: 5 users\n" +
                     "Pending invitations request: 6\n" +
                     "       Show list of friends: 7 property\n" +
-                    "                       Exit: 8\n" +
+                    "        Client name request: 8 ip port\n" +
+                    "                       Exit: 9\n" +
                     "--------------------------------------------");
             
             int commandIndex = sc.nextInt();
@@ -375,9 +394,13 @@ public class SWAClient
                     showListOfFriendsCommand();
                     break;
                 case 8:
+                    clientNameRequestCommand();
+                    break;
+                case 9:
                     logoutCommand();
                     end = true;
                     break;
+
                 default:
                     System.out.println("Wrong command, try again.");
                     break;

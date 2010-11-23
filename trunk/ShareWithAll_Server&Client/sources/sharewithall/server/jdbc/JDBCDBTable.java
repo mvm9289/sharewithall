@@ -21,7 +21,7 @@ import java.util.Properties;
  *
  * Creation date: Oct 31, 2010
  */
-public abstract class SWAServerJDBCDBTable
+public abstract class JDBCDBTable
 {
     
     protected Connection c;
@@ -30,9 +30,9 @@ public abstract class SWAServerJDBCDBTable
 
     protected abstract String get_name();
     protected abstract Object read_obj(ResultSet rs);
-    protected abstract SWAServerJDBCPredicate[] write_obj(Object obj);
+    protected abstract JDBCPredicate[] write_obj(Object obj);
 
-    public SWAServerJDBCDBTable()
+    public JDBCDBTable()
     {
         try {
             FileInputStream in = new FileInputStream("connection.properties");
@@ -102,7 +102,7 @@ public abstract class SWAServerJDBCDBTable
         return ret;
     }
 
-    public ArrayList<Object> select_gen(SWAServerJDBCPredicate... preds) throws Exception
+    public ArrayList<Object> select_gen(JDBCPredicate... preds) throws Exception
     {
         PreparedStatement ps = prepare_gen("SELECT * FROM " + get_name(), preds);
         fill_prepared(ps, preds);
@@ -116,7 +116,7 @@ public abstract class SWAServerJDBCDBTable
 
     public int insert_obj(Object obj) throws SQLException
     {
-        SWAServerJDBCPredicate[] preds = write_obj(obj);
+        JDBCPredicate[] preds = write_obj(obj);
         String keys = "";
         String values = "";
         for (int i = 0; i < preds.length; ++i)
@@ -141,8 +141,8 @@ public abstract class SWAServerJDBCDBTable
 
     public int update_obj(Object obj) throws Exception
     {
-        SWAServerJDBCPredicate[] preds = write_obj(obj);
-        SWAServerJDBCPredicate[] keys = new SWAServerJDBCPredicate[pkeys.size()];
+        JDBCPredicate[] preds = write_obj(obj);
+        JDBCPredicate[] keys = new JDBCPredicate[pkeys.size()];
         String sql = "UPDATE " + get_name() + " SET ";
         int count = 0;
         for (int i = 0; i < preds.length; ++i)
@@ -158,7 +158,7 @@ public abstract class SWAServerJDBCDBTable
         }
         if (count != pkeys.size()) throw new Exception("Not all primary keys are set");
         PreparedStatement ps = prepare_gen(sql, keys);
-        SWAServerJDBCPredicate[] all = new SWAServerJDBCPredicate[preds.length + keys.length];
+        JDBCPredicate[] all = new JDBCPredicate[preds.length + keys.length];
         for (int i = 0; i < preds.length; ++i)
             all[i] = preds[i];
         for (int i = preds.length; i < all.length; ++i)
@@ -178,7 +178,7 @@ public abstract class SWAServerJDBCDBTable
         return res;
     }
     
-    public int delete_gen(SWAServerJDBCPredicate... preds) throws Exception
+    public int delete_gen(JDBCPredicate... preds) throws Exception
     {
         PreparedStatement ps = prepare_gen("DELETE FROM " + get_name(), preds);
         fill_prepared(ps, preds);
@@ -187,7 +187,7 @@ public abstract class SWAServerJDBCDBTable
         return res;
     }
 
-    public boolean exists_gen(SWAServerJDBCPredicate... preds) throws Exception
+    public boolean exists_gen(JDBCPredicate... preds) throws Exception
     {
         PreparedStatement ps = prepare_gen("SELECT EXISTS(SELECT * FROM " + get_name(), preds, ") AS exists");
         fill_prepared(ps, preds);
@@ -218,7 +218,7 @@ public abstract class SWAServerJDBCDBTable
         c.rollback();
     }
     
-    protected void fill_prepared(PreparedStatement ps, SWAServerJDBCPredicate[] preds) throws SQLException
+    protected void fill_prepared(PreparedStatement ps, JDBCPredicate[] preds) throws SQLException
     {
         int count = 1;
         for (int i = 0; i < preds.length; ++i)
@@ -256,12 +256,12 @@ public abstract class SWAServerJDBCDBTable
         return ps;
     }
 
-    protected PreparedStatement prepare_gen(String sql, SWAServerJDBCPredicate[] preds) throws Exception
+    protected PreparedStatement prepare_gen(String sql, JDBCPredicate[] preds) throws Exception
     {
         return prepare_gen(sql, preds, "");
     }
 
-    protected PreparedStatement prepare_gen(String sql, SWAServerJDBCPredicate[] preds, String after) throws Exception
+    protected PreparedStatement prepare_gen(String sql, JDBCPredicate[] preds, String after) throws Exception
     {
         String cond = " WHERE ";
 

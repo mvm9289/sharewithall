@@ -13,10 +13,10 @@ import java.sql.SQLException;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
+public class JDBCDBUsers extends JDBCDBTable
 {
 
-    public SWAServerJDBCDBUsers()
+    public JDBCDBUsers()
     {
         super();
     }
@@ -30,9 +30,9 @@ public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
     @Override
     protected Object read_obj(ResultSet rs)
     {
-        SWAServerJDBCUser ret = null;
+        JDBCUser ret = null;
         try {
-            ret = new SWAServerJDBCUser(rs.getString("username"), rs.getString("password"));
+            ret = new JDBCUser(rs.getString("username"), rs.getString("password"));
         } catch (SQLException ex) {
             System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
@@ -40,13 +40,13 @@ public class SWAServerJDBCDBUsers extends SWAServerJDBCDBTable
     }
 
     @Override
-    protected SWAServerJDBCPredicate[] write_obj(Object obj)
+    protected JDBCPredicate[] write_obj(Object obj)
     {
-        SWAServerJDBCUser u = (SWAServerJDBCUser) obj;
+        JDBCUser u = (JDBCUser) obj;
 
-        SWAServerJDBCPredicate[] res = new SWAServerJDBCPredicate[2];
-        res[0] = new SWAServerJDBCPredicate("username", u.username);
-        res[1] = new SWAServerJDBCPredicate("password", u.password);
+        JDBCPredicate[] res = new JDBCPredicate[2];
+        res[0] = new JDBCPredicate("username", u.username);
+        res[1] = new JDBCPredicate("password", u.password);
 
         return res;
     }

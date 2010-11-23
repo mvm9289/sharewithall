@@ -11,19 +11,19 @@ package sharewithall.server.jdbc;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAServerJDBCFriends
+public class JDBCFriends
 {
     
     public String user1;
     public String user2;
     public int status;
     
-    public SWAServerJDBCFriends()
+    public JDBCFriends()
     {
         super();
     }
 
-    public SWAServerJDBCFriends(String user1, String user2, int status)
+    public JDBCFriends(String user1, String user2, int status)
     {
         super();
         this.user1 = user1;
