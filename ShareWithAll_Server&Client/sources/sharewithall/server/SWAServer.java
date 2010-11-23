@@ -333,6 +333,7 @@ public class SWAServer
     	String DBName = DBNameComplete.substring(0, DBNameComplete.indexOf(" "));
     	System.out.println("DBName:"+DBName+".");
     	System.out.println("friendName:"+friendName+".");
+    	System.out.println("friendMatch result: "+friendName.equals(DBName)+".");
 		return friendName.equals(DBName);
 	}
 
