@@ -301,11 +301,11 @@ public class SWAServer
                 String[] friends = stringFriends.split(":");
                 String friendName = clientName.substring(0, clientName.indexOf("-"));
                 System.out.println("FriendName = " + friendName);
-                String clientFriendName = clientName.substring(clientName.indexOf("-"), clientName.length());
+                String clientFriendName = clientName.substring(clientName.indexOf("-") + 1, clientName.length());
                 System.out.println("ClientFriendName = " + clientFriendName);
                 for(int i=0; i<friends.length; ++i)
                 {
-                    if(friends[i] == friendName)
+                    if(friendMatch(friendName, friends[i]))
                     {
                         ArrayList<Object> clients = DBClients.select_gen(new SWAServerJDBCPredicate("username", friendName)
                             , new SWAServerJDBCPredicate("name", clientName)
@@ -327,7 +327,12 @@ public class SWAServer
         }
     }
     
-    public void declareFriend(String sessionID, String friend) throws Exception
+    private boolean friendMatch(String friendName, String DBNameComplete) {
+    	String DBName = DBNameComplete.substring(0, DBNameComplete.indexOf(" "));
+		return friendName == DBName;
+	}
+
+	public void declareFriend(String sessionID, String friend) throws Exception
     {
         SWAServerJDBCDBUsers DBUsers = new SWAServerJDBCDBUsers();
         SWAServerJDBCDBClients DBClients = new SWAServerJDBCDBClients();
