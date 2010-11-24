@@ -1,6 +1,3 @@
-/**
- * 
- */
 package sharewithall.server.sockets;
 
 import java.io.DataInputStream;

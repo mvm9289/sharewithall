@@ -1,6 +1,4 @@
-/**
- * 
- */
+
 package sharewithall.client;
 
 import java.io.File;
@@ -73,7 +71,8 @@ public class SWAClient
     public SWAClient(String serverIP, int serverPort)
     {
         super();
-        socketsModule = new SWAClientSockets(serverIP, serverPort);
+        socketsModule = new SWAClientSockets(serverIP, serverPort, this);
+        socketsModule.start();
         sc = new Scanner(System.in);
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
@@ -345,7 +344,7 @@ public class SWAClient
         }
     }
 
-    private void receiveURL(String username, String client, String url)
+    public void receiveURL(String username, String client, String url)
     {
         boolean ok = false;
         java.awt.Desktop desktop = null;
@@ -368,12 +367,12 @@ public class SWAClient
         else System.out.println("Cannot open it in your default browser");
     }
     
-    private void receiveText(String username, String client, String text)
+    public void receiveText(String username, String client, String text)
     {
         System.out.println("[" + username + "#" + client + "] says: " + text);
     }
     
-    private void receiveFile(String username, String client, String file)
+    public void receiveFile(String username, String client, String file)
     {
         try {
             File f = new File(file);
@@ -394,16 +393,19 @@ public class SWAClient
         {
             System.out.println(
                     "Choose your commmand.\n" +
-                    "                   New User: 0 username password\n" +
-                    "                      Login: 1 username password name { true | false }\n" +
-                    "         Get Online Clients: 2\n" +
-                    "        IP and port request: 3 client\n" +
-                    "             Declare friend: 4 friend\n" +
-                    "                Ignore user: 5 users\n" +
-                    "Pending invitations request: 6\n" +
-                    "       Show list of friends: 7 property\n" +
-                    "        Client name request: 8 ip port\n" +
-                    "                       Exit: 9\n" +
+                    "                   New User: 00 username password\n" +
+                    "                      Login: 01 username password name { true | false }\n" +
+                    "         Get Online Clients: 02\n" +
+                    "        IP and port request: 03 client\n" +
+                    "             Declare friend: 04 friend\n" +
+                    "                Ignore user: 05 users\n" +
+                    "Pending invitations request: 06\n" +
+                    "       Show list of friends: 07 property\n" +
+                    "        Client name request: 08 ip port\n" +
+                    "                   Send URL: 10 URL username client\n" +
+                    "                  Send Text: 11 text username client\n" +
+                    "                  Send File: 12 path username client\n" +
+                    "                       Exit: 09\n" +
                     "--------------------------------------------");
             
             int commandIndex = sc.nextInt();
@@ -440,7 +442,15 @@ public class SWAClient
                     logoutCommand();
                     end = true;
                     break;
-
+                case 10:
+                    sendURLCommand();
+                    break;
+                case 11:
+                    sendTextCommand();
+                    break;
+                case 12:
+                    sendFileCommand();
+                    break;
                 default:
                     System.out.println("Wrong command, try again.");
                     break;
