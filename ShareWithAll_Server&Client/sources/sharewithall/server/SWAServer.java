@@ -202,8 +202,9 @@ public class SWAServer
         	String username = ((JDBCClient) (DBClients.select_gen(new JDBCPredicate("session_id", sessionID))).get(0)).username;
             clients = DBClients.select_gen(new JDBCPredicate("username", username)
             		, new JDBCPredicate("name", clientName));
-            if(clients.size() == 0)
-                return "Inexistent Client.";
+            
+            if(clients.size() == 0) throw new Exception("Inexistent client");
+            
             JDBCClient client = (JDBCClient)clients.get(0);
             DBClients.close();
             return (client.ip.trim() + ":" + String.valueOf(client.port));
