@@ -76,13 +76,15 @@ public abstract class JDBCDBTable
     protected void finalize() throws Throwable
     {
         try {
-            if (c != null) c.close();
+            if (c != null) {
+                System.out.println("Dead DB connection closed");
+                c.close();
+            }
         }
         catch (Exception ex) {
             System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
         finally {
-            System.out.println("Dead DB connection closed");
             super.finalize();
         }
     }

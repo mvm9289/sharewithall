@@ -45,6 +45,7 @@ public class SWAServer
     {
         super();
         socketsModule = new SWAServerSockets(port, this);
+        socketsModule.start();
     }
     
     private String bytes_to_hex(byte[] b)
