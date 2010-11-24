@@ -324,7 +324,7 @@ public class SWAServer
         
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         JDBCClient client = (JDBCClient)clients.get(0);
-        client.last_time = new Timestamp((Calendar.getInstance()).getTime().getTime());
+        client.last_time = new Timestamp((new Date()).getTime());
         DBClients.update_obj(client);
         DBClients.commit();
         DBClients.close();

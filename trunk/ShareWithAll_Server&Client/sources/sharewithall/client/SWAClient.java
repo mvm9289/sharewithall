@@ -4,12 +4,16 @@
 package sharewithall.client;
 
 import java.io.File;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.Scanner;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
 import sharewithall.client.sockets.SWAClientSockets;
+import sharewithall.server.jdbc.JDBCDBClients;
+import sharewithall.server.jdbc.JDBCPredicate;
 
 /**
  * Authors:
@@ -31,6 +35,39 @@ public class SWAClient
     private String password;
     private Scanner sc;
     
+    private class SWAUpdateThread extends Thread
+    {
+        private static final int SLEEP_TIME = 30000;
+        
+        private SWAUpdateThread()
+        {
+            super();
+        }
+        
+        public void run()
+        {
+            while (true) {
+                try
+                {
+                    if (sessionID != null) socketsModule.updateTimestamp(sessionID);
+                }
+                catch (Exception e)
+                {
+                    e.printStackTrace();
+                }
+                
+                Runtime.getRuntime().gc();
+                
+                try {
+                    SWAUpdateThread.sleep(SLEEP_TIME);
+                }
+                catch(InterruptedException e) {
+                    System.out.println("Update thread interrupted");
+                }
+            }
+        }
+    }
+    
     public SWAClient(String serverIP, int serverPort)
     {
         super();
@@ -39,6 +76,8 @@ public class SWAClient
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
         SWAClientLoop();
+        Thread update = new SWAUpdateThread();
+        update.start();
     }
 
     private void newUserCommand()
