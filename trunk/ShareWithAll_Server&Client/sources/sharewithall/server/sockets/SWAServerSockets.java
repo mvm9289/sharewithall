@@ -7,8 +7,12 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Timestamp;
+import java.util.Date;
 
 import sharewithall.server.SWAServer;
+import sharewithall.server.jdbc.JDBCDBClients;
+import sharewithall.server.jdbc.JDBCPredicate;
 
 /**
  * Authors:
@@ -41,6 +45,8 @@ public class SWAServerSockets extends Thread
 
     public void run()
     {
+        new SWACleanerThread();
+        
         while (true)
         {
             try
@@ -51,6 +57,41 @@ public class SWAServerSockets extends Thread
             catch (Exception e)
             {
                 System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            }
+        }
+    }
+    
+    private class SWACleanerThread extends Thread
+    {
+        private SWACleanerThread()
+        {
+            super();
+            run();
+        }
+        
+        public void run()
+        {
+            while (true) {
+                JDBCDBClients clients = new JDBCDBClients();
+                Timestamp last_time = new Timestamp((new Date()).getTime() - 10000);
+                try
+                {
+                    System.out.println(clients.delete_gen(new JDBCPredicate("last_time", last_time, "<")) + " clientes eliminados");
+                    clients.commit();
+                } catch (Exception e1)
+                {
+                    e1.printStackTrace();
+                }
+                clients.close();
+                
+                Runtime.getRuntime().gc();
+                
+                try {
+                    SWACleanerThread.sleep(10000);
+                }
+                catch(InterruptedException e) {
+                    System.out.println("Cleaner thread interrupted");
+                }
             }
         }
     }
