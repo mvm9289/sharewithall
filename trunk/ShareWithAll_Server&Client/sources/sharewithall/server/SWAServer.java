@@ -6,7 +6,6 @@ package sharewithall.server;
 import java.security.MessageDigest;
 import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Random;
 
@@ -103,14 +102,10 @@ public class SWAServer
         int port = FIRST_CLIENT_PORT + clients.size(); 
         Timestamp last_time = new Timestamp((new Date()).getTime());
         
-        exists = DBClients.exists_key(name, username);
-        if (!exists) {
-            JDBCClient cl = new JDBCClient(ip, port, name, isPublic, last_time, username, session_id);
-            DBClients.insert_obj(cl);
-            DBClients.commit();
-        }
+        JDBCClient cl = new JDBCClient(ip, port, name, isPublic, last_time, username, session_id);
+        if (DBClients.update_obj(cl) == 0) DBClients.insert_obj(cl);
+        DBClients.commit();
         DBClients.close();
-        if (exists) throw new Exception("A client with the same name for the user already exists");
         
         return session_id;
     }
