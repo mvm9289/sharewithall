@@ -64,6 +64,9 @@ public class SWAServerSockets extends Thread
     
     private class SWACleanerThread extends Thread
     {
+        private static final int CLEANER_SLEEP_TIME = 30000;
+        private static final int CLIENT_EXP_TIME = 60000;
+        
         private SWACleanerThread()
         {
             super();
@@ -73,21 +76,23 @@ public class SWAServerSockets extends Thread
         {
             while (true) {
                 JDBCDBClients clients = new JDBCDBClients();
-                Timestamp last_time = new Timestamp((new Date()).getTime() - 10000);
-                try
-                {
-                    System.out.println(clients.delete_gen(new JDBCPredicate("last_time", last_time, "<")) + " clientes eliminados");
+                Timestamp last_time = new Timestamp((new Date()).getTime() - CLIENT_EXP_TIME);
+                try {
+                    int nClients = clients.delete_gen(new JDBCPredicate("last_time", last_time, "<"));
                     clients.commit();
-                } catch (Exception e1)
-                {
+                    if (nClients > 0) System.out.println(nClients + " clientes eliminados");
+                }
+                catch (Exception e1) {
                     e1.printStackTrace();
                 }
-                clients.close();
+                finally {
+                    clients.close();
+                }
                 
                 Runtime.getRuntime().gc();
                 
                 try {
-                    SWACleanerThread.sleep(10000);
+                    SWACleanerThread.sleep(CLEANER_SLEEP_TIME);
                 }
                 catch(InterruptedException e) {
                     System.out.println("Cleaner thread interrupted");
