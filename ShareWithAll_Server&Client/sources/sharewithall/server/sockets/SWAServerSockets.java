@@ -35,7 +35,6 @@ public class SWAServerSockets extends Thread
         {
             serverSocket = new ServerSocket(port);
             this.server = server;
-            run();
         }
         catch (Exception e)
         {
@@ -45,14 +44,16 @@ public class SWAServerSockets extends Thread
 
     public void run()
     {
-        new SWACleanerThread();
+        Thread cleaner = new SWACleanerThread();
+        cleaner.start();
         
         while (true)
         {
             try
             {
                 Socket clientSocket = serverSocket.accept();
-                new SWASocketsThread(clientSocket);
+                Thread socket_thread = new SWASocketsThread(clientSocket);
+                socket_thread.start();
             }
             catch (Exception e)
             {
@@ -66,7 +67,6 @@ public class SWAServerSockets extends Thread
         private SWACleanerThread()
         {
             super();
-            run();
         }
         
         public void run()
@@ -119,7 +119,6 @@ public class SWAServerSockets extends Thread
         {
             super();
             this.clientSocket = clientSocket;
-            run();
         }
         
         private void decodeAndProcess()
