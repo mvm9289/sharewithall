@@ -49,7 +49,9 @@ public class SWAClient
             while (true) {
                 try
                 {
-                    if (sessionID != null) socketsModule.updateTimestamp(sessionID);
+                    if (sessionID != null) {
+                        socketsModule.updateTimestamp(sessionID);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -75,9 +77,9 @@ public class SWAClient
         sc = new Scanner(System.in);
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
-        SWAClientLoop();
         Thread update = new SWAUpdateThread();
         update.start();
+        SWAClientLoop();
     }
 
     private void newUserCommand()

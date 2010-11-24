@@ -65,11 +65,11 @@ public abstract class JDBCDBTable
     public void close()
     {
         try {
-            if (c != null) {
+            if (!c.isClosed()) {
                 c.rollback();
                 c.close();
-                c = null;
             }
+            c = null;
         }
         catch (Exception ex) {
             System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
@@ -80,7 +80,7 @@ public abstract class JDBCDBTable
     protected void finalize() throws Throwable
     {
         try {
-            if (c != null) {
+            if (!c.isClosed()) {
                 System.out.println("Dead DB connection closed");
                 close();
             }
