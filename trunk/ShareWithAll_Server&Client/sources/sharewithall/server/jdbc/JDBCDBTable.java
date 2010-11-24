@@ -65,7 +65,7 @@ public abstract class JDBCDBTable
     public void close()
     {
         try {
-            if (!c.isClosed()) {
+            if (c != null && !c.isClosed()) {
                 c.rollback();
                 c.close();
             }
@@ -80,7 +80,7 @@ public abstract class JDBCDBTable
     protected void finalize() throws Throwable
     {
         try {
-            if (!c.isClosed()) {
+            if (c != null && !c.isClosed()) {
                 System.out.println("Dead DB connection closed");
                 close();
             }
