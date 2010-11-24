@@ -82,6 +82,7 @@ public abstract class JDBCDBTable
             System.out.println("Server exception: " + ex.getClass() + ":" + ex.getMessage());
         }
         finally {
+            System.out.println("Dead DB connection closed");
             super.finalize();
         }
     }
