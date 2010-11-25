@@ -53,7 +53,7 @@ public class SWAClientSockets extends Thread
         
         try
         {
-            receiverSocket = new ServerSocket(); //TODO: hace falta el puerto?
+            receiverSocket = new ServerSocket();
         }
         catch (Exception e)
         {
