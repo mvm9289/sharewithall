@@ -71,9 +71,12 @@ public class SWAClient
     public SWAClient(String serverIP, int serverPort)
     {
         super();
-        socketsModule = new SWAClientSockets(serverIP, serverPort, this);
-        socketsModule.start();
         sc = new Scanner(System.in);
+        sc.nextBoolean();
+        socketsModule = new SWAClientSockets(serverIP, serverPort, this);
+        sc.nextBoolean();
+        socketsModule.start();
+        
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
         Thread update = new SWAUpdateThread();
