@@ -130,11 +130,9 @@ public class SWAServerSockets extends Thread
             try
             {
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
-                in.close();
                 
                 try
                 {
@@ -191,11 +189,13 @@ public class SWAServerSockets extends Thread
                 catch (Exception e)
                 {
                     out.writeInt(EXCEPTION);
-                    if (e.getClass() == Exception.class) out.writeUTF(e.getMessage());
-                    else out.writeUTF("Server Exception");
+                    if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
+                    else out.writeObject("Server Exception");
                 }
                 finally {
                     out.flush();
+                    in.read();
+                    in.close();
                     out.close();
                 }
             }
