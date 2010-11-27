@@ -3,8 +3,8 @@
  */
 package sharewithall.client.sockets;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -74,19 +74,11 @@ public abstract class SWAReceiveSockets extends Thread
         {   
             try
             {
-                DataInputStream in = new DataInputStream(clientSocket.getInputStream());
-                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-
-                //TODO: Obtener nombre del cliente que envia y mirar si aceptar o no envios de este individuo
-                
-                String petition = "";
-                char tmp = in.readChar();
-                while (tmp != ';') {
-                    petition += tmp;
-                    tmp = in.readChar();
-                }
-
-                int instruction = Integer.valueOf(petition).intValue();
+                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                out.flush();
+                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+                int instruction = in.readInt();
+                Object[] params = (Object[])in.readObject();
                 
                 try
                 {
