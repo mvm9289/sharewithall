@@ -6,8 +6,8 @@ import java.util.Scanner;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
-
-import sharewithall.client.sockets.SWAClientSockets;
+import sharewithall.client.sockets.SWAReceiveClientSockets;
+import sharewithall.client.sockets.SWASendSockets;
 
 /**
  * Authors:
@@ -23,7 +23,8 @@ public class SWAClient
     private static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
     private static final int DEFAULT_SERVER_PORT = 4040;
     
-    private static SWAClientSockets socketsModule;
+    private static SWASendSockets socketsModule;
+    private static SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
     private String username;
     private String password;
@@ -69,9 +70,8 @@ public class SWAClient
         super();
         sc = new Scanner(System.in);
         sc.nextBoolean();
-        socketsModule = new SWAClientSockets(serverIP, serverPort, this);
+        socketsModule = new SWASendSockets(serverIP, serverPort);
         sc.nextBoolean();
-        socketsModule.start();
         
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
@@ -113,6 +113,11 @@ public class SWAClient
         try
         {
             sessionID = socketsModule.login(username, password, name, isPublic);
+            ////////// HE AÑADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
+            String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
+            int port = Integer.valueOf(myIPandPort[1]).intValue();
+            receiveSocketsModule = new SWAReceiveClientSockets(port, this);
+            receiveSocketsModule.start();
         }
         catch (Exception e)
         {

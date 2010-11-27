@@ -37,7 +37,6 @@ public class SWAServer
     private static final int PROPERTY_EXPECTING = 2;
     private static final int PROPERTY_IGNORED = 3;
     
-    @SuppressWarnings("unused")
     private static SWAServerSockets socketsModule;
     
     public SWAServer(int port)
