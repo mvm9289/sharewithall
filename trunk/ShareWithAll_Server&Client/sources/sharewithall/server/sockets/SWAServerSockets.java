@@ -130,6 +130,7 @@ public class SWAServerSockets extends Thread
             try
             {
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
@@ -141,6 +142,7 @@ public class SWAServerSockets extends Thread
                         case NEW_USER:
                             server.newUser(params);
                             out.writeInt(RETURN_VALUE);
+                            out.writeObject(null);
                             break;
                         case LOGIN:
                             out.writeInt(RETURN_VALUE);
@@ -149,6 +151,7 @@ public class SWAServerSockets extends Thread
                         case LOGOUT:
                             server.logout(params);
                             out.writeInt(RETURN_VALUE);
+                            out.writeObject(null);
                             break;
                         case GET_ONLINE_CLIENTS:
                             out.writeInt(RETURN_VALUE);
@@ -159,16 +162,19 @@ public class SWAServerSockets extends Thread
                             out.writeObject(server.ipAndPortRequest(params));
                             break;
                         case DECLARE_FRIEND:
-                            out.writeInt(RETURN_VALUE);
                             server.declareFriend(params);
+                            out.writeInt(RETURN_VALUE);
+                            out.writeObject(null);
                             break;
                         case IGNORE_USER:
-                            out.writeInt(RETURN_VALUE);
                             server.ignoreUser(params);
+                            out.writeInt(RETURN_VALUE);
+                            out.writeObject(null);
                             break;
                         case UPDATE_TIMESTAMP:
-                            out.writeInt(RETURN_VALUE);
                             server.updateTimestamp(params);
+                            out.writeInt(RETURN_VALUE);
+                            out.writeObject(null);
                             break;
                         case PENDING_INVITATIONS_REQUEST:
                             out.writeInt(RETURN_VALUE);
@@ -194,9 +200,6 @@ public class SWAServerSockets extends Thread
                 }
                 finally {
                     out.flush();
-                    in.read();
-                    in.close();
-                    out.close();
                 }
             }
             catch (Exception e)
