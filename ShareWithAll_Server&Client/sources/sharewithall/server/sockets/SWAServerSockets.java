@@ -134,7 +134,7 @@ public class SWAServerSockets extends Thread
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
-                
+                Object ret;
                 try
                 {
                     switch (instruction)
@@ -145,8 +145,9 @@ public class SWAServerSockets extends Thread
                             out.writeObject(null);
                             break;
                         case LOGIN:
+                            ret = server.login(params, clientSocket.getRemoteSocketAddress().toString());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.login(params, clientSocket.getRemoteSocketAddress().toString()));
+                            out.writeObject(ret);
                             break;
                         case LOGOUT:
                             server.logout(params);
@@ -154,12 +155,14 @@ public class SWAServerSockets extends Thread
                             out.writeObject(null);
                             break;
                         case GET_ONLINE_CLIENTS:
+                            ret = server.getOnlineClients(params);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.getOnlineClients(params));
+                            out.writeObject(ret);
                             break;
                         case IP_AND_PORT_REQUEST:
+                            ret = server.ipAndPortRequest(params);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.ipAndPortRequest(params));
+                            out.writeObject(ret);
                             break;
                         case DECLARE_FRIEND:
                             server.declareFriend(params);
@@ -177,16 +180,19 @@ public class SWAServerSockets extends Thread
                             out.writeObject(null);
                             break;
                         case PENDING_INVITATIONS_REQUEST:
+                            ret = server.pendingInvitationsRequest(params);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.pendingInvitationsRequest(params));
+                            out.writeObject(ret);
                             break;
                         case GET_LIST_OF_FRIENDS:
+                            ret = server.getListOfFriends(params);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.getListOfFriends(params));
+                            out.writeObject(ret);
                             break;
                         case CLIENT_NAME_REQUEST:
+                            ret = server.clientNameRequest(params);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(server.clientNameRequest(params));
+                            out.writeObject(ret);
                             break;
                         default:
                         	throw new Exception("Wrong instruction identifier.");
@@ -197,9 +203,6 @@ public class SWAServerSockets extends Thread
                     out.writeInt(EXCEPTION);
                     if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
                     else out.writeObject("Server Exception");
-                }
-                finally {
-                    out.flush();
                 }
             }
             catch (Exception e)
