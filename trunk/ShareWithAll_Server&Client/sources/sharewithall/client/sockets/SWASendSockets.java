@@ -3,8 +3,13 @@
  */
 package sharewithall.client.sockets;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
@@ -34,9 +39,12 @@ public class SWASendSockets
     private static final int SEND_FILE = 14;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
-    
+    private static final int FILE_BUFFER_SIZE = 4096; 
     private String serverIP;
     private int serverPort;
+    private Socket clientSocket;
+    private ObjectInputStream in;
+    private ObjectOutputStream out;
     
     public SWASendSockets(String serverIP, int serverPort)
     {
@@ -45,278 +53,213 @@ public class SWASendSockets
         this.serverPort = serverPort;
     }
     
-    private void getStreams(Object[] streams, Socket s) throws Exception
+    private void connect(String ip, int port) throws Exception
     {
-        DataInputStream in = null;
-        DataOutputStream out = null;
-        
-        try
-        {
-            in = new DataInputStream(s.getInputStream());
-            out = new DataOutputStream(s.getOutputStream());
-        }
-        catch (Exception e)
-        {
-            System.out.println("Exception: " + e.getMessage());
-            s.close();
-            throw new Exception("Cannot open a connection with server.");
-        }
-        
-        streams[0] = in;
-        streams[1] = out;
+        clientSocket = new Socket(ip, port);
+        in = new ObjectInputStream(clientSocket.getInputStream());
+        out = new ObjectOutputStream(clientSocket.getOutputStream());
     }
     
     public void newUser(String username, String password) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(NEW_USER);
+        out.writeObject(new Object[] {username, password});
         
-        out.writeUTF(String.valueOf(NEW_USER) + ";" + username + ";" + password);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
     public String login(String username, String password, String name, boolean isPublic) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(LOGIN);
+        out.writeObject(new Object[] {username, password, name, isPublic});
         
-        out.writeUTF(String.valueOf(LOGIN) + ";" + username + ";" + password + ";" + name + ";" + String.valueOf(isPublic));
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
+        if (responseCode == RETURN_VALUE) return (String)responseVal;
 
-        throw new Exception(response[1]);
+        throw new Exception((String)responseVal);
     }
     
     public void logout(String sessionID) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(LOGOUT);
+        out.writeObject(new Object[] {sessionID});
         
-        out.writeUTF(String.valueOf(LOGOUT) + ";" + sessionID);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
     public String[] getOnlineClients(String sessionID) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(GET_ONLINE_CLIENTS);
+        out.writeObject(new Object[] {sessionID});
         
-        out.writeUTF(String.valueOf(GET_ONLINE_CLIENTS) + ";" + sessionID);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE) return response[1].split(":");
+        if (responseCode == RETURN_VALUE) return (String[])responseVal;
             
-        throw new Exception(response[1]);
+        throw new Exception((String)responseVal);
     }
     
     public String[] ipAndPortRequest(String sessionID, String client) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(IP_AND_PORT_REQUEST);
+        out.writeObject(new Object[] {sessionID, client});
         
-        out.writeUTF(String.valueOf(IP_AND_PORT_REQUEST) + ";" + sessionID + ";" + client);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE) return response[1].split(":");
+        if (responseCode == RETURN_VALUE) return ((String)responseVal).split(":");
             
-        throw new Exception(response[1]);
+        throw new Exception((String)responseVal);
     }
     
     public String clientNameRequest(String sessionID, String ip, int port) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(CLIENT_NAME_REQUEST);
+        out.writeObject(new Object[] {sessionID, ip, port});
         
-        out.writeUTF(String.valueOf(CLIENT_NAME_REQUEST) + ";" + sessionID + ";" + ip + ";" + port);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
+        if (responseCode == RETURN_VALUE) return (String)responseVal;
             
-        throw new Exception(response[1]);
+        throw new Exception((String)responseVal);
     }
     
     public void declareFriend(String sessionID, String friend) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(DECLARE_FRIEND);
+        out.writeObject(new Object[] {sessionID, friend});
         
-        out.writeUTF(String.valueOf(DECLARE_FRIEND) + ";" + sessionID + ";" + friend);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
 
     public void ignoreUser(String sessionID, String friend) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(IGNORE_USER);
+        out.writeObject(new Object[] {sessionID, friend});
         
-        out.writeUTF(String.valueOf(IGNORE_USER) + ";" + sessionID + ";" + friend);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
     public void updateTimestamp(String sessionID) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(UPDATE_TIMESTAMP);
+        out.writeObject(new Object[] {sessionID});
         
-        out.writeUTF(String.valueOf(UPDATE_TIMESTAMP) + ";" + sessionID);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
     public String[] pendingInvitationsRequest(String sessionID) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(serverIP, serverPort);
+        out.writeInt(PENDING_INVITATIONS_REQUEST);
+        out.writeObject(new Object[] {sessionID});
         
-        out.writeUTF(String.valueOf(PENDING_INVITATIONS_REQUEST) + ";" + sessionID);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE)
-            if(response.length == 1)
-            {
-                String[] result = new String[1];
-                result[0] = "There isn't pending invitations"; 
-                return result;
-            }
-            else
-                return response[1].split(":");
+        if (responseCode == RETURN_VALUE) return (String[])responseVal;
         
-        throw new Exception(response[1]);
+        throw new Exception((String)responseVal);
     }
 
     public String[] showListOfFriends(String sessionID, int property) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(serverIP, serverPort);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
-         
-        out.writeUTF(String.valueOf(GET_LIST_OF_FRIENDS) + ";" + sessionID + ";" + String.valueOf(property));
-        String[] response = in.readUTF().split(";");
-        socket.close();
-         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == RETURN_VALUE)
-            if(response.length == 1)
-            {
-                String[] result = new String[1];
-                result[0] = "There aren't users with this property."; 
-                return result;
-            }
-            else
-                return response[1].split(":");
+        connect(serverIP, serverPort);
+        out.writeInt(GET_LIST_OF_FRIENDS);
+        out.writeObject(new Object[] {sessionID, property});
         
-        throw new Exception(response[1]);
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
+         
+        if (responseCode == RETURN_VALUE) return (String[])responseVal;
+        
+        throw new Exception((String)responseVal);
     }
     
     public void sendURL(String ip, int port, String url) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(ip, port);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(ip, port);
+        out.writeInt(SEND_URL);
+        out.writeUTF(url);
         
-        out.writeUTF(String.valueOf(SEND_URL) + ";" + url);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
     
     public void sendText(String ip, int port, String text) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(ip, port);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(ip, port);
+        out.writeInt(SEND_TEXT);
+        out.writeUTF(text);
         
-        out.writeUTF(String.valueOf(SEND_TEXT) + ";" + text);
-        String[] response = in.readUTF().split(";");
-        socket.close();
-        
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);       
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();
+        clientSocket.close();
+
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);       
     }
     
-    //TODO: enviar archivo como bytes
     public void sendFile(String ip, int port, String path) throws Exception
     {
-        Object[] streams = new Object[2];
-        Socket socket = new Socket(ip, port);
-        getStreams(streams, socket);
-        DataInputStream in = (DataInputStream)streams[0];
-        DataOutputStream out = (DataOutputStream)streams[1];
+        connect(ip, port);
+        File f = new File(path, "r");
+        FileInputStream filein = new FileInputStream(f);
+        byte[] bytes = new byte[FILE_BUFFER_SIZE];
+        int bytesRead;
         
-        out.writeUTF(String.valueOf(SEND_FILE) + ";" + path);
-        String[] response = in.readUTF().split(";");
-        socket.close();
+        out.writeInt(SEND_FILE);
+        out.writeObject(new Object[] {f.getName(), f.length()});
         
-        int responseCode = Integer.valueOf(response[0]).intValue();
-        if (responseCode == EXCEPTION) throw new Exception(response[1]);        
+        while ((bytesRead = filein.read(bytes)) != -1)
+            out.write(bytes, 0, bytesRead);
+        
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();
+        clientSocket.close();
+        
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);        
     }
 }
