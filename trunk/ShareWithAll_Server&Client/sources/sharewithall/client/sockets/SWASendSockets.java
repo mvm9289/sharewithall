@@ -5,11 +5,9 @@ package sharewithall.client.sockets;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 
 /**
@@ -47,6 +45,7 @@ public class SWASendSockets
     
     private String serverIP;
     private int serverPort;
+    private int clientPort = -1;
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
@@ -58,9 +57,14 @@ public class SWASendSockets
         this.serverPort = serverPort;
     }
     
+    public void setClientPort(int port) {
+        this.clientPort = port;
+    }
+    
     private void connect(String ip, int port) throws Exception
     {
-        clientSocket = new Socket(ip, port);
+        if (clientPort == -1) clientSocket = new Socket(ip, port);
+        else clientSocket = new Socket(ip, port, InetAddress.getLocalHost(), clientPort);
         out = new ObjectOutputStream(clientSocket.getOutputStream());
         out.flush();
         in = new ObjectInputStream(clientSocket.getInputStream());
@@ -69,14 +73,9 @@ public class SWASendSockets
     public void newUser(String username, String password) throws Exception
     {
         connect(serverIP, serverPort);
-        /*
-        clientSocket = new Socket(serverIP, serverPort);
-        out = new ObjectOutputStream(clientSocket.getOutputStream());*/
         out.writeInt(NEW_USER);
         out.writeObject(new Object[] {username, password});
-        out.flush();
 
-        in = new ObjectInputStream(clientSocket.getInputStream());
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
 
@@ -92,11 +91,10 @@ public class SWASendSockets
         out.writeObject(new Object[] {username, password, name, isPublic});
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        Object responseVal = in.readObject();
         clientSocket.close();
         
         if (responseCode == RETURN_VALUE) return (String)responseVal;
-
         throw new Exception((String)responseVal);
     }
     
@@ -231,7 +229,7 @@ public class SWASendSockets
     {
         connect(ip, port);
         out.writeInt(SEND_URL);
-        out.writeUTF(url);
+        out.writeObject(new Object[] {url});
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -245,7 +243,7 @@ public class SWASendSockets
     {
         connect(ip, port);
         out.writeInt(SEND_TEXT);
-        out.writeUTF(text);
+        out.writeObject(new Object[] {text});
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
