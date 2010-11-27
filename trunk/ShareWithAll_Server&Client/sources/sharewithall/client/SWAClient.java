@@ -115,6 +115,7 @@ public class SWAClient
             ////////// HE AÑADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
             String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
             int port = Integer.valueOf(myIPandPort[1]).intValue();
+            socketsModule.setClientPort(port + 1000);
             receiveSocketsModule = new SWAReceiveClientSockets(port, this);
             receiveSocketsModule.start();
         }
