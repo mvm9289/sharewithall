@@ -129,8 +129,9 @@ public class SWAServerSockets extends Thread
         {   
             try
             {
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                out.flush();
+                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 
                 int instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
