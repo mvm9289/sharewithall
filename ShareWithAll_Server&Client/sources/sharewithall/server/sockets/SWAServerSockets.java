@@ -202,12 +202,15 @@ public class SWAServerSockets extends Thread
                 {
                     out.writeInt(EXCEPTION);
                     if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
-                    else out.writeObject("Server Exception");
+                    else {
+                        e.printStackTrace();
+                        out.writeObject("Server Exception");
+                    }
                 }
             }
             catch (Exception e)
             {
-                System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+                e.printStackTrace();
             }
         }
         
