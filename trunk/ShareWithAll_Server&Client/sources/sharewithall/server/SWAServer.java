@@ -105,9 +105,9 @@ public class SWAServer
             DBUsers.close();
             throw new Exception("This username already exists");
         }
-        if (username.contains("-")) {
+        if (username.contains(":")) {
         	DBUsers.close();
-            throw new Exception("This username contains illegal characters: '-'.");
+            throw new Exception("This username contains illegal characters: ':'.");
         }
 
         DBUsers.insert_obj(new JDBCUser(username, sha256(password)));
@@ -122,7 +122,7 @@ public class SWAServer
         String name = (String)params[2];
         Boolean isPublic = (Boolean)params[3];
         
-        if (name.contains("-")) throw new Exception("The client name contains illegal characters: '-'.");
+        if (name.contains(":")) throw new Exception("The client name contains illegal characters: ':'.");
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCPredicate p1 = new JDBCPredicate("username", username);
         JDBCPredicate p2 = new JDBCPredicate("password", sha256(password));
@@ -209,7 +209,7 @@ public class SWAServer
         {
             ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
             for(int j=0; j<publicClients.size(); ++j)
-                list.add(((JDBCClient) publicClients.get(i)).username + "-" + ((JDBCClient) publicClients.get(i)).name);
+                list.add(((JDBCClient) publicClients.get(i)).username + ":" + ((JDBCClient) publicClients.get(i)).name);
         }
         
         DBClients.close();
@@ -228,7 +228,7 @@ public class SWAServer
         String requester = ((JDBCClient)clients.get(0)).username;
         
         //If the clientName is from a client of our own possession.
-        if(clientName.indexOf("-") == -1)
+        if(clientName.indexOf(":") == -1)
         {
         	String username = ((JDBCClient) (DBClients.select_gen(new JDBCPredicate("session_id", sessionID))).get(0)).username;
             clients = DBClients.select_gen(new JDBCPredicate("username", username)
@@ -242,9 +242,9 @@ public class SWAServer
         }
         //If the clientName is from our friend's clients.
         else{
-            String friendName = clientName.substring(0, clientName.indexOf("-"));
+            String friendName = clientName.substring(0, clientName.indexOf(":"));
             System.out.println("FriendName = " + friendName);
-            String clientFriendName = clientName.substring(clientName.indexOf("-") + 1, clientName.length());
+            String clientFriendName = clientName.substring(clientName.indexOf(":") + 1, clientName.length());
             System.out.println("ClientFriendName = " + clientFriendName);
 
             clients = DBClients.select_gen(new JDBCPredicate("name", clientFriendName), new JDBCPredicate("username", friendName));
@@ -293,7 +293,7 @@ public class SWAServer
             if (!client.is_public || !exists1 || !exists2) throw new Exception("Cannot access client with ip " + ip + " and port " + port);
         }
             
-        return ((JDBCClient)clients.get(0)).username +  "-" + ((JDBCClient)clients.get(0)).name;
+        return ((JDBCClient)clients.get(0)).username +  ":" + ((JDBCClient)clients.get(0)).name;
     }
 
 	public void declareFriend(Object[] params) throws Exception
