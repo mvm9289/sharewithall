@@ -69,9 +69,8 @@ public class SWAClient
     {
         super();
         sc = new Scanner(System.in);
-        sc.nextBoolean();
+        
         socketsModule = new SWASendSockets(serverIP, serverPort);
-        sc.nextBoolean();
         
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");

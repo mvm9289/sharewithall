@@ -56,8 +56,9 @@ public class SWASendSockets
     private void connect(String ip, int port) throws Exception
     {
         clientSocket = new Socket(ip, port);
-        in = new ObjectInputStream(clientSocket.getInputStream());
         out = new ObjectOutputStream(clientSocket.getOutputStream());
+        out.flush();
+        in = new ObjectInputStream(clientSocket.getInputStream());
     }
     
     public void newUser(String username, String password) throws Exception
