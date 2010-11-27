@@ -63,16 +63,18 @@ public class SWASendSockets
     
     public void newUser(String username, String password) throws Exception
     {
+        connect(serverIP, serverPort);
+        /*
         clientSocket = new Socket(serverIP, serverPort);
-        out = new ObjectOutputStream(clientSocket.getOutputStream());
+        out = new ObjectOutputStream(clientSocket.getOutputStream());*/
         out.writeInt(NEW_USER);
         out.writeObject(new Object[] {username, password});
         out.flush();
-        
+
         in = new ObjectInputStream(clientSocket.getInputStream());
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
-        out.write(1);
+
         clientSocket.close();
         
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
