@@ -91,7 +91,7 @@ public class SWAServer
          }
          DBFriends.close();
 
-         return (String[])(result.toArray());
+         return result.toArray(new String[0]);
     }
     
     public void newUser(Object[] params) throws Exception
@@ -213,7 +213,7 @@ public class SWAServer
         
         DBClients.close();
         
-        return (String[])(list.toArray());
+        return list.toArray(new String[0]);
     }
     
     public String ipAndPortRequest(Object[] params) throws Exception
