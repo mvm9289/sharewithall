@@ -122,6 +122,7 @@ public class SWAServer
         String name = (String)params[2];
         Boolean isPublic = (Boolean)params[3];
         
+        if (name.contains("-")) throw new Exception("The client name contains illegal characters: '-'.");
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCPredicate p1 = new JDBCPredicate("username", username);
         JDBCPredicate p2 = new JDBCPredicate("password", sha256(password));
