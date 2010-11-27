@@ -66,7 +66,9 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(NEW_USER);
         out.writeObject(new Object[] {username, password});
+        out.flush();
         out.close();
+        
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         in.close();

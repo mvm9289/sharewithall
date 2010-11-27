@@ -195,6 +195,7 @@ public class SWAServerSockets extends Thread
                     else out.writeUTF("Server Exception");
                 }
                 finally {
+                    out.flush();
                     out.close();
                 }
             }
