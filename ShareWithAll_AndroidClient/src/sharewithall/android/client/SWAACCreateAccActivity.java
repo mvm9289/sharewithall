@@ -1,9 +1,9 @@
 package sharewithall.android.client;
 
-import sharewithall.client.sockets.SWAClientSockets;
+import sharewithall.android.client.R;
+import sharewithall.android.client.sockets.SWAACSendSockets;
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -17,11 +17,11 @@ public class SWAACCreateAccActivity extends Activity
 {
 
 	ProgressDialog progressDialog;
-	ProgressThread progressThread;
+	SWAACSendSockets sendSockets;
 	
     private void printMessage(String message)
     {
-    	Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    	Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
     
 	private String getUsernameEdit()
@@ -48,9 +48,12 @@ public class SWAACCreateAccActivity extends Activity
     		printMessage(getResources().getString(R.string.passwordsNotMatch));
     	else
     	{
+    		Object[] data = new Object[2];
+    		data[0] = username;
+    		data[1] = password1;
     		progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.creatingAccMessage), true);
-	    	progressThread = new ProgressThread(handler, username, password1);
-	    	progressThread.start();
+	    	sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.NEW_USER, handler, data);
+	    	sendSockets.send();
     	}
     }
     
@@ -90,48 +93,5 @@ public class SWAACCreateAccActivity extends Activity
             else created();
         }
     };
-    
-    private class ProgressThread extends Thread
-    {
-    	Handler handler;
-    	String username;
-    	String password;
-       
-        ProgressThread(Handler handler, String username, String password)
-        {
-        	this.handler = handler;
-        	this.username = username;
-        	this.password = password;
-        }
-       
-        public void run()
-        {
-        	String swaprefs = getResources().getString(R.string.preferences);
-        	SharedPreferences preferences = getSharedPreferences(swaprefs, MODE_PRIVATE);
-    		String serverIP = preferences.getString("serverIP", "mvm9289.dyndns.org");
-        	int serverPort = preferences.getInt("serverPort", 4040);
-        	SWAClientSockets socketsModule = new SWAClientSockets(serverIP, serverPort);
-        	
-    		try
-    		{
-    			socketsModule.newUser(username, password);
-    			Bundle b = new Bundle();
-    			b.putBoolean("exception", false);
-    			Message msg = handler.obtainMessage();
-    			msg.setData(b);
-    			handler.sendMessage(msg);
-    		}
-    		catch (Exception e)
-    		{
-    			Bundle b = new Bundle();
-    			b.putBoolean("exception", true);
-    			b.putString("message", e.getMessage());
-    			Message msg = handler.obtainMessage();
-    			msg.setData(b);
-    			handler.sendMessage(msg);
-    		}
-        }
-        
-    }
     
 }
