@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/clientPrefsCategory">
+    	<EditTextPreference
+    			android:key="deviceNamePref"
+    			android:title="@string/optionDeviceNameTitle"
+    			android:summary="@string/optionDeviceNameSummary"/>
+        <CheckBoxPreference
+                android:key="isPublicPref"
+                android:title="@string/optionDevicePublicTitle"
+                android:summary="@string/optionDevicePublicSummary" />
+    	<EditTextPreference
+    			android:key="usernamePref"
+    			android:title="@string/optionUsernameTitle"
+    			android:summary="@string/optionUsernameSummary"/>
+    	<EditTextPreference
+    			android:key="passwordPref"
+    			android:title="@string/optionPasswordTitle"
+    			android:summary="@string/optionPasswordSummary"
+    			android:dependency="usernamePref"
+    			android:inputType="textPassword"/>
+        <CheckBoxPreference
+                android:key="autologinPref"
+                android:title="@string/optionAutologinTitle"
+                android:summary="@string/optionAutologinSummary"
+    			android:dependency="passwordPref"/>
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/serverPrefsCategory">
+    	<EditTextPreference
+    			android:key="serverIPPref"
+    			android:title="@string/optionServerIPTitle"
+    			android:summary="@string/optionServerIPSummary"/>
+    	<EditTextPreference
+    			android:key="serverPortPref"
+    			android:title="@string/optionServerPortTitle"
+    			android:summary="@string/optionServerPortSummary"/>
+    </PreferenceCategory>
+</PreferenceScreen>
