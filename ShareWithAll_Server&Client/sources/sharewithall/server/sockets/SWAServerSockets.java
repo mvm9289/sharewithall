@@ -145,7 +145,7 @@ public class SWAServerSockets extends Thread
                             out.writeObject(null);
                             break;
                         case LOGIN:
-                            ret = server.login(params, clientSocket.getInetAddress().toString());
+                            ret = server.login(params, clientSocket.getInetAddress().getHostAddress());
                             out.writeInt(RETURN_VALUE);
                             out.writeObject(ret);
                             break;
