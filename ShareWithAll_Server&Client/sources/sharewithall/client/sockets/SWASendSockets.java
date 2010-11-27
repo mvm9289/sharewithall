@@ -39,7 +39,12 @@ public class SWASendSockets
     private static final int SEND_FILE = 14;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
-    private static final int FILE_BUFFER_SIZE = 4096; 
+    public static final int PROPERTY_FRIENDS = 0;
+    public static final int PROPERTY_DECLARED_FRIEND = 1;
+    public static final int PROPERTY_EXPECTING = 2;
+    public static final int PROPERTY_IGNORED = 3;
+    private static final int FILE_BUFFER_SIZE = 4096;
+    
     private String serverIP;
     private int serverPort;
     private Socket clientSocket;
