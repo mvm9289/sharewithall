@@ -2,16 +2,12 @@
 package sharewithall.client;
 
 import java.io.File;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.Scanner;
 
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicMatch;
 
 import sharewithall.client.sockets.SWAClientSockets;
-import sharewithall.server.jdbc.JDBCDBClients;
-import sharewithall.server.jdbc.JDBCPredicate;
 
 /**
  * Authors:
@@ -293,7 +289,7 @@ public class SWAClient
         try
         {
             String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendURL(username, res[0], Integer.parseInt(res[1]), url);
+            socketsModule.sendURL(res[0], Integer.parseInt(res[1]), url);
         }
         catch (Exception e)
         {
@@ -316,7 +312,7 @@ public class SWAClient
         try
         {
             String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendText(username, res[0], Integer.parseInt(res[1]), text);
+            socketsModule.sendText(res[0], Integer.parseInt(res[1]), text);
         }
         catch (Exception e)
         {
@@ -339,7 +335,7 @@ public class SWAClient
         try
         {
             String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendFile(username, res[0], Integer.parseInt(res[1]), path);
+            socketsModule.sendFile(res[0], Integer.parseInt(res[1]), path);
         }
         catch (Exception e)
         {

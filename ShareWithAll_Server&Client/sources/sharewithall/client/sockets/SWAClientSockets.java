@@ -38,7 +38,6 @@ public class SWAClientSockets extends Thread
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     
-    private Socket clientSocket;
     private String serverIP;
     private int serverPort;
     private ServerSocket receiverSocket;
@@ -95,24 +94,30 @@ public class SWAClientSockets extends Thread
             {
                 DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                String[] petition = in.readUTF().split(";");
-                
-                int instruction = Integer.valueOf(petition[0]).intValue();
+
+                String petition = "";
+                char tmp = in.readChar();
+                while (tmp != ';') {
+                    petition += tmp;
+                    tmp = in.readChar();
+                }
+
+                int instruction = Integer.valueOf(petition).intValue();
                 
                 try
                 {
                     switch (instruction)
                     {
                         case SEND_URL:
-                            client.receiveURL(petition[1], petition[2], petition[3]);
+                            receiveURL();
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case SEND_TEXT:
-                            client.receiveText(petition[1], petition[2], petition[3]);
+                            receiveText();
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case SEND_FILE:
-                            client.receiveFile(petition[1], petition[2], petition[3]);
+                            receiveFile();
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         default:
@@ -131,6 +136,26 @@ public class SWAClientSockets extends Thread
             }
         }
         
+        private void receiveFile() throws Exception
+        {
+            //Obtener nombre del cliente que envia
+            //Leer archivo (bytes)
+            //Llamar a la funcion externa
+        }
+        private void receiveURL() throws Exception
+        {
+            //Obtener nombre del cliente que envia
+            //Leer url (texto utf)
+            //Llamar a la funcion externa
+        }
+        
+        private void receiveText() throws Exception
+        {
+            //Obtener nombre del cliente que envia
+            //Leer texto utf
+            //Llamar a la funcion externa
+        }
+        
         public void run()
         {
             try
@@ -146,45 +171,20 @@ public class SWAClientSockets extends Thread
         
     }
     
-    private void getServerStreams(Object[] streams) throws Exception
+    private void getStreams(Object[] streams, Socket s) throws Exception
     {
         DataInputStream in = null;
         DataOutputStream out = null;
         
-        clientSocket = new Socket(serverIP, serverPort);
-        
         try
         {
-            in = new DataInputStream(clientSocket.getInputStream());
-            out = new DataOutputStream(clientSocket.getOutputStream());
+            in = new DataInputStream(s.getInputStream());
+            out = new DataOutputStream(s.getOutputStream());
         }
         catch (Exception e)
         {
             System.out.println("Exception: " + e.getMessage());
-            clientSocket.close();
-            throw new Exception("Cannot open a connection with server.");
-        }
-        
-        streams[0] = in;
-        streams[1] = out;
-    }
-    
-    private void getClientStreams(Object[] streams, String ip, int port) throws Exception
-    {
-        DataInputStream in = null;
-        DataOutputStream out = null;
-        
-        clientSocket = new Socket(ip, port);
-        
-        try
-        {
-            in = new DataInputStream(clientSocket.getInputStream());
-            out = new DataOutputStream(clientSocket.getOutputStream());
-        }
-        catch (Exception e)
-        {
-            System.out.println("Exception: " + e.getMessage());
-            clientSocket.close();
+            s.close();
             throw new Exception("Cannot open a connection with server.");
         }
         
@@ -195,13 +195,14 @@ public class SWAClientSockets extends Thread
     public void newUser(String username, String password) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(NEW_USER) + ";" + username + ";" + password);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
@@ -210,13 +211,14 @@ public class SWAClientSockets extends Thread
     public String login(String username, String password, String name, boolean isPublic) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(LOGIN) + ";" + username + ";" + password + ";" + name + ";" + String.valueOf(isPublic));
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
@@ -227,13 +229,14 @@ public class SWAClientSockets extends Thread
     public void logout(String sessionID) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(LOGOUT) + ";" + sessionID);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
@@ -242,13 +245,14 @@ public class SWAClientSockets extends Thread
     public String[] getOnlineClients(String sessionID) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(GET_ONLINE_CLIENTS) + ";" + sessionID);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return response[1].split(":");
@@ -259,13 +263,14 @@ public class SWAClientSockets extends Thread
     public String[] ipAndPortRequest(String sessionID, String client) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(IP_AND_PORT_REQUEST) + ";" + sessionID + ";" + client);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return response[1].split(":");
@@ -276,13 +281,14 @@ public class SWAClientSockets extends Thread
     public String clientNameRequest(String sessionID, String ip, int port) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(CLIENT_NAME_REQUEST) + ";" + sessionID + ";" + ip + ";" + port);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE) return String.valueOf(response[1]);
@@ -293,13 +299,14 @@ public class SWAClientSockets extends Thread
     public void declareFriend(String sessionID, String friend) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(DECLARE_FRIEND) + ";" + sessionID + ";" + friend);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
@@ -308,13 +315,14 @@ public class SWAClientSockets extends Thread
     public void ignoreUser(String sessionID, String friend) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(IGNORE_USER) + ";" + sessionID + ";" + friend);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
@@ -323,13 +331,14 @@ public class SWAClientSockets extends Thread
     public void updateTimestamp(String sessionID) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(UPDATE_TIMESTAMP) + ";" + sessionID);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
@@ -338,13 +347,14 @@ public class SWAClientSockets extends Thread
     public String[] pendingInvitationsRequest(String sessionID) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
         out.writeUTF(String.valueOf(PENDING_INVITATIONS_REQUEST) + ";" + sessionID);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE)
@@ -363,13 +373,14 @@ public class SWAClientSockets extends Thread
     public String[] showListOfFriends(String sessionID, int property) throws Exception
     {
         Object[] streams = new Object[2];
-        getServerStreams(streams);
+        Socket socket = new Socket(serverIP, serverPort);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
          
         out.writeUTF(String.valueOf(GET_LIST_OF_FRIENDS) + ";" + sessionID + ";" + String.valueOf(property));
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
          
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == RETURN_VALUE)
@@ -385,50 +396,53 @@ public class SWAClientSockets extends Thread
         throw new Exception(response[1]);
     }
     
-    public void sendURL(String sessionID, String ip, int port, String url) throws Exception
+    public void sendURL(String ip, int port, String url) throws Exception
     {
         Object[] streams = new Object[2];
-        getClientStreams(streams, ip, port);
+        Socket socket = new Socket(ip, port);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
-        out.writeUTF(String.valueOf(SEND_URL) + ";" + sessionID + ";" + url);
+        out.writeUTF(String.valueOf(SEND_URL) + ";" + url);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);
     }
     
     
-    public void sendText(String sessionID, String ip, int port, String text) throws Exception
+    public void sendText(String ip, int port, String text) throws Exception
     {
         Object[] streams = new Object[2];
-        getClientStreams(streams, ip, port);
+        Socket socket = new Socket(ip, port);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
-        out.writeUTF(String.valueOf(SEND_TEXT) + ";" + sessionID + ";" + text);
+        out.writeUTF(String.valueOf(SEND_TEXT) + ";" + text);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);       
     }
     
-    public void sendFile(String sessionID, String ip, int port, String path) throws Exception
+    //TODO: enviar archivo como bytes
+    public void sendFile(String ip, int port, String path) throws Exception
     {
         Object[] streams = new Object[2];
-        getClientStreams(streams, ip, port);
+        Socket socket = new Socket(ip, port);
+        getStreams(streams, socket);
         DataInputStream in = (DataInputStream)streams[0];
         DataOutputStream out = (DataOutputStream)streams[1];
         
-        out.writeUTF(String.valueOf(SEND_FILE) + ";" + sessionID + ";" + path);
+        out.writeUTF(String.valueOf(SEND_FILE) + ";" + path);
         String[] response = in.readUTF().split(";");
-        clientSocket.close();
+        socket.close();
         
         int responseCode = Integer.valueOf(response[0]).intValue();
         if (responseCode == EXCEPTION) throw new Exception(response[1]);        
     }
 }
-
