@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/resetClientMenu"
+          android:title="@string/resetClientMenu" />
+    <item android:id="@+id/resetFriendsMenu"
+          android:title="@string/resetFriendsMenu" />
+    <item android:id="@+id/resetServerMenu"
+          android:title="@string/resetServerMenu" />
+    <item android:id="@+id/resetDefaultMenu"
+          android:title="@string/resetDefaultMenu" />
+</menu>

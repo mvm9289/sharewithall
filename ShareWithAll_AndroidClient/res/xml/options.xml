@@ -25,6 +25,20 @@
                 android:summary="@string/optionAutologinSummary"
     			android:dependency="passwordPref"/>
     </PreferenceCategory>
+    <PreferenceCategory android:title="@string/friendsPrefsCategory">
+        <CheckBoxPreference
+                android:key="showSendedInvPref"
+                android:title="@string/showSendedInvTitle"
+                android:summary="@string/showSendedInvSummary" />
+        <CheckBoxPreference
+                android:key="showReceivedInvPref"
+                android:title="@string/showReceivedInvTitle"
+                android:summary="@string/showReceivedInvSummary" />
+        <CheckBoxPreference
+                android:key="showBlockedPref"
+                android:title="@string/showBlockedTitle"
+                android:summary="@string/showBlockedSummary" />
+    </PreferenceCategory>
     <PreferenceCategory android:title="@string/serverPrefsCategory">
     	<EditTextPreference
     			android:key="serverIPPref"
