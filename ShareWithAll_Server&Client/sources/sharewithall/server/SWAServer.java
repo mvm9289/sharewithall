@@ -209,7 +209,7 @@ public class SWAServer
         {
             ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
             for(int j=0; j<publicClients.size(); ++j)
-                list.add(((JDBCClient) publicClients.get(i)).username + ":" + ((JDBCClient) publicClients.get(i)).name);
+                list.add(((JDBCClient) publicClients.get(j)).username + ":" + ((JDBCClient) publicClients.get(j)).name);
         }
         
         DBClients.close();
