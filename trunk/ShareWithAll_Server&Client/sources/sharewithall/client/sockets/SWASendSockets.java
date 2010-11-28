@@ -35,6 +35,7 @@ public class SWASendSockets
     private static final int SEND_URL = 12;
     private static final int SEND_TEXT = 13;
     private static final int SEND_FILE = 14;
+    private static final int GET_SEND_TOKEN = 15;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     public static final int PROPERTY_FRIENDS = 0;
@@ -45,7 +46,6 @@ public class SWASendSockets
     
     private String serverIP;
     private int serverPort;
-    private int clientPort = -1;
     private Socket clientSocket;
     private ObjectInputStream in;
     private ObjectOutputStream out;
@@ -56,15 +56,10 @@ public class SWASendSockets
         this.serverIP = serverIP;
         this.serverPort = serverPort;
     }
-    
-    public void setClientPort(int port) {
-        this.clientPort = port;
-    }
-    
+
     private void connect(String ip, int port) throws Exception
     {
-        if (clientPort == -1) clientSocket = new Socket(ip, port);
-        else clientSocket = new Socket(ip, port, InetAddress.getLocalHost(), clientPort);
+        clientSocket = new Socket(ip, port);
         out = new ObjectOutputStream(clientSocket.getOutputStream());
         out.flush();
         in = new ObjectInputStream(clientSocket.getInputStream());
@@ -126,6 +121,21 @@ public class SWASendSockets
         throw new Exception((String)responseVal);
     }
     
+    public String getSendToken(String sessionID, String client) throws Exception
+    {
+        connect(serverIP, serverPort);
+        out.writeInt(GET_SEND_TOKEN);
+        out.writeObject(new Object[] {sessionID, client});
+        
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
+        
+        if (responseCode == RETURN_VALUE) return (String)responseVal;
+            
+        throw new Exception((String)responseVal);
+    }
+    
     public String[] ipAndPortRequest(String sessionID, String client) throws Exception
     {
         connect(serverIP, serverPort);
@@ -141,11 +151,11 @@ public class SWASendSockets
         throw new Exception((String)responseVal);
     }
     
-    public String clientNameRequest(String sessionID, String ip, int port) throws Exception
+    public String clientNameRequest(String sessionID, String token) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(CLIENT_NAME_REQUEST);
-        out.writeObject(new Object[] {sessionID, ip, port});
+        out.writeObject(new Object[] {sessionID, token});
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -225,11 +235,11 @@ public class SWASendSockets
         throw new Exception((String)responseVal);
     }
     
-    public void sendURL(String ip, int port, String url) throws Exception
+    public void sendURL(String token, String ip, int port, String url) throws Exception
     {
         connect(ip, port);
         out.writeInt(SEND_URL);
-        out.writeObject(new Object[] {url});
+        out.writeObject(new Object[] {token, url});
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -238,11 +248,11 @@ public class SWASendSockets
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
-    public void sendText(String ip, int port, String text) throws Exception
+    public void sendText(String token, String ip, int port, String text) throws Exception
     {
         connect(ip, port);
         out.writeInt(SEND_TEXT);
-        out.writeObject(new Object[] {text});
+        out.writeObject(new Object[] {token, text});
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
@@ -251,7 +261,7 @@ public class SWASendSockets
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);       
     }
     
-    public void sendFile(String ip, int port, String path) throws Exception
+    public void sendFile(String token, String ip, int port, String path) throws Exception
     {
         connect(ip, port);
         File f = new File(path, "r");
@@ -260,7 +270,7 @@ public class SWASendSockets
         int bytesRead;
         
         out.writeInt(SEND_FILE);
-        out.writeObject(new Object[] {f.getName(), f.length()});
+        out.writeObject(new Object[] {token, f.getName(), f.length()});
         
         while ((bytesRead = filein.read(bytes)) != -1)
             out.write(bytes, 0, bytesRead);

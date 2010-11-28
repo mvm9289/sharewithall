@@ -3,6 +3,7 @@
  */
 package sharewithall.server.jdbc;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -52,5 +53,18 @@ public class JDBCDBFriends extends JDBCDBTable
         
         return res;
     }
-
+    
+    public boolean are_friends(String user1, String user2) throws SQLException
+    {
+        if (user1 == null || user2 == null) return false;
+        String sql = "SELECT EXISTS(SELECT * FROM Friends WHERE user1 = ? AND user2 = ? AND status = 1)" +
+        		"AND EXISTS(SELECT * FROM Friends WHERE user1 = ? AND user2 = ? AND status = 1);";
+        PreparedStatement ps = c.prepareStatement(sql);
+        ps.setString(1, user1);
+        ps.setString(2, user2);
+        ps.setString(3, user2);
+        ps.setString(4, user1);
+        ResultSet rs = ps.executeQuery();
+        return rs.getBoolean(1);
+    }
 }

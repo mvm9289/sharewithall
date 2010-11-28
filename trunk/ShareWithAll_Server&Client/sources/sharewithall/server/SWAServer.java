@@ -61,8 +61,8 @@ public class SWAServer
         return ret;
     }
     
-    private String sha256(String password) throws Exception {
-        MessageDigest d = MessageDigest.getInstance("SHA-256");
+    private String md5(String password) throws Exception {
+        MessageDigest d = MessageDigest.getInstance("MD5");
         d.reset();
         return bytes_to_hex(d.digest(password.getBytes("UTF-8")));
     }
@@ -110,7 +110,7 @@ public class SWAServer
             throw new Exception("This username contains illegal characters: ':'.");
         }
 
-        DBUsers.insert_obj(new JDBCUser(username, sha256(password)));
+        DBUsers.insert_obj(new JDBCUser(username, md5(password)));
         DBUsers.commit();
         DBUsers.close();
     }
@@ -125,14 +125,14 @@ public class SWAServer
         if (name.contains(":")) throw new Exception("The client name contains illegal characters: ':'.");
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCPredicate p1 = new JDBCPredicate("username", username);
-        JDBCPredicate p2 = new JDBCPredicate("password", sha256(password));
+        JDBCPredicate p2 = new JDBCPredicate("password", md5(password));
         boolean exists = DBUsers.exists_gen(p1, p2);
         DBUsers.close();
         
         if (!exists) throw new Exception("The username/password combination is not correct");
         
         JDBCDBClients DBClients = new JDBCDBClients();
-        String session_id = sha256(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
+        String session_id = md5(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("ip", ip));
         int port = FIRST_CLIENT_PORT + clients.size(); 
         Timestamp last_time = new Timestamp((new Date()).getTime());
@@ -230,8 +230,7 @@ public class SWAServer
         //If the clientName is from a client of our own possession.
         if(clientName.indexOf(":") == -1)
         {
-        	String username = ((JDBCClient) (DBClients.select_gen(new JDBCPredicate("session_id", sessionID))).get(0)).username;
-            clients = DBClients.select_gen(new JDBCPredicate("username", username)
+            clients = DBClients.select_gen(new JDBCPredicate("username", requester)
             		, new JDBCPredicate("name", clientName));
             
             if(clients.size() == 0) throw new Exception("Inexistent client");
@@ -255,12 +254,9 @@ public class SWAServer
             
             if (!requester.equals(friendName)) {
                 JDBCDBFriends DBFriends = new JDBCDBFriends();
-                boolean exists1 = DBFriends.exists_gen(new JDBCPredicate("user1", requester), new JDBCPredicate("user2", friendName),
-                  new JDBCPredicate("status", STATUS_FRIEND));
-                boolean exists2 = DBFriends.exists_gen(new JDBCPredicate("user1", friendName), new JDBCPredicate("user2", requester),
-                  new JDBCPredicate("status", STATUS_FRIEND));
+                boolean are_friends = DBFriends.are_friends(requester, friendName);
                 DBFriends.close();
-                if (!client.is_public || !exists1 || !exists2)
+                if (!are_friends || !client.is_public) 
                     throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
             }
             
@@ -268,32 +264,78 @@ public class SWAServer
         }
     }
     
-    public String clientNameRequest(Object[] params) throws Exception
+    public String getSendToken(Object[] params) throws Exception
     {
         String sessionID = (String)params[0];
-        String ip = (String)params[1];
-        Integer port = (Integer)params[2];
+        String clientName = (String)params[1];
         
         JDBCDBClients DBClients = new JDBCDBClients();
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         if (clients.isEmpty()) throw new Exception("Invalid session");
-        String user1 = ((JDBCClient)clients.get(0)).username;
+        String requester = ((JDBCClient)clients.get(0)).username;
         
-        clients = DBClients.select_gen(new JDBCPredicate("ip", ip), new JDBCPredicate("port", port));
+        JDBCClient client;
+        //If the clientName is from a client of our own possession.
+        if(clientName.indexOf(":") == -1)
+        {
+            clients = DBClients.select_gen(new JDBCPredicate("username", requester)
+                    , new JDBCPredicate("name", clientName));
+            
+            if(clients.size() == 0) throw new Exception("Inexistent client");
+            
+            client = (JDBCClient)clients.get(0);
+            DBClients.close();
+        }
+        //If the clientName is from our friend's clients.
+        else {
+            String friendName = clientName.substring(0, clientName.indexOf(":"));
+            System.out.println("FriendName = " + friendName);
+            String clientFriendName = clientName.substring(clientName.indexOf(":") + 1, clientName.length());
+            System.out.println("ClientFriendName = " + clientFriendName);
+
+            clients = DBClients.select_gen(new JDBCPredicate("name", clientFriendName), new JDBCPredicate("username", friendName));
+            DBClients.close();
+            if(clients.size() == 0)
+                throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
+            client = (JDBCClient) clients.get(0);
+            
+            if (!requester.equals(friendName)) {
+                JDBCDBFriends DBFriends = new JDBCDBFriends();
+                boolean are_friends = DBFriends.are_friends(requester, friendName);
+                DBFriends.close();
+                if (!are_friends || !client.is_public)
+                    throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
+            }
+        }
+        return md5(sessionID + client.session_id);
+    }
+    
+    public String clientNameRequest(Object[] params) throws Exception
+    {
+        String sessionID = (String)params[0];
+        String token = (String)params[1];
+        
+        JDBCDBClients DBClients = new JDBCDBClients();
+        ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
+        if (clients.isEmpty()) throw new Exception("Invalid session");
+        JDBCClient client1 = ((JDBCClient)clients.get(0));
+        clients = DBClients.select_gen(new JDBCPredicate("md5(session_id || '" + client1.session_id + "')", token));
         DBClients.close();
-        if (clients.isEmpty()) throw new Exception("Cannot access client with ip " + ip + " and port " + port);
-        JDBCClient client = (JDBCClient) clients.get(0);
-        String user2 = client.username;
+        
+        if (clients.isEmpty()) throw new Exception("Cannot access client with the supplied token");
+        JDBCClient client2 = (JDBCClient) clients.get(0);
+        String user1 = client1.username;
+        String user2 = client2.username;
         
         if (!user1.equals(user2)) {
             JDBCDBFriends DBFriends = new JDBCDBFriends();
-            boolean exists1 = DBFriends.exists_gen(new JDBCPredicate("user1", user1), new JDBCPredicate("user2", user2), new JDBCPredicate("status", STATUS_FRIEND));
-            boolean exists2 = DBFriends.exists_gen(new JDBCPredicate("user1", user2), new JDBCPredicate("user2", user1), new JDBCPredicate("status", STATUS_FRIEND));
+            boolean are_friends = DBFriends.are_friends(user1, user2);
             DBFriends.close();
-            if (!client.is_public || !exists1 || !exists2) throw new Exception("Cannot access client with ip " + ip + " and port " + port);
+            if (!are_friends || !client2.is_public)
+                throw new Exception("Cannot access client with the supplied token");
         }
             
-        return ((JDBCClient)clients.get(0)).username +  ":" + ((JDBCClient)clients.get(0)).name;
+        return user2 + ":" + client2.name;
     }
 
 	public void declareFriend(Object[] params) throws Exception
