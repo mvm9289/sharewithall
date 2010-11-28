@@ -16,7 +16,6 @@ import sharewithall.client.SWAClient;
 public class SWAReceiveClientSockets extends SWAReceiveSockets
 {
     
-    @SuppressWarnings("unused")
     private SWAClient client;
 
     public SWAReceiveClientSockets(int port, SWAClient client)
@@ -42,6 +41,12 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
             default:
                 break;
         }
+    }
+
+    @Override
+    public String[] obtainEmissor(String token)
+    {
+        return client.obtainEmissor(token);
     }
     
 }

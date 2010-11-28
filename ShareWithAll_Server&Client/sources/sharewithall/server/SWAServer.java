@@ -275,38 +275,25 @@ public class SWAServer
         String requester = ((JDBCClient)clients.get(0)).username;
         
         JDBCClient client;
-        //If the clientName is from a client of our own possession.
-        if(clientName.indexOf(":") == -1)
-        {
-            clients = DBClients.select_gen(new JDBCPredicate("username", requester)
-                    , new JDBCPredicate("name", clientName));
-            
-            if(clients.size() == 0) throw new Exception("Inexistent client");
-            
-            client = (JDBCClient)clients.get(0);
-            DBClients.close();
-        }
-        //If the clientName is from our friend's clients.
-        else {
-            String friendName = clientName.substring(0, clientName.indexOf(":"));
-            System.out.println("FriendName = " + friendName);
-            String clientFriendName = clientName.substring(clientName.indexOf(":") + 1, clientName.length());
-            System.out.println("ClientFriendName = " + clientFriendName);
+        String friendName = clientName.substring(0, clientName.indexOf(":"));
+        String clientFriendName = clientName.substring(clientName.indexOf(":") + 1, clientName.length());
 
-            clients = DBClients.select_gen(new JDBCPredicate("name", clientFriendName), new JDBCPredicate("username", friendName));
-            DBClients.close();
-            if(clients.size() == 0)
-                throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
-            client = (JDBCClient) clients.get(0);
-            
-            if (!requester.equals(friendName)) {
-                JDBCDBFriends DBFriends = new JDBCDBFriends();
-                boolean are_friends = DBFriends.are_friends(requester, friendName);
-                DBFriends.close();
-                if (!are_friends || !client.is_public)
-                    throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
-            }
+        clients = DBClients.select_gen(new JDBCPredicate("name", clientFriendName), new JDBCPredicate("username", friendName));
+        DBClients.close();
+        if(clients.size() == 0)
+            throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName);
+        client = (JDBCClient) clients.get(0);
+        
+        if (!requester.equals(friendName)) {
+            JDBCDBFriends DBFriends = new JDBCDBFriends();
+            boolean are_friends = DBFriends.are_friends(requester, friendName);
+            DBFriends.close();
+            if (!are_friends)
+                throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName + ", you are not friends.");
+            if(!client.is_public)
+                throw new Exception("Cannot access client with name " + clientFriendName + " from user " + friendName + ", client isn't public.");
         }
+
         return md5(sessionID + client.session_id);
     }
     
@@ -520,6 +507,22 @@ public class SWAServer
          throw new Exception("Wrong property identifier.");
     }
     
+    public Object obtainEmissor(Object[] params) throws Exception
+    {
+        String sessionID = (String)params[0];
+        String token = (String)params[1];
+        
+        JDBCDBClients DBClients = new JDBCDBClients();
+        ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
+        if (clients.isEmpty()) throw new Exception("Invalid session");
+       
+        JDBCClient client = DBClients.obtainEmissor(sessionID, token);
+        String[] emissor = new String[2];
+        emissor[0] = client.username;
+        emissor[1] = client.name;
+        return emissor;
+    }
+    
     public static void main(String[] args)
     {
         if (args.length == 1) new SWAServer(Integer.valueOf(args[0]).intValue());
@@ -532,5 +535,6 @@ public class SWAServer
         		"\n\n\t*Arguments between [] are optional. Default port is " + DEFAULT_SERVER_PORT + ".\n");
         }
     }
+
 }
 
