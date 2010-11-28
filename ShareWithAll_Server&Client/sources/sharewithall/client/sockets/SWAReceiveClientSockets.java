@@ -49,7 +49,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 
                 //Security problem here!!! need to check the filename
                 //Also have to check if the file already exists
-                File file = new File(filename, "rw");
+                File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
                 while ((bytesRead = in.read(bytes)) != -1) {
                     fileout.write(bytes, 0, bytesRead);
