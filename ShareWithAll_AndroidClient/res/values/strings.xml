@@ -42,4 +42,5 @@
 <string name="gettingClientsList">Getting online clients list...</string>
 <string name="friendsListMenu">Friends list</string>
 <string name="friendsList">My friends</string>
+<string name="gettingFriendsList">Getting friends list...</string>
 </resources>

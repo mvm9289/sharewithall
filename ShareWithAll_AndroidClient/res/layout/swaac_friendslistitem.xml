@@ -20,6 +20,12 @@
 			android:layout_marginLeft="20dip"
 	        android:textSize="20sp"
 	        android:textColor="#FFFFFF"/>
+	    <TextView
+	    	android:id="@+id/friendsListItemStatus"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+		    android:layout_marginLeft="20dip"
+	        android:textSize="12sp"/>
 	</LinearLayout>
 	<ImageView
 		android:layout_width="fill_parent"

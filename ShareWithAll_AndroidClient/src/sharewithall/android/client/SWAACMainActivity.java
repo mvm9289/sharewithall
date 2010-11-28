@@ -22,8 +22,8 @@ import android.widget.Toast;
 public class SWAACMainActivity extends Activity
 {
 	
-    ProgressDialog progressDialog;
-    SWAACSendSockets sendSockets;
+    private ProgressDialog progressDialog;
+    private SWAACSendSockets sendSockets;
     
     private void setDefaultPreferences()
     {
@@ -91,7 +91,7 @@ public class SWAACMainActivity extends Activity
     }
     
     private void login(String username, String password)
-    {logged("asdf");
+    {
 		if (username.length() < 6 || password.length() < 6)
 			printMessage(getResources().getString(R.string.userAndPassMinimum));
 		else

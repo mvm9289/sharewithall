@@ -17,23 +17,27 @@ public class SWAACSendSockets extends Thread
 		GET_LIST_OF_FRIENDS, CLIENT_NAME_REQUEST, SEND_URL, SEND_TEXT, SEND_FILE
 	}
 	
-
-    private static final int PROPERTY_FRIENDS = 0;
-    private static final int PROPERTY_DECLARED_FRIEND = 1;
-    private static final int PROPERTY_EXPECTING = 2;
-    private static final int PROPERTY_IGNORED = 3;
+	public enum Property
+	{
+		FRIENDS, DECLARED, EXPECTING, IGNORED
+	}
 	
 	Context baseContext;
 	Command command;
 	Handler handler;
 	Object[] data;
 	
-	public SWAACSendSockets(Context baseContext, Command command, Handler handler, Object[] data)
+	public SWAACSendSockets(Context baseContext, Command command, Handler handler)
 	{
 		super();
 		this.baseContext = baseContext;
 		this.command = command;
 		this.handler = handler;
+	}
+	
+	public SWAACSendSockets(Context baseContext, Command command, Handler handler, Object[] data)
+	{
+		this(baseContext, command, handler);
 		this.data = data;
 	}
 	
@@ -186,6 +190,49 @@ public class SWAACSendSockets extends Thread
 		}
 	}
 	
+	private void getListOfFriends()
+	{
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
+		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
+		int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
+		String sessionID = preferences.getString("sessionID", null);
+		
+		SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+		try
+		{
+			String[] aux1 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_FRIENDS);
+			String[] aux2 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_DECLARED_FRIEND);
+			String[] aux3 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_EXPECTING);
+			String[] aux4 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_IGNORED);
+			String[] friends = new String[aux1.length + aux2.length + aux3.length + aux4.length];
+			int k = 0;
+			for (int i = 0; i < aux1.length; i++)
+				friends[k++] = aux1[i] + ";accepted";
+			for (int i = 0; i < aux2.length; i++)
+				friends[k++] = aux2[i] + ";declared";
+			for (int i = 0; i < aux3.length; i++)
+				friends[k++] = aux3[i] + ";expecting";
+			for (int i = 0; i < aux4.length; i++)
+				friends[k++] = aux4[i] + ";ignored";
+			
+			Bundle b = new Bundle();
+			b.putBoolean("getListOfFriends", true);
+			b.putStringArray("friends", friends);
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+		catch (Exception e)
+		{
+			Bundle b = new Bundle();
+			b.putBoolean("exception", true);
+			b.putString("message", e.getMessage());
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+	}
+	
 	public void send()
 	{
 		start();
@@ -219,6 +266,7 @@ public class SWAACSendSockets extends Thread
 			case PENDING_INVITATIONS_REQUEST:
 				break;
 			case GET_LIST_OF_FRIENDS:
+				getListOfFriends();
 				break;
 			case CLIENT_NAME_REQUEST:
 				break;
