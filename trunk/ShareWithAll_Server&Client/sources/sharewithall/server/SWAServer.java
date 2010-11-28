@@ -507,22 +507,6 @@ public class SWAServer
          throw new Exception("Wrong property identifier.");
     }
     
-    public Object obtainEmissor(Object[] params) throws Exception
-    {
-        String sessionID = (String)params[0];
-        String token = (String)params[1];
-        
-        JDBCDBClients DBClients = new JDBCDBClients();
-        ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
-        if (clients.isEmpty()) throw new Exception("Invalid session");
-       
-        JDBCClient client = DBClients.obtainEmissor(sessionID, token);
-        String[] emissor = new String[2];
-        emissor[0] = client.username;
-        emissor[1] = client.name;
-        return emissor;
-    }
-    
     public static void main(String[] args)
     {
         if (args.length == 1) new SWAServer(Integer.valueOf(args[0]).intValue());

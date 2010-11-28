@@ -240,7 +240,8 @@ public class SWASendSockets
     {
         connect(ip, port);
         out.writeInt(SEND_URL);
-        out.writeObject(new Object[] {token, url});
+        out.writeUTF(token);
+        out.writeUTF(url);
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -253,7 +254,8 @@ public class SWASendSockets
     {
         connect(ip, port);
         out.writeInt(SEND_TEXT);
-        out.writeObject(new Object[] {token, text});
+        out.writeUTF(token);
+        out.writeUTF(text);
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
@@ -271,10 +273,13 @@ public class SWASendSockets
         int bytesRead;
         
         out.writeInt(SEND_FILE);
-        out.writeObject(new Object[] {token, f.getName(), f.length()});
+        out.writeUTF(token);
+        out.writeUTF(f.getName());
+        out.writeLong(f.length());
         
         while ((bytesRead = filein.read(bytes)) != -1)
             out.write(bytes, 0, bytesRead);
+        filein.close();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
@@ -283,19 +288,4 @@ public class SWASendSockets
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);        
     }
 
-
-    public String[] obtainEmissor(String sessionID, String token) throws Exception
-    {
-        connect(serverIP, serverPort);
-        out.writeInt(OBTAIN_EMISSOR);
-        out.writeObject(new Object[] {sessionID, token});
-        
-        int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String[])responseVal;
-        
-        throw new Exception((String)responseVal);    
-    }
 }
