@@ -90,6 +90,7 @@ public abstract class SWAReceiveSockets extends Thread
                     String client = sender[1];
                     process(instruction, user, client, in);
                     out.writeInt(RETURN_VALUE);
+                    out.writeObject(null);
                 }
                 catch (Exception e)
                 {
@@ -99,6 +100,9 @@ public abstract class SWAReceiveSockets extends Thread
                         e.printStackTrace();
                         out.writeObject("Remote Exception");
                     }
+                }
+                finally {
+                    out.flush();
                 }
             }
             catch (Exception e)
