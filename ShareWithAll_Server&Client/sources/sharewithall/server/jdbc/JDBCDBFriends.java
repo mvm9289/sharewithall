@@ -65,6 +65,7 @@ public class JDBCDBFriends extends JDBCDBTable
         ps.setString(3, user2);
         ps.setString(4, user1);
         ResultSet rs = ps.executeQuery();
+        rs.next();
         return rs.getBoolean(1);
     }
 }
