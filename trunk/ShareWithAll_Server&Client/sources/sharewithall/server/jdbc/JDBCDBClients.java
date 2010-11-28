@@ -3,6 +3,7 @@
  */
 package sharewithall.server.jdbc;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -58,6 +59,16 @@ public class JDBCDBClients extends JDBCDBTable
         res[6] = new JDBCPredicate("session_id", cl.session_id);
 
         return res;
+    }
+
+    public Object obtainEmissor(String sessionID, String token) throws SQLException
+    {
+        String sql = "SELECT * FROM Clients WHERE MD5(session_id + ?) = ?";
+        PreparedStatement ps = c.prepareStatement(sql);
+        ps.setString(1, sessionID);
+        ps.setString(2, token);
+        ResultSet rs = ps.executeQuery();
+        return rs.getObject(1);
     }
 
 }

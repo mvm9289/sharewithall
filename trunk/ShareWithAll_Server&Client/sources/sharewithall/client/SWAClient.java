@@ -388,6 +388,18 @@ public class SWAClient
             e.printStackTrace();
         }
     }
+
+    public String[] obtainEmissor(String token)
+    {   
+            try
+            {
+                return socketsModule.obtainEmissor(sessionID, token);
+            } catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            return null; //TODO: Si no pongo esto se queja de que puede ser que no se devuelva nada.
+    }
     
     private void SWAClientLoop()
     {
@@ -485,6 +497,8 @@ public class SWAClient
         else if (args.length == 0) new SWAClient(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
         else printUsage();
     }
+
+
 
 }
 

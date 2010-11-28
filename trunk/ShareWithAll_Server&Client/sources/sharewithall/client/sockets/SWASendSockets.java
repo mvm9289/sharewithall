@@ -36,6 +36,7 @@ public class SWASendSockets
     private static final int SEND_TEXT = 13;
     private static final int SEND_FILE = 14;
     private static final int GET_SEND_TOKEN = 15;
+    private static final int OBTAIN_EMISSOR = 16;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     public static final int PROPERTY_FRIENDS = 0;
@@ -280,5 +281,21 @@ public class SWASendSockets
         clientSocket.close();
         
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);        
+    }
+
+
+    public String[] obtainEmissor(String sessionID, String token) throws Exception
+    {
+        connect(serverIP, serverPort);
+        out.writeInt(OBTAIN_EMISSOR);
+        out.writeObject(new Object[] {sessionID, token});
+        
+        int responseCode = in.readInt();
+        Object responseVal = in.readObject();        
+        clientSocket.close();
+        
+        if (responseCode == RETURN_VALUE) return (String[])responseVal;
+        
+        throw new Exception((String)responseVal);    
     }
 }

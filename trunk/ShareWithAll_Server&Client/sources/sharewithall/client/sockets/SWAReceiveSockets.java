@@ -42,6 +42,8 @@ public abstract class SWAReceiveSockets extends Thread
 
     public abstract void process(int instruction, Object data, String username, String client);
     
+    public abstract String[] obtainEmissor(String token);
+    
     public void run()
     {
         while (true)
@@ -75,16 +77,18 @@ public abstract class SWAReceiveSockets extends Thread
         {   
             try
             {
-                user = null; //TODO: Obtener usuario mediante token.
-                client = null; //TODO: Obtener cliente mediante token.
-                //TODO: Comprobar amistad mediante token.
+
                 
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
-                
+                String token = (String) params[0];
+                String[] emissor = obtainEmissor(token);
+                user = emissor[0];
+                client = emissor[1];
+
                 try
                 {
                     switch (instruction)
@@ -96,7 +100,7 @@ public abstract class SWAReceiveSockets extends Thread
                             break;
                         case SEND_TEXT:
                             //TODO: Leer texto utf
-                            process(SEND_TEXT, (String) params[0], user, client);
+                            process(SEND_TEXT, (String) params[1], user, client);
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case SEND_FILE:
