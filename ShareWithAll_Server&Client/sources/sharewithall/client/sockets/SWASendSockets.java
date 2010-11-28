@@ -238,7 +238,6 @@ public class SWASendSockets
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
     
-    
     public void sendText(String ip, int port, String text) throws Exception
     {
         connect(ip, port);

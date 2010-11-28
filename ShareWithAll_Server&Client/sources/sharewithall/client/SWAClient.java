@@ -112,7 +112,7 @@ public class SWAClient
         try
         {
             sessionID = socketsModule.login(username, password, name, isPublic);
-            ////////// HE AÑADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
+            ////////// HE Aï¿½ADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
             String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
             int port = Integer.valueOf(myIPandPort[1]).intValue();
             socketsModule.setClientPort(port + 1000);
@@ -370,12 +370,10 @@ public class SWAClient
         }
         else System.out.println("Cannot open it in your default browser");
     }
-    
     public void receiveText(String username, String client, String text)
     {
         System.out.println("[" + username + "#" + client + "] says: " + text);
     }
-    
     public void receiveFile(String username, String client, String file)
     {
         try {
