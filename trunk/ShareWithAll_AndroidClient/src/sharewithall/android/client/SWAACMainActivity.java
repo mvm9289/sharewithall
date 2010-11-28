@@ -33,6 +33,9 @@ public class SWAACMainActivity extends Activity
     	editor.putString("deviceNamePref", "Android-Device");
     	editor.putBoolean("isPublicPref", false);
     	editor.putBoolean("autologinPref", false);
+    	editor.putBoolean("showSendedInvPref", true);
+    	editor.putBoolean("showReceivedInvPref", true);
+    	editor.putBoolean("showBlockedPref", true);
     	editor.putString("serverIPPref", "mvm9289.dyndns.org");
     	editor.putString("serverPortPref", "4040");
     	editor.commit();
@@ -96,6 +99,12 @@ public class SWAACMainActivity extends Activity
 			printMessage(getResources().getString(R.string.userAndPassMinimum));
 		else
 		{
+	    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+	    	SharedPreferences.Editor editor = preferences.edit();
+	    	editor.putString("username", username);
+	    	editor.putString("password", password);
+	    	editor.commit();
+	    	
 	    	progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.loggingInMessage), true);
 	    	Object[] data = new Object[2];
 	    	data[0] = username;
@@ -117,7 +126,6 @@ public class SWAACMainActivity extends Activity
     
     private void executeThis()
     {
-    	configureThis();
     	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	String username = preferences.getString("usernamePref", null);
     	String password = preferences.getString("passwordPref", null);
@@ -152,7 +160,20 @@ public class SWAACMainActivity extends Activity
         super.onCreate(savedInstanceState);
 
     	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if (preferences.getBoolean("firstExecute", true)) setDefaultPreferences();      
+        if (preferences.getBoolean("firstExecute", true)) setDefaultPreferences();
+        if (preferences.getBoolean("loggedIn", false)) toNextActivity();
+        else
+        {
+        	configureThis();
+        	executeThis();
+        }
+    }
+    
+    @Override
+    protected void onResume()
+    {
+    	super.onResume();
+    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         if (preferences.getBoolean("loggedIn", false)) toNextActivity();
         else executeThis();
     }

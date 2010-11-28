@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     
-    <string name="app_name">ShareWithAll</string>
+<string name="app_name">ShareWithAll</string>
 <string name="login_message">Enter your user and password to login at ShareWithAll Server:</string>
 <string name="usernameLabel">Username:</string>
 <string name="passwordLabel">Password:</string>
 <string name="loginButtonText">Login</string>
 <string name="createAccMenu">Create account</string>
-<string name="optionsMenu">Options</string>
+<string name="optionsMenu">Preferences</string>
 <string name="preferences">SWAPreferences</string>
 <string name="createButtonText">Create account</string>
 <string name="retryPassword">Re-enter the password:</string>
@@ -35,12 +35,23 @@
 <string name="optionPasswordSummary">Set default password of default username</string>
 <string name="optionAutologinTitle">Autologin</string>
 <string name="optionAutologinSummary">Set checked to autologin at start</string>
-<string name="serviceStarted">serviceStarted</string>
-<string name="serviceStopped">serviceStopped</string>
 <string name="ownClientsList">My clients</string>
 <string name="friendsClientsList">My friends public clients</string>
 <string name="gettingClientsList">Getting online clients list...</string>
 <string name="friendsListMenu">Friends list</string>
 <string name="friendsList">My friends</string>
 <string name="gettingFriendsList">Getting friends list...</string>
+<string name="resetDefaultMenu">Reset all options</string>
+<string name="resetServerMenu">Reset server options</string>
+<string name="resetClientMenu">Reset client options</string>
+<string name="addFriendMenu">Add a friend</string>
+<string name="clientListDialogTitle">Pick an action</string>
+<string name="friendsListDialogTitle">Pick an action</string>
+<string name="addFriendDialogTitle">Enter your friend name</string>
+<string name="addFriendButton">Add</string>
+<string name="friendsPrefsCategory">Friends list preferences</string>
+<string name="showSendedInvTitle">Show sended invitations</string><string name="showSendedInvSummary">Show sended invitations on friends list</string>
+<string name="showReceivedInvTitle">Show received invitations</string><string name="showReceivedInvSummary">Show received invitations on friends list</string>
+<string name="showBlockedTitle">Show blocked friends</string><string name="showBlockedSummary">Show blocked friends on friends list</string>
+<string name="resetFriendsMenu">Reset friends options</string>
 </resources>
