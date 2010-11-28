@@ -282,7 +282,7 @@ public class SWASendSockets
     public void sendFile(String token, String ip, int port, String path) throws Exception
     {
         connect(ip, port);
-        File f = new File(path, "r");
+        File f = new File(path);
         FileInputStream filein = new FileInputStream(f);
         byte[] bytes = new byte[FILE_BUFFER_SIZE];
         int bytesRead;
