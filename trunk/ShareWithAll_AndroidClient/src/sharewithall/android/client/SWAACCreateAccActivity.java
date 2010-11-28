@@ -16,8 +16,8 @@ import android.widget.Toast;
 public class SWAACCreateAccActivity extends Activity
 {
 
-	ProgressDialog progressDialog;
-	SWAACSendSockets sendSockets;
+	private ProgressDialog progressDialog;
+	private SWAACSendSockets sendSockets;
 	
     private void printMessage(String message)
     {

@@ -25,8 +25,7 @@
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 		    android:layout_marginLeft="20dip"
-	        android:textStyle="italic"
-	        android:textSize="15sp"/>
+	        android:textSize="12sp"/>
 	</LinearLayout>
 	<ImageView
 		android:layout_width="fill_parent"

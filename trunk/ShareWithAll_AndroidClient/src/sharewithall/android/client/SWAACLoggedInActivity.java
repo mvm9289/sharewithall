@@ -2,8 +2,10 @@ package sharewithall.android.client;
 
 import sharewithall.android.client.sockets.SWAACSendSockets;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -23,8 +25,12 @@ import android.widget.Toast;
 public class SWAACLoggedInActivity extends Activity
 {
 	
-	ProgressDialog progressDialog;
-	SWAACSendSockets sendSockets;
+	private ProgressDialog progressDialog;
+	private SWAACSendSockets sendSockets;
+	
+	private String clickedClient;
+	private String clickedUser;
+	
 
     private void printMessage(String message)
     {
@@ -69,6 +75,28 @@ public class SWAACLoggedInActivity extends Activity
     	toMainActivity();
     }
     
+    private void processClickedDialog(int item)
+    {
+    	printMessage(item + ": " + clickedClient + " " + clickedUser);
+    }
+    
+    private void showClientDialog()
+    {
+    	final CharSequence[] items = {"Open chat window", "Send an URL", "Send a file"};
+
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	builder.setTitle("Pick an action");
+    	builder.setItems(items, new DialogInterface.OnClickListener()
+    	{
+    	    public void onClick(DialogInterface dialog, int item)
+    	    {
+    	        processClickedDialog(item);
+    	    }
+    	});
+    	AlertDialog alert = builder.create();
+    	alert.show();
+    }
+    
     private void addClientToList(String clientName, String clientUser)
     {
     	LinearLayout clientsList = (LinearLayout) findViewById(R.id.clientsList);
@@ -76,10 +104,10 @@ public class SWAACLoggedInActivity extends Activity
         LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         
         View clientsListItem = inflater.inflate(R.layout.swaac_clientslistitem, null);
-        TextView tv1 = (TextView) clientsListItem.findViewById(R.id.clientsListItemClient);
-        tv1.setText(clientName);
-        TextView tv2 = (TextView) clientsListItem.findViewById(R.id.clientsListItemUser);
-        tv2.setText(clientUser);
+        TextView clientNameTV = (TextView) clientsListItem.findViewById(R.id.clientsListItemClient);
+        clientNameTV.setText(clientName);
+        TextView clientUserTV = (TextView) clientsListItem.findViewById(R.id.clientsListItemUser);
+        clientUserTV.setText(clientUser);
         
         clientsListItem.setClickable(true);
         clientsListItem.setOnClickListener(new OnClickListener()
@@ -89,7 +117,9 @@ public class SWAACLoggedInActivity extends Activity
 			{
 		        TextView clientName = (TextView) v.findViewById(R.id.clientsListItemClient);
 		        TextView clientUser = (TextView) v.findViewById(R.id.clientsListItemUser);
-		        printMessage(clientName.getText().toString() + " " + clientUser.getText().toString());
+		        clickedClient = clientName.getText().toString();
+		        clickedUser = clientUser.getText().toString();
+		        showClientDialog();
 			}
 		});
         
@@ -108,7 +138,7 @@ public class SWAACLoggedInActivity extends Activity
     {
     	for (int i = 0; i < onlineClients.length; i++)
     	{
-    		String[] aux = onlineClients[i].split("-");
+    		String[] aux = onlineClients[i].split(":");
     		if (aux.length == 2) addClientToList(aux[0], aux[1]);
     		else addClientToList(aux[0], null);
     	}
@@ -120,25 +150,10 @@ public class SWAACLoggedInActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setContentView(R.layout.swaac_clientslist);
-
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
-    	addClientToList("client1", "user1");
-    	addClientToList("client2", null);
     	
-    	//updateClientsList();
+    	updateClientsList();
     	
-    	//startService(new Intent().setClass(this, SWAACService.class));
+    	startService(new Intent().setClass(this, SWAACService.class));
     }
     
     @Override

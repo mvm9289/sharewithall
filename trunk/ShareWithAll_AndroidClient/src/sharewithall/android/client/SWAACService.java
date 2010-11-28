@@ -15,8 +15,8 @@ import android.widget.Toast;
 public class SWAACService extends Service
 {
 	
-	Timer sessionUpdaterTimer;
-	SessionUpdater sessionUpdater;
+	private Timer sessionUpdaterTimer;
+	private SessionUpdater sessionUpdater;
 
     private void printMessage(String message)
     {
@@ -35,6 +35,7 @@ public class SWAACService extends Service
 	{
 		super.onCreate();
 		Toast.makeText(this, R.string.serviceStarted, Toast.LENGTH_SHORT).show();
+		setForeground(true);
 		programSessionUpdater();
 	}
 	
