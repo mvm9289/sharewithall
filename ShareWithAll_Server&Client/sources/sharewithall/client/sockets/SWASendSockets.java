@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -71,7 +72,8 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(NEW_USER);
         out.writeObject(new Object[] {username, password});
-
+        out.flush();
+        
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
 
@@ -85,6 +87,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(LOGIN);
         out.writeObject(new Object[] {username, password, name, isPublic});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
@@ -99,6 +102,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(LOGOUT);
         out.writeObject(new Object[] {sessionID});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -112,6 +116,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(GET_ONLINE_CLIENTS);
         out.writeObject(new Object[] {sessionID});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -127,6 +132,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(GET_SEND_TOKEN);
         out.writeObject(new Object[] {sessionID, client});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -142,6 +148,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(IP_AND_PORT_REQUEST);
         out.writeObject(new Object[] {sessionID, client});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -157,6 +164,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(CLIENT_NAME_REQUEST);
         out.writeObject(new Object[] {sessionID, token});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -172,6 +180,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(DECLARE_FRIEND);
         out.writeObject(new Object[] {sessionID, friend});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -185,6 +194,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(IGNORE_USER);
         out.writeObject(new Object[] {sessionID, friend});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -198,6 +208,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(UPDATE_TIMESTAMP);
         out.writeObject(new Object[] {sessionID});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -211,6 +222,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(PENDING_INVITATIONS_REQUEST);
         out.writeObject(new Object[] {sessionID});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -226,6 +238,7 @@ public class SWASendSockets
         connect(serverIP, serverPort);
         out.writeInt(GET_LIST_OF_FRIENDS);
         out.writeObject(new Object[] {sessionID, property});
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -242,6 +255,7 @@ public class SWASendSockets
         out.writeInt(SEND_URL);
         out.writeUTF(token);
         out.writeUTF(url);
+        out.flush();
         
         int responseCode = in.readInt();
         Object responseVal = in.readObject();        
@@ -256,12 +270,14 @@ public class SWASendSockets
         out.writeInt(SEND_TEXT);
         out.writeUTF(token);
         out.writeUTF(text);
-        
+        out.flush();
+
+        in = new ObjectInputStream(clientSocket.getInputStream());
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         clientSocket.close();
 
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);       
+        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);      
     }
     
     public void sendFile(String token, String ip, int port, String path) throws Exception
@@ -276,11 +292,12 @@ public class SWASendSockets
         out.writeUTF(token);
         out.writeUTF(f.getName());
         out.writeLong(f.length());
+        out.flush();
         
         while ((bytesRead = filein.read(bytes)) != -1)
             out.write(bytes, 0, bytesRead);
         filein.close();
-        
+        out.flush();
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         clientSocket.close();
