@@ -112,6 +112,7 @@ public class SWAServerSockets extends Thread
         private static final int PENDING_INVITATIONS_REQUEST = 9;
         private static final int GET_LIST_OF_FRIENDS = 10;
         private static final int CLIENT_NAME_REQUEST = 11;
+        private static final int GET_SEND_TOKEN = 15;
         private static final int RETURN_VALUE = 0;
         private static final int EXCEPTION = -1;
         
@@ -189,6 +190,11 @@ public class SWAServerSockets extends Thread
                             break;
                         case CLIENT_NAME_REQUEST:
                             ret = server.clientNameRequest(params);
+                            out.writeInt(RETURN_VALUE);
+                            out.writeObject(ret);
+                            break;
+                        case GET_SEND_TOKEN:
+                            ret = server.getSendToken(params);
                             out.writeInt(RETURN_VALUE);
                             out.writeObject(ret);
                             break;

@@ -230,7 +230,7 @@ public abstract class JDBCDBTable
         int count = 1;
         for (int i = 0; i < preds.length; ++i)
         {
-            if (preds[i] == null) continue;
+            if (preds[i].value == null) continue;
             else ps.setObject(count, preds[i].value);
             ++count;
         }

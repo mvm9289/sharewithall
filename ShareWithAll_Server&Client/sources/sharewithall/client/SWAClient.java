@@ -115,7 +115,6 @@ public class SWAClient
             ////////// HE A�ADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
             String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
             int port = Integer.valueOf(myIPandPort[1]).intValue();
-            socketsModule.setClientPort(port + 1000);
             receiveSocketsModule = new SWAReceiveClientSockets(port, this);
             receiveSocketsModule.start();
         }
@@ -164,7 +163,7 @@ public class SWAClient
             e.printStackTrace();
         }
     }
-    private void clientNameRequestCommand()
+    /*private void clientNameRequestCommand()
     {
         String ip = sc.next();
         int port = sc.nextInt();
@@ -182,7 +181,7 @@ public class SWAClient
         {
             e.printStackTrace();
         }
-    }
+    }*/
     private void declareFriendCommand()
     {
         String friend = sc.next();
@@ -293,8 +292,9 @@ public class SWAClient
         
         try
         {
-            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendURL(res[0], Integer.parseInt(res[1]), url);
+            String token = socketsModule.getSendToken(sessionID, username + ":" + client);
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
+            socketsModule.sendURL(token, res[0], Integer.parseInt(res[1]), url);
         }
         catch (Exception e)
         {
@@ -316,8 +316,9 @@ public class SWAClient
         
         try
         {
-            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendText(res[0], Integer.parseInt(res[1]), text);
+            String token = socketsModule.getSendToken(sessionID, username + ":" + client);
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
+            socketsModule.sendText(token, res[0], Integer.parseInt(res[1]), text);
         }
         catch (Exception e)
         {
@@ -339,8 +340,9 @@ public class SWAClient
         
         try
         {
-            String res[] = socketsModule.ipAndPortRequest(sessionID, username + "#" + client);
-            socketsModule.sendFile(res[0], Integer.parseInt(res[1]), path);
+            String token = socketsModule.getSendToken(sessionID, username + ":" + client);
+            String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
+            socketsModule.sendFile(token, res[0], Integer.parseInt(res[1]), path);
         }
         catch (Exception e)
         {
@@ -357,7 +359,7 @@ public class SWAClient
             ok = desktop.isSupported(java.awt.Desktop.Action.BROWSE);
         }
 
-        System.out.println("[" + username + "#" + client + "] has sent you the URL '" + url + "'");
+        System.out.println("[" + username + ":" + client + "] has sent you the URL '" + url + "'");
         if (ok) {
             System.out.println("Trying to open it in your default browser...");
             try {
@@ -372,14 +374,14 @@ public class SWAClient
     }
     public void receiveText(String username, String client, String text)
     {
-        System.out.println("[" + username + "#" + client + "] says: " + text);
+        System.out.println("[" + username + ":" + client + "] says: " + text);
     }
     public void receiveFile(String username, String client, String file)
     {
         try {
             File f = new File(file);
             MagicMatch match = Magic.getMagicMatch(f, true);
-            System.out.println("[" + username + "#" + client + "] has sent you the file '" + file + "' with type '" + match.print() + "'");
+            System.out.println("[" + username + ":" + client + "] has sent you the file '" + file + "' with type '" + match.print() + "'");
         }
         catch (Exception e)
         {
@@ -403,7 +405,6 @@ public class SWAClient
                     "                Ignore user: 05 users\n" +
                     "Pending invitations request: 06\n" +
                     "       Show list of friends: 07 property\n" +
-                    "        Client name request: 08 ip port\n" +
                     "                   Send URL: 10 URL username client\n" +
                     "                  Send Text: 11 text username client\n" +
                     "                  Send File: 12 path username client\n" +
@@ -437,9 +438,9 @@ public class SWAClient
                 case 7:
                     showListOfFriendsCommand();
                     break;
-                case 8:
+                /*case 8:
                     clientNameRequestCommand();
-                    break;
+                    break;*/
                 case 9:
                     logoutCommand();
                     end = true;
