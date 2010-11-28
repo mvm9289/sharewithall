@@ -272,7 +272,6 @@ public class SWASendSockets
         out.writeUTF(text);
         out.flush();
 
-        in = new ObjectInputStream(clientSocket.getInputStream());
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         clientSocket.close();
