@@ -24,6 +24,7 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int SEND_FILE = 14;
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
+    protected static final int FILE_BUFFER_SIZE = 4096;
     
     private ServerSocket receiverSocket;
     
@@ -40,9 +41,9 @@ public abstract class SWAReceiveSockets extends Thread
         }
     }
 
-    public abstract void process(int instruction, Object data, String username, String client);
+    public abstract void process(int instruction, String username, String client, ObjectInputStream in) throws Exception;
     
-    public abstract String[] obtainEmissor(String token);
+    public abstract String[] obtainSender(String token) throws Exception;
     
     public void run()
     {
@@ -65,7 +66,6 @@ public abstract class SWAReceiveSockets extends Thread
     {
         
         private Socket clientSocket;
-        private String user, client;
         
         private SWASocketsThread(Socket clientSocket)
         {
@@ -77,45 +77,28 @@ public abstract class SWAReceiveSockets extends Thread
         {   
             try
             {
-
-                
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
-                Object[] params = (Object[])in.readObject();
-                String token = (String) params[0];
-                String[] emissor = obtainEmissor(token);
-                user = emissor[0];
-                client = emissor[1];
+                String token = in.readUTF();
 
                 try
                 {
-                    switch (instruction)
-                    {
-                        case SEND_URL:
-                            //TODO: Leer url (texto utf)
-                            process(SEND_URL, new Object()/*TODO: String*/, user, client);
-                            out.writeUTF(String.valueOf(RETURN_VALUE));
-                            break;
-                        case SEND_TEXT:
-                            //TODO: Leer texto utf
-                            process(SEND_TEXT, (String) params[1], user, client);
-                            out.writeUTF(String.valueOf(RETURN_VALUE));
-                            break;
-                        case SEND_FILE:
-                            //TODO: Leer archivo (bytes)
-                            process(SEND_FILE, new Object()/*TODO: File*/, user, client);
-                            out.writeUTF(String.valueOf(RETURN_VALUE));
-                            break;
-                        default:
-                            throw new Exception("Wrong instruction identifier.");
-                    }
+                    String[] sender = obtainSender(token);
+                    String user = sender[0];
+                    String client = sender[1];
+                    process(instruction, user, client, in);
+                    out.writeInt(RETURN_VALUE);
                 }
                 catch (Exception e)
                 {
-                    if (e.getClass() == Exception.class) out.writeUTF(String.valueOf(EXCEPTION) + ";" + e.getMessage());
-                    else out.writeUTF(String.valueOf(EXCEPTION) + ";Server Exception");
+                    out.writeInt(EXCEPTION);
+                    if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
+                    else {
+                        e.printStackTrace();
+                        out.writeObject("Remote Exception");
+                    }
                 }
             }
             catch (Exception e)

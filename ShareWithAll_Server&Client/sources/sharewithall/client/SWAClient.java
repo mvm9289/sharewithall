@@ -20,8 +20,8 @@ import sharewithall.client.sockets.SWASendSockets;
 public class SWAClient
 {
     
-    private static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
-    private static final int DEFAULT_SERVER_PORT = 4040;
+    public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
+    public static final int DEFAULT_SERVER_PORT = 4040;
     
     private static SWASendSockets socketsModule;
     private static SWAReceiveClientSockets receiveSocketsModule;
@@ -78,7 +78,11 @@ public class SWAClient
         update.start();
         SWAClientLoop();
     }
-
+    
+    public String getSessionID() {
+        return sessionID;
+    }
+    
     private void newUserCommand()
     {
         if(sessionID != null)
@@ -387,18 +391,6 @@ public class SWAClient
         {
             e.printStackTrace();
         }
-    }
-
-    public String[] obtainEmissor(String token)
-    {   
-            try
-            {
-                return socketsModule.obtainEmissor(sessionID, token);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            return null; //TODO: Si no pongo esto se queja de que puede ser que no se devuelva nada.
     }
     
     private void SWAClientLoop()
