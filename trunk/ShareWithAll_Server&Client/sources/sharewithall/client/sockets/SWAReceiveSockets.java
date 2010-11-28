@@ -40,7 +40,7 @@ public abstract class SWAReceiveSockets extends Thread
         }
     }
 
-    public abstract void process(int instruction, Object data);
+    public abstract void process(int instruction, Object data, String username, String client);
     
     public void run()
     {
@@ -63,6 +63,7 @@ public abstract class SWAReceiveSockets extends Thread
     {
         
         private Socket clientSocket;
+        private String user, client;
         
         private SWASocketsThread(Socket clientSocket)
         {
@@ -74,6 +75,10 @@ public abstract class SWAReceiveSockets extends Thread
         {   
             try
             {
+                user = null; //TODO: Obtener usuario mediante token.
+                client = null; //TODO: Obtener cliente mediante token.
+                //TODO: Comprobar amistad mediante token.
+                
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
@@ -86,17 +91,17 @@ public abstract class SWAReceiveSockets extends Thread
                     {
                         case SEND_URL:
                             //TODO: Leer url (texto utf)
-                            process(SEND_URL, new Object()/*TODO: String*/);
+                            process(SEND_URL, new Object()/*TODO: String*/, user, client);
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case SEND_TEXT:
                             //TODO: Leer texto utf
-                            process(SEND_TEXT, new Object()/*TODO: String*/);
+                            process(SEND_TEXT, (String) params[0], user, client);
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         case SEND_FILE:
                             //TODO: Leer archivo (bytes)
-                            process(SEND_FILE, new Object()/*TODO: File*/);
+                            process(SEND_FILE, new Object()/*TODO: File*/, user, client);
                             out.writeUTF(String.valueOf(RETURN_VALUE));
                             break;
                         default:

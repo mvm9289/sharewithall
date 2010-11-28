@@ -26,7 +26,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
     }
 
     @Override
-    public void process(int instruction, Object data)
+    public void process(int instruction, Object data, String username, String client)
     {
         switch (instruction)
         {
@@ -34,7 +34,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 //TODO: Llamar a la funcion externa
                 break;
             case SEND_TEXT:
-                //TODO: Llamar a la funcion externa
+                this.client.receiveText(username, client, (String) data);
                 break;
             case SEND_FILE:
                 //TODO: Llamar a la funcion externa
