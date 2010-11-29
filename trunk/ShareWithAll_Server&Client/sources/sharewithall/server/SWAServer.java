@@ -485,6 +485,10 @@ public class SWAServer
                          , new JDBCPredicate("user1", client.username)
                          , new JDBCPredicate("status", STATUS_FRIEND)))
                      relations.remove(i);
+                 else if(DBFriends.exists_gen(new JDBCPredicate("user2", otherUser)
+                         , new JDBCPredicate("user1", client.username)
+                         , new JDBCPredicate("status", STATUS_IGNORE_USER)))
+                     relations.remove(i);
              }
              DBFriends.close();
              
