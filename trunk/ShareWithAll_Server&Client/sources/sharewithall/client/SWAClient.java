@@ -1,11 +1,8 @@
 
 package sharewithall.client;
 
-import java.io.File;
 import java.util.Scanner;
 
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
 import sharewithall.client.sockets.SWAReceiveClientSockets;
 import sharewithall.client.sockets.SWASendSockets;
 
@@ -72,7 +69,7 @@ public class SWAClient
         //sc.useDelimiter("[\\s]");
         Thread update = new SWAUpdateThread();
         update.start();
-        SWAClientLoop();
+        //SWAClientLoop();
     }
     
     public String getSessionID() {
@@ -483,21 +480,5 @@ public class SWAClient
             "\n\n\t*Arguments between [] are optional." +
             "Default server IP and port are " + DEFAULT_SERVER_IP + ":" + DEFAULT_SERVER_PORT + ".\n");
     }
-    
-    public static void main(String[] args)
-    {
-        if (args.length == 1)
-        {
-            String[] aux = args[0].split(":");
-            if (aux.length == 1) new SWAClient(aux[0], DEFAULT_SERVER_PORT);
-            else if (aux.length == 2) new SWAClient(aux[0], Integer.valueOf(aux[1]).intValue());
-            else printUsage();
-        }
-        else if (args.length == 0) new SWAClient(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
-        else printUsage();
-    }
-
-
-
 }
 
