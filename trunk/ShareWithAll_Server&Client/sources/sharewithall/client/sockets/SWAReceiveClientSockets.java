@@ -41,23 +41,24 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 break;
             case SEND_FILE:
                 String filename = in.readUTF();
-                long filesize = in.readLong();
-                byte[] bytes = new byte[FILE_BUFFER_SIZE];
-                int bytesRead;
-                
+                int filesize = in.readInt();
+                int totalBytes = 0;
                 //Security problem here!!! need to check the filename
                 //Also have to check if the file already exists
+                //Also a limit for the filesize, and a limit for the time reading it
                 File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
-                long totalBytes = 0;
-                while ((bytesRead = in.read(bytes)) != -1) {
-                    fileout.write(bytes, 0, bytesRead);
-                    //We could call here to a function in the GUI to update the progress
-                    totalBytes += bytesRead;
-                    System.out.println(totalBytes + "/" + filesize + " bytes read");
+
+                System.out.println("Receiving file from " + username + ":" + client + "...");
+
+                while (true) {
+                    Object[] packet = (Object[])in.readObject();
+                    int nBytes = (Integer)packet[0];
+                    if (nBytes <= 0) break;
+                    byte bytes[] = (byte[])packet[1];
+                    fileout.write(bytes, 0, nBytes);
                 }
                 fileout.close();
-                //Now we need to save the file, maybe we could send the GUI some signals to show the progress
                 this.client.receiveFile(username, client, file.getAbsolutePath());
                 break;
             default:

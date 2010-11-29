@@ -383,9 +383,9 @@ public class SWAClient
     public void receiveFile(String username, String client, String file)
     {
         try {
-            File f = new File(file);
-            MagicMatch match = Magic.getMagicMatch(f, true);
-            System.out.println("[" + username + ":" + client + "] has sent you the file '" + file + "' with type '" + match.print() + "'");
+            //File f = new File(file);
+            //MagicMatch match = Magic.getMagicMatch(f, true);
+            System.out.println("[" + username + ":" + client + "] has sent you the file '" + file);// + "' with type '" + match.print() + "'");
         }
         catch (Exception e)
         {

@@ -281,23 +281,28 @@ public class SWASendSockets
         connect(ip, port);
         File f = new File(path);
         FileInputStream filein = new FileInputStream(f);
-        byte[] bytes = new byte[FILE_BUFFER_SIZE];
-        int bytesRead;
         
+        int filesize = (int)f.length();
         out.writeInt(SEND_FILE);
         out.writeUTF(token);
         out.writeUTF(f.getName());
-        out.writeLong(f.length());
+        out.writeInt(filesize);
         out.flush();
         
-        while ((bytesRead = filein.read(bytes)) != -1)
-            out.write(bytes, 0, bytesRead);
-        filein.close();
+        while (true) {
+            byte[] bytes = new byte[FILE_BUFFER_SIZE];
+            int bytesRead = filein.read(bytes);
+            if (bytesRead == -1) break;
+            out.writeObject(new Object[] {bytesRead, bytes});
+            out.flush();
+        }
+        out.writeObject(new Object[] {0, null});
         out.flush();
+        
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         clientSocket.close();
-        
+        filein.close();
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);        
     }
 

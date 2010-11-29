@@ -78,7 +78,6 @@ public abstract class SWAReceiveSockets extends Thread
             try
             {
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 String token = in.readUTF();
