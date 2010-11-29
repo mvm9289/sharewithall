@@ -4,9 +4,7 @@
 package sharewithall.client.sockets;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import sharewithall.client.SWAClient;
@@ -51,9 +49,12 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 //Also have to check if the file already exists
                 File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
+                long totalBytes = 0;
                 while ((bytesRead = in.read(bytes)) != -1) {
                     fileout.write(bytes, 0, bytesRead);
                     //We could call here to a function in the GUI to update the progress
+                    totalBytes += bytesRead;
+                    System.out.println(totalBytes + "/" + filesize + " bytes read");
                 }
                 fileout.close();
                 //Now we need to save the file, maybe we could send the GUI some signals to show the progress
