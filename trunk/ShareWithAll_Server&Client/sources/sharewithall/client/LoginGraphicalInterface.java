@@ -125,10 +125,20 @@ public class LoginGraphicalInterface
         panel.add(L_Visible);
         
         JButton B_Login = new JButton("Login");
+        B_Login.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                client.loginCommand(TF_Username.getText(), TF_Password.getText(), TF_Client.getText(), true); //TODO canviar true
+            }
+        });
         B_Login.setBounds(168, 112, 171, 24);
         panel.add(B_Login);
         
         JButton B_Register = new JButton("Register");
+        B_Register.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                client.newUserCommand(TF_Username.getText(), TF_Password.getText());
+            }
+        });
         B_Register.setBounds(12, 167, 171, 24);
         login.getContentPane().add(B_Register);
         
