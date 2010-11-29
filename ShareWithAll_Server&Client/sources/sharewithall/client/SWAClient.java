@@ -26,9 +26,7 @@ public class SWAClient
     private static SWASendSockets socketsModule;
     private static SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
-    private String username;
-    private String password;
-    private Scanner sc;
+
     
     private class SWAUpdateThread extends Thread
     {
@@ -68,8 +66,6 @@ public class SWAClient
     public SWAClient(String serverIP, int serverPort)
     {
         super();
-        sc = new Scanner(System.in);
-        
         socketsModule = new SWASendSockets(serverIP, serverPort);
         
         //Esto me daba problemas para leer, lo he comentado (alex)
@@ -83,15 +79,14 @@ public class SWAClient
         return sessionID;
     }
     
-    private void newUserCommand()
+    public void newUserCommand(String username, String password)
     {
         if(sessionID != null)
         {
             System.out.println("Sorry, you are already logged in.");
             return;
         }                   
-        username = sc.next();
-        password = sc.next();
+
         try
         {
             socketsModule.newUser(username, password);
@@ -102,17 +97,14 @@ public class SWAClient
         }
     }
     
-    private void loginCommand()
+    public void loginCommand(String username, String password, String name, boolean isPublic)
     {
         if(sessionID != null)
         {
             System.out.println("Sorry, you are already logged in.");
             return;
         }
-        username = sc.next();
-        password = sc.next();
-        String name = sc.next();
-        boolean isPublic = sc.nextBoolean();
+
         try
         {
             sessionID = socketsModule.login(username, password, name, isPublic);
@@ -128,7 +120,7 @@ public class SWAClient
         }
     }
     
-    private void getOnlineClientsCommand()
+    public void getOnlineClientsCommand()
     {
         String[] clients = null;
         if(sessionID == null)
@@ -148,9 +140,8 @@ public class SWAClient
             System.out.println(clients[i]);
     }
     
-    private void ipAndPortRequestCommand()
+    public void ipAndPortRequestCommand(String client)
     {
-        String client = sc.next();
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
@@ -186,9 +177,8 @@ public class SWAClient
             e.printStackTrace();
         }
     }*/
-    private void declareFriendCommand()
+    public void declareFriendCommand(String friend)
     {
-        String friend = sc.next();
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
@@ -204,9 +194,8 @@ public class SWAClient
         }
     }
     
-    private void ignoreUserCommand()
+    public void ignoreUserCommand(String friend)
     {
-        String friend = sc.next();
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
@@ -222,7 +211,7 @@ public class SWAClient
         }
     }
     
-    private void pendingInvitationsRequesCommand()
+    public void pendingInvitationsRequesCommand()
     {
         if(sessionID == null)
         {
@@ -244,10 +233,9 @@ public class SWAClient
         }
     }
     
-    private void showListOfFriendsCommand()
+    public void showListOfFriendsCommand(int property)
     {
-        int property = sc.nextInt();
-        
+       
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
@@ -268,7 +256,7 @@ public class SWAClient
         }
     }
     
-    private void logoutCommand()
+    public void logoutCommand()
     {
         if(sessionID == null) return;
         try
@@ -282,18 +270,14 @@ public class SWAClient
         }
     }
     
-    private void sendURLCommand()
+    public void sendURLCommand(String url, String username, String client)
     {
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
             return;
         }
-        
-        String url = sc.next();
-        String username = sc.next();
-        String client = sc.next();
-        
+                
         try
         {
             String token = socketsModule.getSendToken(sessionID, username + ":" + client);
@@ -306,17 +290,13 @@ public class SWAClient
         }
     }
     
-    private void sendTextCommand()
+    public void sendTextCommand(String text, String username, String client)
     {
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
             return;
         }
-        
-        String text = sc.next();
-        String username = sc.next();
-        String client = sc.next();
         
         try
         {
@@ -330,17 +310,13 @@ public class SWAClient
         }
     }
     
-    private void sendFileCommand()
+    public void sendFileCommand(String path, String username, String client)
     {
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
             return;
         }
-        
-        String path = sc.next();
-        String username = sc.next();
-        String client = sc.next();
         
         try
         {
@@ -415,32 +391,54 @@ public class SWAClient
                     "                       Exit: 09\n" +
                     "--------------------------------------------");
             
+            Scanner sc = new Scanner(System.in);
+            String username;
+            String password;
+            String name;
+            String client;
+            String friend;
+            String url;
+            String text;
+            String path;
+            int property;
+            boolean isPublic;
+            
             int commandIndex = sc.nextInt();
             switch(commandIndex)
             {
                 case 0:
-                    newUserCommand();
+                    username = sc.next();
+                    password = sc.next();
+                    newUserCommand(username, password);
                     break;
                 case 1:
-                    loginCommand();
+                    username = sc.next();
+                    password = sc.next();
+                    name = sc.next();
+                    isPublic = sc.nextBoolean();
+                    loginCommand(username, password, name, isPublic);
                     break;
                 case 2:
                     getOnlineClientsCommand();
                     break;
                 case 3:
-                    ipAndPortRequestCommand();
+                    client = sc.next(); 
+                    ipAndPortRequestCommand(client);
                     break;
                 case 4:
-                    declareFriendCommand();
+                    friend = sc.next();
+                    declareFriendCommand(friend);
                     break;
                 case 5:
-                    ignoreUserCommand();
+                    friend = sc.next();
+                    ignoreUserCommand(friend);
                     break;
                 case 6:
                     pendingInvitationsRequesCommand();
                     break;
                 case 7:
-                    showListOfFriendsCommand();
+                    property = sc.nextInt();
+                    showListOfFriendsCommand(property);
                     break;
                 /*case 8:
                     clientNameRequestCommand();
@@ -450,13 +448,22 @@ public class SWAClient
                     end = true;
                     break;
                 case 10:
-                    sendURLCommand();
+                    url = sc.next();
+                    username = sc.next();
+                    client = sc.next();
+                    sendURLCommand(url, username, client);
                     break;
                 case 11:
-                    sendTextCommand();
+                    text = sc.next();
+                    username = sc.next();
+                    client = sc.next();
+                    sendTextCommand(text, username, client);
                     break;
                 case 12:
-                    sendFileCommand();
+                    path = sc.next();
+                    username = sc.next();
+                    client = sc.next();
+                    sendFileCommand(path, username, client);
                     break;
                 default:
                     System.out.println("Wrong command, try again.");
