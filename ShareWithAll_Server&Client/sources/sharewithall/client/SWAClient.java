@@ -116,7 +116,7 @@ public class SWAClient
         try
         {
             sessionID = socketsModule.login(username, password, name, isPublic);
-            ////////// HE A�ADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
+            ////////// HE ANADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
             String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
             int port = Integer.valueOf(myIPandPort[1]).intValue();
             receiveSocketsModule = new SWAReceiveClientSockets(port, this);
@@ -466,7 +466,7 @@ public class SWAClient
         }
     }
     
-    private static void printUsage()
+    public static void printUsage()
     {
         System.out.println(
             "\n\tUSAGE:\n\t\t" +

@@ -263,6 +263,7 @@ public class SWASendSockets
     
     public void sendText(String token, String ip, int port, String text) throws Exception
     {
+        System.out.println("ip: " + ip + " port: " + port);
         connect(ip, port);
         out.writeInt(SEND_TEXT);
         out.writeUTF(token);
