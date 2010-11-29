@@ -7,8 +7,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 
 /**
@@ -37,7 +35,6 @@ public class SWASendSockets
     private static final int SEND_TEXT = 13;
     private static final int SEND_FILE = 14;
     private static final int GET_SEND_TOKEN = 15;
-    private static final int OBTAIN_EMISSOR = 16;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     public static final int PROPERTY_FRIENDS = 0;

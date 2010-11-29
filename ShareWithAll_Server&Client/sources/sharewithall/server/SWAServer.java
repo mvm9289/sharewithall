@@ -28,7 +28,7 @@ import sharewithall.server.sockets.SWAServerSockets;
  */
 public class SWAServer
 {
-    private static final int FIRST_CLIENT_PORT = 4100;
+    private static final int FIRST_CLIENT_PORT = 9000;
     private static final int DEFAULT_SERVER_PORT = 4040;
     private static final int STATUS_FRIEND = 1;
     private static final int STATUS_IGNORE_USER = 0;
@@ -134,10 +134,12 @@ public class SWAServer
         JDBCDBClients DBClients = new JDBCDBClients();
         String session_id = md5(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("ip", ip));
-        int port = FIRST_CLIENT_PORT + clients.size(); 
+        int max_port = FIRST_CLIENT_PORT;
+        for (int i = 0; i < clients.size(); ++i)
+            max_port = Math.max(max_port, ((JDBCClient)clients.get(i)).port);
         Timestamp last_time = new Timestamp((new Date()).getTime());
         
-        JDBCClient cl = new JDBCClient(ip, port, name, isPublic, last_time, username, session_id);
+        JDBCClient cl = new JDBCClient(ip, max_port + 1, name, isPublic, last_time, username, session_id);
         if (DBClients.update_obj(cl) == 0) DBClients.insert_obj(cl);
         DBClients.commit();
         DBClients.close();
