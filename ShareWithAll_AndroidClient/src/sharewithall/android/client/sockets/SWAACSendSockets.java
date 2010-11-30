@@ -22,17 +22,20 @@ public class SWAACSendSockets extends Thread
 		FRIENDS, DECLARED, EXPECTING, IGNORED
 	}
 	
-	Context baseContext;
-	Command command;
-	Handler handler;
-	Object[] data;
+	private Command command;
+	private Handler handler;
+	private Object[] data;
+	private SharedPreferences preferences;
+	private SWASendSockets socketsModule;
 	
 	public SWAACSendSockets(Context baseContext, Command command, Handler handler)
 	{
 		super();
-		this.baseContext = baseContext;
 		this.command = command;
 		this.handler = handler;
+		preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
+		socketsModule = new SWASendSockets(preferences.getString("serverIPPref", "mvm9289.dyndns.org"),
+				Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue());
 	}
 	
 	public SWAACSendSockets(Context baseContext, Command command, Handler handler, Object[] data)
@@ -43,14 +46,8 @@ public class SWAACSendSockets extends Thread
 	
 	private void newUser()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPort", "4040")).intValue();
-
     	String username = (String) data[0];
     	String password = (String) data[1];
-
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
 			socketsModule.newUser(username, password);
@@ -73,16 +70,10 @@ public class SWAACSendSockets extends Thread
 	
 	private void login()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
-
     	String username = (String) data[0];
     	String password = (String) data[1];
     	String deviceName = preferences.getString("deviceNamePref", "Android-Device");
     	boolean isPublic = preferences.getBoolean("isPublicPref", false);
-    	
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
 			String sessionID = socketsModule.login(username, password, deviceName, isPublic);
@@ -106,12 +97,7 @@ public class SWAACSendSockets extends Thread
 	
 	private void logout()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
 			socketsModule.logout(sessionID);
@@ -134,12 +120,7 @@ public class SWAACSendSockets extends Thread
 	
 	private void getOnlineClients()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-    	
 		try
 		{
 			String[] onlineClients = socketsModule.getOnlineClients(sessionID);
@@ -163,14 +144,8 @@ public class SWAACSendSockets extends Thread
 	
 	private void getSendToken()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	
     	String client = (String) data[0];
-
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
 			String token = socketsModule.getSendToken(sessionID, client);
@@ -194,14 +169,8 @@ public class SWAACSendSockets extends Thread
 	
 	private void ipAndPortRequest()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	
     	String client = (String) data[0];
-
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
 			String[] ipAndPort = socketsModule.ipAndPortRequest(sessionID, client);
@@ -225,14 +194,8 @@ public class SWAACSendSockets extends Thread
 	
 	private void declareFriend()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-    	String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	
     	String friend = (String) data[0];
-    	
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
     	try
     	{
 			socketsModule.declareFriend(sessionID, friend);
@@ -255,12 +218,7 @@ public class SWAACSendSockets extends Thread
 	
 	private void updateTimestamp()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-    	String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
     	try
     	{
 			socketsModule.updateTimestamp(sessionID);
@@ -283,14 +241,8 @@ public class SWAACSendSockets extends Thread
 	
 	private void ignoreFriend()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-    	String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
     	String sessionID = preferences.getString("sessionID", null);
-    	
     	String friend = (String) data[0];
-    	
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
     	try
     	{
 			socketsModule.ignoreUser(sessionID, friend);
@@ -313,39 +265,36 @@ public class SWAACSendSockets extends Thread
 	
 	private void getListOfFriends()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-		String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-		int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
 		String sessionID = preferences.getString("sessionID", null);
-		
-		SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
 		try
 		{
-			boolean baux2 = ((Boolean)data[0]).booleanValue();
-			boolean baux3 = ((Boolean)data[1]).booleanValue();
-			boolean baux4 = ((Boolean)data[2]).booleanValue();
-			
 			String[] aux1 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_FRIENDS);
-			String[] aux2 = {};
-			if (baux2) aux2 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_DECLARED_FRIEND);
-			String[] aux3 = {};
-			if (baux3) aux3 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_EXPECTING);
-			String[] aux4= {};
-			if (baux4) aux4 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_IGNORED);
+			String[] aux2 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_DECLARED_FRIEND);
+			String[] aux3 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_EXPECTING);
+			String[] aux4 = socketsModule.showListOfFriends(sessionID, SWASendSockets.PROPERTY_IGNORED);
 			
-			String[] friends = new String[aux1.length + aux2.length + aux3.length + aux4.length];
+			String[] friends = new String[2*(aux1.length + aux2.length + aux3.length + aux4.length)];
 			int k = 0;
 			for (int i = 0; i < aux1.length; i++)
-				friends[k++] = aux1[i] + ";accepted";
-			if (baux2)
-				for (int i = 0; i < aux2.length; i++)
-					friends[k++] = aux2[i] + ";declared";
-			if (baux3)
-				for (int i = 0; i < aux3.length; i++)
-					friends[k++] = aux3[i] + ";expecting";
-			if (baux4)
-				for (int i = 0; i < aux4.length; i++)
-					friends[k++] = aux4[i] + ";ignored";
+			{
+				friends[k++] = aux1[i];
+				friends[k++] = Property.FRIENDS.toString();
+			}
+			for (int i = 0; i < aux2.length; i++)
+			{
+				friends[k++] = aux2[i];
+				friends[k++] = Property.DECLARED.toString();
+			}
+			for (int i = 0; i < aux3.length; i++)
+			{
+				friends[k++] = aux3[i];
+				friends[k++] = Property.EXPECTING.toString();
+			}
+			for (int i = 0; i < aux4.length; i++)
+			{
+				friends[k++] = aux4[i];
+				friends[k++] = Property.IGNORED.toString();
+			}
 			
 			Bundle b = new Bundle();
 			b.putBoolean("getListOfFriends", true);
@@ -367,16 +316,10 @@ public class SWAACSendSockets extends Thread
 	
 	private void sendText()
 	{
-		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(baseContext);
-    	String serverIP = preferences.getString("serverIPPref", "mvm9289.dyndns.org");
-    	int serverPort = Integer.valueOf(preferences.getString("serverPortPref", "4040")).intValue();
-    	
 		String token = (String) data[0];
     	String ip = (String) data[1];
     	int port = Integer.valueOf((String) data[2]).intValue();
     	String text = (String) data[3];
-    	
-    	SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
     	try
     	{
 			socketsModule.sendText(token, ip, port, text);

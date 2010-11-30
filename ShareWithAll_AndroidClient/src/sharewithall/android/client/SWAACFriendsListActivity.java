@@ -1,11 +1,18 @@
 package sharewithall.android.client;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+
 import sharewithall.android.client.sockets.SWAACSendSockets;
 import sharewithall.android.client.sockets.SWAACSendSockets.Command;
 import sharewithall.android.client.sockets.SWAACSendSockets.Property;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -31,12 +38,18 @@ import android.widget.Toast;
 public class SWAACFriendsListActivity extends Activity
 {
 
-	private ProgressDialog progressDialog;
 	private SWAACSendSockets sendSockets;
 	private BroadcastReceiver broadcastReceiver;
 	private IntentFilter intentFilter;
+	private SharedPreferences preferences;
+	private SharedPreferences.Editor editor;
+	private ArrayList<String> acceptedFriends;
+	private ArrayList<String> invitedFriends;
+	private ArrayList<String> expectingFriends;
+	private ArrayList<String> blockedFriends;
 	private String clickedFriend;
 	private String clickedProperty;
+	private boolean toUpdateList;
 	
     private void printMessage(String message)
     {
@@ -48,40 +61,58 @@ public class SWAACFriendsListActivity extends Activity
     	Intent intent = new Intent().setClass(this, SWAACOptionsActivity.class);
 		startActivity(intent);
     }
+
+    private void acceptFriend()
+    {
+    	Object[] data = new Object[1];
+    	data[0] = clickedFriend;
+    	sendSockets = new SWAACSendSockets(this, Command.DECLARE_FRIEND, handler, data);
+		sendSockets.send();
+		
+		if (clickedProperty.equals("Invitation received"))
+			expectingFriends.remove(expectingFriends.indexOf(clickedFriend));
+		else if (clickedProperty.equals("Blocked"))
+			blockedFriends.remove(blockedFriends.indexOf(clickedFriend));
+		
+		int i;
+		for (i = 0; i < acceptedFriends.size() && acceptedFriends.get(i).compareTo(clickedFriend) < 0; i++);
+		acceptedFriends.add(i, clickedFriend);
+    }
+    
+    private void blockFriend()
+    {
+    	Object[] data = new Object[1];
+    	data[0] = clickedFriend;
+    	sendSockets = new SWAACSendSockets(this, Command.IGNORE_USER, handler, data);
+		sendSockets.send();
+		
+		if (clickedProperty.equals("Accepted"))
+			acceptedFriends.remove(acceptedFriends.indexOf(clickedFriend));
+		else if (clickedProperty.equals("Invitation sent"))
+			invitedFriends.remove(invitedFriends.indexOf(clickedFriend));
+		else if (clickedProperty.equals("Invitation received"))
+			expectingFriends.remove(expectingFriends.indexOf(clickedFriend));
+		
+		int i;
+		for (i = 0; i < blockedFriends.size() && blockedFriends.get(i).compareTo(clickedFriend) < 0; i++);
+		blockedFriends.add(i, clickedFriend);
+    }
     
     private void processClickedDialog(int item)
     {
     	Object[] data = new Object[1];
     	data[0] = clickedFriend;
     	
+    	toUpdateList = false;
     	if (clickedProperty.equals("Invitation received"))
     	{
-    		if (item == 0)
-    		{
-    			sendSockets = new SWAACSendSockets(this, Command.DECLARE_FRIEND, handler, data);
-    			sendSockets.send();
-    		}
-    		else if (item == 1)
-    		{
-    			sendSockets = new SWAACSendSockets(this, Command.IGNORE_USER, handler, data);
-    			sendSockets.send();
-    		}
+    		if (item == 0) acceptFriend();
+    		else if (item == 1) blockFriend();
     	}
-    	else if (clickedProperty.equals("Invitation sent") && item == 0)
-    	{
-    		sendSockets = new SWAACSendSockets(this, Command.IGNORE_USER, handler, data);
-    		sendSockets.send();
-    	}
-    	else if (clickedProperty.equals("Accepted") && item == 0)
-    	{
-    		sendSockets = new SWAACSendSockets(this, Command.IGNORE_USER, handler, data);
-    		sendSockets.send();
-    	}
-    	else if (clickedProperty.equals("Blocked") && item == 0)
-    	{
-    		sendSockets = new SWAACSendSockets(this, Command.DECLARE_FRIEND, handler, data);
-    		sendSockets.send();
-    	}
+    	else if (clickedProperty.equals("Invitation sent") && item == 0) blockFriend();
+    	else if (clickedProperty.equals("Accepted") && item == 0) blockFriend();
+    	else if (clickedProperty.equals("Blocked") && item == 0) acceptFriend();
+    	showFriendsList();
     }
     
     private void showAddFriendDialog()
@@ -95,6 +126,7 @@ public class SWAACFriendsListActivity extends Activity
 			@Override
 			public void onClick(DialogInterface dialog, int which)
 			{
+				toUpdateList = true;
 				Object[] data = new Object[1];
 				data[0] = inputText.getText().toString();
 				sendSockets = new SWAACSendSockets(SWAACFriendsListActivity.this, Command.DECLARE_FRIEND, handler, data);
@@ -178,34 +210,173 @@ public class SWAACFriendsListActivity extends Activity
         friendsList.addView(friendsListItem);
     }
     
+    private void saveFriendsList()
+    {
+    	String ACCEPTED_FILE = "acceptedFriendsList";
+    	String INVITED_FILE = "invitedFriendsList";
+    	String EXPECTING_FILE = "expectingFriendsList";
+    	String BLOCKED_FILE = "blockedFriendsList";
+		try
+		{
+			deleteFile(ACCEPTED_FILE);
+			FileOutputStream fos = openFileOutput(ACCEPTED_FILE, MODE_PRIVATE);
+	    	BufferedOutputStream bos = new BufferedOutputStream(fos);
+	    	DataOutputStream dos = new DataOutputStream(bos);
+	    	for (int i = 0; i < acceptedFriends.size(); i++)
+	    	{
+	    		dos.writeBytes(acceptedFriends.get(i));
+	    		dos.writeByte('\n');
+	    	}
+	    	dos.close();
+	    	bos.close();
+	    	fos.close();
+
+			deleteFile(INVITED_FILE);
+			fos = openFileOutput(INVITED_FILE, MODE_PRIVATE);
+	    	bos = new BufferedOutputStream(fos);
+	    	dos = new DataOutputStream(bos);
+	    	for (int i = 0; i < invitedFriends.size(); i++)
+	    	{
+	    		dos.writeBytes(invitedFriends.get(i));
+	    		dos.writeByte('\n');
+	    	}
+	    	dos.close();
+	    	bos.close();
+	    	fos.close();
+
+			deleteFile(EXPECTING_FILE);
+			fos = openFileOutput(EXPECTING_FILE, MODE_PRIVATE);
+	    	bos = new BufferedOutputStream(fos);
+	    	dos = new DataOutputStream(bos);
+	    	for (int i = 0; i < expectingFriends.size(); i++)
+	    	{
+	    		dos.writeBytes(expectingFriends.get(i));
+	    		dos.writeByte('\n');
+	    	}
+	    	dos.close();
+	    	bos.close();
+	    	fos.close();
+
+			deleteFile(BLOCKED_FILE);
+			fos = openFileOutput(BLOCKED_FILE, MODE_PRIVATE);
+	    	bos = new BufferedOutputStream(fos);
+	    	dos = new DataOutputStream(bos);
+	    	for (int i = 0; i < blockedFriends.size(); i++)
+	    	{
+	    		dos.writeBytes(blockedFriends.get(i));
+	    		dos.writeByte('\n');
+	    	}
+	    	dos.close();
+	    	bos.close();
+	    	fos.close();
+		}
+		catch (Exception e) {}
+    }
+    
+    private void reloadLastFriendsList()
+    {
+    	String ACCEPTED_FILE = "acceptedFriendsList";
+    	String INVITED_FILE = "invitedFriendsList";
+    	String EXPECTING_FILE = "expectingFriendsList";
+    	String BLOCKED_FILE = "blockedFriendsList";
+    	acceptedFriends = new ArrayList<String>();
+    	invitedFriends = new ArrayList<String>();
+    	expectingFriends = new ArrayList<String>();
+    	blockedFriends = new ArrayList<String>();
+		try
+		{
+			FileInputStream fis = openFileInput(ACCEPTED_FILE);
+	    	BufferedInputStream bis = new BufferedInputStream(fis);
+	    	DataInputStream dis = new DataInputStream(bis);
+	    	while(dis.available() != 0) acceptedFriends.add(dis.readLine());
+	    	dis.close();
+	    	bis.close();
+	    	fis.close();
+
+	    	fis = openFileInput(INVITED_FILE);
+	    	bis = new BufferedInputStream(fis);
+	    	dis = new DataInputStream(bis);
+	    	while(dis.available() != 0) invitedFriends.add(dis.readLine());
+	    	dis.close();
+	    	bis.close();
+	    	fis.close();
+	    	
+	    	fis = openFileInput(EXPECTING_FILE);
+	    	bis = new BufferedInputStream(fis);
+	    	dis = new DataInputStream(bis);
+	    	while(dis.available() != 0) expectingFriends.add(dis.readLine());
+	    	dis.close();
+	    	bis.close();
+	    	fis.close();
+	    	
+	    	fis = openFileInput(BLOCKED_FILE);
+	    	bis = new BufferedInputStream(fis);
+	    	dis = new DataInputStream(bis);
+	    	while(dis.available() != 0) blockedFriends.add(dis.readLine());
+	    	dis.close();
+	    	bis.close();
+	    	fis.close();
+	    	
+	    	showFriendsList();
+		}
+		catch (Exception e) {}
+    }
+    
+    private void showFriendsList()
+    {
+    	LinearLayout friendsListView = (LinearLayout) findViewById(R.id.friendsList);
+    	friendsListView.removeAllViews();
+
+    	for (int i = 0; i < acceptedFriends.size(); i++)
+    		addFriendToList(acceptedFriends.get(i), Property.FRIENDS);
+    	for (int i = 0; i < invitedFriends.size(); i++)
+    		addFriendToList(invitedFriends.get(i), Property.DECLARED);
+    	for (int i = 0; i < expectingFriends.size(); i++)
+    		addFriendToList(expectingFriends.get(i), Property.EXPECTING);
+    	for (int i = 0; i < blockedFriends.size(); i++)
+    		addFriendToList(blockedFriends.get(i), Property.IGNORED);
+    }
+    
     private void updateFriendsList()
     {
-    	LinearLayout friendsList = (LinearLayout) findViewById(R.id.friendsList);
-    	friendsList.removeAllViews();
-
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	Object[] data = new Object[3];
-    	data[0] = preferences.getBoolean("showSendedInvPref", true);
-    	data[1] = preferences.getBoolean("showReceivedInvPref", true);
-    	data[2] = preferences.getBoolean("showBlockedPref", true);
-		progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.gettingFriendsList), true);
-    	sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.GET_LIST_OF_FRIENDS, handler, data);
+    	sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.GET_LIST_OF_FRIENDS, handler);
     	sendSockets.start();
 
-		SharedPreferences.Editor editor = preferences.edit();
 		editor.remove("friendsListChanged");
 		editor.commit();
     }
     
-    private void updatedFriendsList(String[] friends)
+    private void updatedFriendsList(String[] friendsList)
     {
-    	for (int i = 0; i < friends.length; i++)
+    	LinearLayout friendsListView = (LinearLayout) findViewById(R.id.friendsList);
+    	friendsListView.removeAllViews();
+    	
+    	acceptedFriends.clear();
+    	invitedFriends.clear();
+    	expectingFriends.clear();
+    	blockedFriends.clear();
+    	
+    	for (int i = 0; i < friendsList.length - 1; i+=2)
     	{
-    		String[] aux = friends[i].split(";");
-    		if (aux[1].equals("declared")) addFriendToList(aux[0], Property.DECLARED);
-    		else if (aux[1].equals("expecting")) addFriendToList(aux[0], Property.EXPECTING);
-    		else if (aux[1].equals("ignored")) addFriendToList(aux[0], Property.IGNORED);
-    		else if (aux[1].equals("accepted")) addFriendToList(aux[0], Property.FRIENDS);
+    		Property property = Property.valueOf(friendsList[i + 1]);
+    		addFriendToList(friendsList[i], property);
+    		switch (property)
+    		{
+				case FRIENDS:
+					acceptedFriends.add(friendsList[i]);
+					break;
+				case DECLARED:
+					invitedFriends.add(friendsList[i]);
+					break;
+				case EXPECTING:
+					expectingFriends.add(friendsList[i]);
+					break;
+				case IGNORED:
+					blockedFriends.add(friendsList[i]);
+					break;
+				default:
+					break;
+			}
     	}
     }
     
@@ -230,19 +401,25 @@ public class SWAACFriendsListActivity extends Activity
 	{
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.swaac_friendslist);
-
+    	preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+    	editor = preferences.edit();
     	configureBroadcastReceiver();
+    	reloadLastFriendsList();
 		updateFriendsList();
+	}
+	
+	@Override
+	protected void onDestroy()
+	{
+		saveFriendsList();
+		super.onDestroy();
 	}
 	
 	@Override
 	protected void onResume()
 	{
 		super.onResume();
-		
 		registerReceiver(broadcastReceiver, intentFilter);
-		
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	if (!preferences.getBoolean("loggedIn", false)) finish();
     	else if (preferences.getBoolean("friendsListChanged", false)) updateFriendsList();
 	}
@@ -250,8 +427,8 @@ public class SWAACFriendsListActivity extends Activity
 	@Override
 	protected void onPause()
 	{
-		super.onPause();
 		unregisterReceiver(broadcastReceiver);
+		super.onPause();
 	}
     
     @Override
@@ -282,22 +459,22 @@ public class SWAACFriendsListActivity extends Activity
 	
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            progressDialog.dismiss();
             if (msg.getData().getBoolean("exception"))
             {
             	printMessage("Error: " + msg.getData().getString("message"));
             	if (!msg.getData().getString("message").equals("Friend doesn't exist") &&
-            			!msg.getData().getString("message").equals("Relation already declared.")) finish();
+            			!msg.getData().getString("message").equals("Relation already declared."))
+            		finish();
             }
             else if (msg.getData().getBoolean("getListOfFriends"))
             	updatedFriendsList(msg.getData().getStringArray("friends"));
-            else if (msg.getData().getBoolean("declareFriend") || msg.getData().getBoolean("ignoreFriend"))
+            else if (toUpdateList && (msg.getData().getBoolean("declareFriend") ||
+            		msg.getData().getBoolean("ignoreFriend")))
             {
-            	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-            	SharedPreferences.Editor editor = preferences.edit();
             	editor.putBoolean("clientListChanged", true);
             	editor.commit();
             	updateFriendsList();
+            	toUpdateList = false;
             }
         }
     };

@@ -19,6 +19,8 @@ public class SWAACService extends Service
 	public static final String ERROR_ACTION = "SWAACServiceError";
 	
 	private PendingIntent alarmSender;
+	private SharedPreferences preferences;
+	private SharedPreferences.Editor editor;
 
     private void printMessage(String message)
     {
@@ -42,8 +44,6 @@ public class SWAACService extends Service
     
     private void sendErrorNotification()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
     	editor.putBoolean("loggedIn", false);
     	editor.commit();
     	
@@ -57,6 +57,8 @@ public class SWAACService extends Service
 	{
 		super.onCreate();
 		setForeground(true);
+		preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		editor = preferences.edit();
 		configureAlarm();
 	}
 	

@@ -54,4 +54,7 @@
 <string name="showReceivedInvTitle">Show received invitations</string><string name="showReceivedInvSummary">Show received invitations on friends list</string>
 <string name="showBlockedTitle">Show blocked friends</string><string name="showBlockedSummary">Show blocked friends on friends list</string>
 <string name="resetFriendsMenu">Reset friends options</string>
+<string name="chatWindow">Chat window</string>
+<string name="chatButton">Send</string>
+<string name="connectingWithClient">Connecting with client...</string>
 </resources>
