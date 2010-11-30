@@ -16,13 +16,17 @@ import sharewithall.client.sockets.SWASendSockets;
  */
 public class SWAClient
 {
+    private static SWASendSockets socketsModule;
     
-    public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
-    public static final int DEFAULT_SERVER_PORT = 4040;
+    public static final String DEFAULT_SERVER_IP = ShareWithAll.DEFAULT_SERVER_IP;
+    public static final int DEFAULT_SERVER_PORT = ShareWithAll.DEFAULT_SERVER_PORT;
+    public static final int PROPERTY_FRIENDS = socketsModule.PROPERTY_FRIENDS;
+    public static final int PROPERTY_DECLARED_FRIEND = socketsModule.PROPERTY_DECLARED_FRIEND;
+    public static final int PROPERTY_EXPECTING = socketsModule.PROPERTY_EXPECTING;
+    public static final int PROPERTY_IGNORED = socketsModule.PROPERTY_IGNORED;
     public String serverIP;
     public int serverPort;
     
-    private static SWASendSockets socketsModule;
     private static SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
 
@@ -234,27 +238,25 @@ public class SWAClient
         }
     }
     
-    public void showListOfFriendsCommand(int property)
+    public String[] showListOfFriendsCommand(int property)
     {
        
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
-            return;
+            return null;
         }
         try
         {
             String[] result;
             result = socketsModule.showListOfFriends(sessionID, property);
-            for(int i=0; i<result.length; ++i)
-            {
-                System.out.println(result[i]);
-            }
+            return result;
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
+        return null;
     }
     
     public void logoutCommand()
@@ -474,7 +476,7 @@ public class SWAClient
         }
     }
     
-    public static void printUsage()
+    private static void printUsage()
     {
         System.out.println(
             "\n\tUSAGE:\n\t\t" +
@@ -484,5 +486,29 @@ public class SWAClient
             "\n\n\t*Arguments between [] are optional." +
             "Default server IP and port are " + DEFAULT_SERVER_IP + ":" + DEFAULT_SERVER_PORT + ".\n");
     }
+
+    
+    public static void main(String[] args)
+    {
+        try
+        {
+            if (args.length == 1)
+            {
+                String[] aux = args[0].split(":");
+                if (aux.length == 1) new SWAClient(aux[0], DEFAULT_SERVER_PORT);
+                else if (aux.length == 2) new SWAClient(aux[0], Integer.valueOf(aux[1]).intValue());
+                else printUsage();
+            }
+            else if (args.length == 0) new SWAClient(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
+            else{
+                printUsage();
+                return;
+            }
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+    }
+
 }
 
