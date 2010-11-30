@@ -70,7 +70,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
     public String[] obtainSender(String token) throws Exception
     {
         String sessionID = client.getSessionID();
-        SWASendSockets s = new SWASendSockets(SWAClient.DEFAULT_SERVER_IP, SWAClient.DEFAULT_SERVER_PORT);
+        SWASendSockets s = new SWASendSockets(client.serverIP, client.serverPort);
         String clientName = s.clientNameRequest(sessionID, token);
         
         return clientName.split(":");

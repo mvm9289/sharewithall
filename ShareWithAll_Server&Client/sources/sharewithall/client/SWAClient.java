@@ -19,6 +19,8 @@ public class SWAClient
     
     public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
     public static final int DEFAULT_SERVER_PORT = 4040;
+    public String serverIP;
+    public int serverPort;
     
     private static SWASendSockets socketsModule;
     private static SWAReceiveClientSockets receiveSocketsModule;
@@ -64,6 +66,8 @@ public class SWAClient
     {
         super();
         socketsModule = new SWASendSockets(serverIP, serverPort);
+        this.serverIP = serverIP;
+        this.serverPort = serverPort;
         
         //Esto me daba problemas para leer, lo he comentado (alex)
         //sc.useDelimiter("[\\s]");
