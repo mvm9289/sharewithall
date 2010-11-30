@@ -7,69 +7,63 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
-public class LoginGraphicalInterface
+public class LoginGraphicalInterface extends javax.swing.JFrame
 {
-
-    private JFrame login;
-    static private SWAClient client;
+    private RegisterGraphicalInterface registerI;
+    private SWAClient client;
     private JTextField TF_Username;
     private JTextField TF_Password;
     private JTextField TF_Client;
-
-    private static void printUsage()
-    {
-        System.out.println(
-            "\n\tUSAGE:\n\t\t" +
-                "java sharewithall.server.SWAClient [serverIP:serverPort]" +
-                "\n\n\t\tor\n\n\t\t" +
-                "java sharewithall.server.SWAClient [serverIP]" +
-            "\n\n\t*Arguments between [] are optional." +
-            "Default server IP and port are " + client.DEFAULT_SERVER_IP + ":" + client.DEFAULT_SERVER_PORT + ".\n");
-    }    
+    private JCheckBox CB_Visible;
     
-    /**
-     * Launch the application.
-     */
-    public static void main(final String[] args)
-    {
+    private JButton B_Register;
+    public JButton B_Login;
 
-        
-        EventQueue.invokeLater(new Runnable()
+
+    public void start()
+    {
+        try
         {
-            public void run()
-            {
-                try
-                {
-                    LoginGraphicalInterface window = new LoginGraphicalInterface();
-                    window.login.setVisible(true);
-                    if (args.length == 1)
-                    {
-                        String[] aux = args[0].split(":");
-                        if (aux.length == 1) client = new SWAClient(aux[0], client.DEFAULT_SERVER_PORT);
-                        else if (aux.length == 2) client = new SWAClient(aux[0], Integer.valueOf(aux[1]).intValue());
-                        else printUsage();
-                    }
-                    else if (args.length == 0) new SWAClient(client.DEFAULT_SERVER_IP, client.DEFAULT_SERVER_PORT);
-                    else printUsage();
-                } catch (Exception e)
-                {
-                    e.printStackTrace();
+            setVisible(true);
+            B_Register.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    registerI = new RegisterGraphicalInterface(client);
+                    registerI.start();
+                    
+                    registerI.B_Cancel.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent arg0) {
+                            registerI.dispose();
+                        }
+                    });
+                    
+                    registerI.B_Register.addActionListener(new ActionListener() {
+                        public void actionPerformed(ActionEvent arg0) {
+                            if(registerI.getPassword() != null){
+                                client.newUserCommand(registerI.getName(), registerI.getPassword());
+                                System.out.println("New User: " + registerI.getName() + " " + registerI.getPassword());
+                                registerI.dispose();
+                            }
+                        }
+                    });
                 }
-            }
-        });
+            });
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
     }
 
-    /**
-     * Create the application.
-     */
-    public LoginGraphicalInterface()
+
+    public LoginGraphicalInterface(SWAClient c)
     {
+        client = c;
         initialize();
     }
 
@@ -78,15 +72,15 @@ public class LoginGraphicalInterface
      */
     private void initialize()
     {
-        login = new JFrame();
-        login.setBounds(100, 100, 384, 248);
-        login.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        login.getContentPane().setLayout(null);
+        
+        setBounds(100, 100, 384, 196);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
         
         JPanel panel = new JPanel();
         panel.setBorder(new LineBorder(new Color(0, 0, 0)));
         panel.setBounds(12, 12, 350, 144);
-        login.getContentPane().add(panel);
+        getContentPane().add(panel);
         panel.setLayout(null);
         
         JLabel L_Username = new JLabel("Username: ");
@@ -116,7 +110,7 @@ public class LoginGraphicalInterface
         TF_Client.setBounds(116, 62, 175, 18);
         panel.add(TF_Client);
         
-        JCheckBox CB_Visible = new JCheckBox("");
+        CB_Visible = new JCheckBox("");
         CB_Visible.setBounds(116, 83, 129, 22);
         panel.add(CB_Visible);
         
@@ -124,29 +118,44 @@ public class LoginGraphicalInterface
         L_Visible.setBounds(12, 87, 70, 14);
         panel.add(L_Visible);
         
-        JButton B_Login = new JButton("Login");
-        B_Login.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                client.loginCommand(TF_Username.getText(), TF_Password.getText(), TF_Client.getText(), true); //TODO canviar true
-            }
-        });
-        B_Login.setBounds(168, 112, 171, 24);
+        B_Login = new JButton("Login");
+        B_Login.setBounds(186, 112, 153, 24);
         panel.add(B_Login);
         
-        JButton B_Register = new JButton("Register");
-        B_Register.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                client.newUserCommand(TF_Username.getText(), TF_Password.getText());
-            }
-        });
-        B_Register.setBounds(12, 167, 171, 24);
-        login.getContentPane().add(B_Register);
-        
-        JButton B_Forgot = new JButton("Forgot Password?");
-        B_Forgot.setBounds(191, 167, 171, 24);
-        login.getContentPane().add(B_Forgot);
+        B_Register = new JButton("Register");
+        B_Register.setBounds(12, 112, 153, 24);
+        panel.add(B_Register);
         initDataBindings();
     }
     protected void initDataBindings() {
     }
+    
+    public String getUsername()
+    {
+        return TF_Username.getText(); 
+    }
+    public String getPassword()
+    {
+        return TF_Password.getText(); 
+    }
+    public String getClient()
+    {
+        return TF_Client.getText(); 
+    }
+    public boolean getPublic()
+    {
+        return CB_Visible.isSelected();
+    }
+
+
+    public void clearFields()
+    {
+        TF_Username.setText("");
+        TF_Password.setText(""); 
+        TF_Client.setText("");
+        CB_Visible.setSelected(false);
+    }
+    
+    
+
 }
