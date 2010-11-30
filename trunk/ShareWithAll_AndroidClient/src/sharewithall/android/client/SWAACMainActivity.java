@@ -24,11 +24,11 @@ public class SWAACMainActivity extends Activity
 	
     private ProgressDialog progressDialog;
     private SWAACSendSockets sendSockets;
+    private SharedPreferences preferences;
+    private SharedPreferences.Editor editor;
     
     private void setDefaultPreferences()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
     	editor.putBoolean("firstExecute", false);
     	editor.putString("deviceNamePref", "Android-Device");
     	editor.putBoolean("isPublicPref", false);
@@ -41,13 +41,13 @@ public class SWAACMainActivity extends Activity
     	editor.commit();
     }
     
-    private void toNextActivity()
+    private void toNextActivity(boolean regetClients, String[] onlineClients)
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
 		editor.remove("loggedOut");
 		editor.commit();
     	Intent intent = new Intent().setClass(this, SWAACLoggedInActivity.class);
+    	intent.putExtra("regetClients", regetClients);
+    	intent.putExtra("onlineClients", onlineClients);
 		startActivity(intent);
 		finish();
     }
@@ -99,8 +99,6 @@ public class SWAACMainActivity extends Activity
 			printMessage(getResources().getString(R.string.userAndPassMinimum));
 		else
 		{
-	    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-	    	SharedPreferences.Editor editor = preferences.edit();
 	    	editor.putString("username", username);
 	    	editor.putString("password", password);
 	    	editor.commit();
@@ -116,17 +114,21 @@ public class SWAACMainActivity extends Activity
     
     private void logged(String sessionID)
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
     	editor.putBoolean("loggedIn", true);
     	editor.putString("sessionID", sessionID);
     	editor.commit();
-    	toNextActivity();
+		sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.GET_ONLINE_CLIENTS, handler);
+    	sendSockets.start();
+    }
+    
+    private void logged2(String[] onlineClients)
+    {
+    	progressDialog.dismiss();
+    	toNextActivity(false, onlineClients);
     }
     
     private void executeThis()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	String username = preferences.getString("usernamePref", null);
     	String password = preferences.getString("passwordPref", null);
     	if (!preferences.getBoolean("loggedOut", false) && preferences.getBoolean("autologinPref", false) &&
@@ -158,10 +160,11 @@ public class SWAACMainActivity extends Activity
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        editor = preferences.edit();
 
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         if (preferences.getBoolean("firstExecute", true)) setDefaultPreferences();
-        if (preferences.getBoolean("loggedIn", false)) toNextActivity();
+        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true, null);
         else
         {
         	configureThis();
@@ -173,16 +176,13 @@ public class SWAACMainActivity extends Activity
     protected void onResume()
     {
     	super.onResume();
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if (preferences.getBoolean("loggedIn", false)) toNextActivity();
+        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true, null);
         else executeThis();
     }
     
     @Override
     protected void onDestroy()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
 		editor.remove("loggedOut");
 		editor.commit();
     	super.onDestroy();
@@ -216,10 +216,13 @@ public class SWAACMainActivity extends Activity
     
     final Handler handler = new Handler() {
         public void handleMessage(Message msg) {
-            progressDialog.dismiss();
             if (msg.getData().getBoolean("exception"))
+            {
+                progressDialog.dismiss();
             	printMessage("Error: " + msg.getData().getString("message"));
-            else logged(msg.getData().getString("sessionID"));
+            }
+            else if (msg.getData().getBoolean("login")) logged(msg.getData().getString("sessionID"));
+            else logged2(msg.getData().getStringArray("onlineClients"));
         }
     };
     

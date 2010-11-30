@@ -29,11 +29,12 @@ public class SWAACLoggedInActivity extends Activity
 	
 	private ProgressDialog progressDialog;
 	private SWAACSendSockets sendSockets;
-	private String clickedClient;
-	private String clickedUser;
-	private String token;
 	private BroadcastReceiver broadcastReceiver;
 	private IntentFilter intentFilter;
+	private SharedPreferences preferences;
+	private SharedPreferences.Editor editor;
+	private String clickedClient;
+	private String clickedUser;
 	
 
     private void printMessage(String message)
@@ -44,8 +45,6 @@ public class SWAACLoggedInActivity extends Activity
     private void toMainActivity()
     {
     	stopService(new Intent().setClass(this, SWAACService.class));
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
     	editor.putBoolean("loggedIn", false);
     	editor.remove("sessionID");
     	editor.commit();
@@ -68,7 +67,6 @@ public class SWAACLoggedInActivity extends Activity
     
     private void makeRelogin()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	String username = preferences.getString("username", null);
     	String password = preferences.getString("password", null);
     	Object[] data = new Object[2];
@@ -80,8 +78,6 @@ public class SWAACLoggedInActivity extends Activity
     
     private void relogged(String sessionID)
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	SharedPreferences.Editor editor = preferences.edit();
     	editor.putString("sessionID", sessionID);
     	editor.commit();
     	updateClientsList();
@@ -89,21 +85,18 @@ public class SWAACLoggedInActivity extends Activity
     
     private void logout()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        if (preferences.getBoolean("makeRelogin", false))
-        	progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.gettingClientsList), true);
-        else progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.loggingOutMessage), true);
+        if (!preferences.getBoolean("makeRelogin", false))
+        	progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.loggingOutMessage), true);
     	sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.LOGOUT, handler);
     	sendSockets.start();
     }
     
     private void loggedOut()
     {
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	if (preferences.getBoolean("makeRelogin", false)) makeRelogin();
     	else
     	{
-        	SharedPreferences.Editor editor = preferences.edit();
+    		progressDialog.dismiss();
         	editor.putBoolean("loggedOut", true);
         	editor.remove("username");
         	editor.remove("password");
@@ -112,34 +105,14 @@ public class SWAACLoggedInActivity extends Activity
     	}
     }
     
-    private void sendText(String[] ipAndPort)
-    {
-    	Object[] data = new Object[4];
-    	data[0] = token;
-		data[1] = ipAndPort[0];
-		data[2] = ipAndPort[1];
-		data[3] = "Hola mundo!";
-		sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.SEND_TEXT, handler, data);
-    	sendSockets.start();
-    }
-    
-    private void tokenReceived(String token)
-    {
-    	this.token = token;
-    	Object[] data = new Object[1];
-		data[0] = clickedUser + ":" + clickedClient;
-		sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.IP_AND_PORT_REQUEST, handler, data);
-    	sendSockets.start();
-    }
-    
     private void processClickedDialog(int item)
     {
     	if (item == 0)
     	{
-    		Object[] data = new Object[1];
-    		data[0] = clickedUser + ":" + clickedClient;
-    		sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.GET_SEND_TOKEN, handler, data);
-        	sendSockets.start();
+        	Intent intent = new Intent().setClass(this, SWAACChatWindowActivity.class);
+        	intent.putExtra("clientUser", clickedUser);
+        	intent.putExtra("client", clickedClient);
+        	startActivity(intent);
     	}
     	else printMessage(item + ": " + clickedClient + " " + clickedUser);
     }
@@ -193,16 +166,6 @@ public class SWAACLoggedInActivity extends Activity
     
     private void updateClientsList()
     {
-    	LinearLayout clientsList = (LinearLayout) findViewById(R.id.clientsList);
-    	LinearLayout friendsClientsList = (LinearLayout) findViewById(R.id.friendsClientsList);
-    	clientsList.removeAllViews();
-    	friendsClientsList.removeAllViews();
-
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-    	if (!preferences.getBoolean("makeRelogin", false))
-			progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.gettingClientsList), true);
-    	
-    	SharedPreferences.Editor editor = preferences.edit();
 		editor.remove("makeRelogin");
     	editor.commit();
     	
@@ -215,6 +178,11 @@ public class SWAACLoggedInActivity extends Activity
     
     private void updatedClientsList(String[] onlineClients)
     {
+    	LinearLayout clientsList = (LinearLayout) findViewById(R.id.clientsList);
+    	LinearLayout friendsClientsList = (LinearLayout) findViewById(R.id.friendsClientsList);
+    	clientsList.removeAllViews();
+    	friendsClientsList.removeAllViews();
+    	
     	for (int i = 0; i < onlineClients.length; i++)
     	{
     		String[] aux = onlineClients[i].split(":");
@@ -243,9 +211,12 @@ public class SWAACLoggedInActivity extends Activity
     public void onCreate(Bundle savedInstanceState) {
     	super.onCreate(savedInstanceState);
     	setContentView(R.layout.swaac_clientslist);
-    	
+    	preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+    	editor = preferences.edit();
     	configureBroadcastReceiver();
-    	updateClientsList();
+    	if (!getIntent().getBooleanExtra("regetClients", true))
+    		updatedClientsList(getIntent().getStringArrayExtra("onlineClients"));
+    	else updateClientsList();
     	startService(new Intent().setClass(this, SWAACService.class));
     }
 	
@@ -256,7 +227,6 @@ public class SWAACLoggedInActivity extends Activity
 		
 		registerReceiver(broadcastReceiver, intentFilter);
 		
-    	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
     	if (!preferences.getBoolean("loggedIn", false)) toMainActivity();
     	else if (preferences.getBoolean("makeRelogin", false)) logout();
     	else if (preferences.getBoolean("clientListChanged", false)) updateClientsList();
@@ -302,12 +272,10 @@ public class SWAACLoggedInActivity extends Activity
     {
         public void handleMessage(Message msg)
         {
-        	SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-            if (!preferences.getBoolean("makeRelogin", false)) progressDialog.dismiss();
             if (msg.getData().getBoolean("exception"))
             {
             	printMessage("Error: " + msg.getData().getString("message"));
-            	toMainActivity();
+            	if (msg.getData().getString("message").equals("Server error")) toMainActivity();
             }
             else if (msg.getData().getBoolean("login"))
             	relogged(msg.getData().getString("sessionID"));
@@ -315,10 +283,6 @@ public class SWAACLoggedInActivity extends Activity
             	loggedOut();
             else if (msg.getData().getBoolean("getOnlineClients"))
             	updatedClientsList(msg.getData().getStringArray("onlineClients"));
-            else if (msg.getData().getBoolean("getSendToken"))
-            	tokenReceived(msg.getData().getString("token"));
-            else if (msg.getData().getBoolean("ipAndPortRequest"))
-            	sendText(msg.getData().getStringArray("ipAndPort"));
         }
     };
     
