@@ -13,18 +13,19 @@ import javax.swing.JTextField;
 import javax.swing.border.LineBorder;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import javax.swing.JPasswordField;
 
 public class LoginGraphicalInterface extends javax.swing.JFrame
 {
     private RegisterGraphicalInterface registerI;
     private SWAClient client;
     private JTextField TF_Username;
-    private JTextField TF_Password;
     private JTextField TF_Client;
     private JCheckBox CB_Visible;
     
     private JButton B_Register;
     public JButton B_Login;
+    private JPasswordField TF_Password;
 
 
     public void start()
@@ -46,8 +47,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
                     registerI.B_Register.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent arg0) {
                             if(registerI.getPassword() != null){
-                                client.newUserCommand(registerI.getName(), registerI.getPassword());
-                                System.out.println("New User: " + registerI.getName() + " " + registerI.getPassword());
+                                client.newUserCommand(registerI.getUsername(), registerI.getPassword());
                                 registerI.dispose();
                             }
                         }
@@ -63,6 +63,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
 
     public LoginGraphicalInterface(SWAClient c)
     {
+        setTitle("Login - Share With All");
         client = c;
         initialize();
     }
@@ -96,11 +97,6 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         panel.add(TF_Username);
         TF_Username.setColumns(10);
         
-        TF_Password = new JTextField();
-        TF_Password.setColumns(10);
-        TF_Password.setBounds(116, 36, 175, 18);
-        panel.add(TF_Password);
-        
         JLabel L_Client = new JLabel("Client:");
         L_Client.setBounds(12, 64, 70, 14);
         panel.add(L_Client);
@@ -125,6 +121,10 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         B_Register = new JButton("Register");
         B_Register.setBounds(12, 112, 153, 24);
         panel.add(B_Register);
+        
+        TF_Password = new JPasswordField();
+        TF_Password.setBounds(116, 36, 175, 18);
+        panel.add(TF_Password);
         initDataBindings();
     }
     protected void initDataBindings() {
@@ -155,7 +155,4 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         TF_Client.setText("");
         CB_Visible.setSelected(false);
     }
-    
-    
-
 }

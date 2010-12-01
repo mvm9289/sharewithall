@@ -17,7 +17,7 @@ import sharewithall.client.sockets.SWASendSockets;
  *
  * Creation date: Oct 31, 2010
  */
-public class SWAClient
+public class SWAClientConsole
 {
     
     public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";

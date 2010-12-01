@@ -7,6 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 
 public class RegisterGraphicalInterface extends javax.swing.JFrame
@@ -33,6 +34,7 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
 
     public RegisterGraphicalInterface(SWAClient c)
     {
+        setTitle("Register - Share With All");
         client = c;
         initialize();
     }
@@ -66,12 +68,12 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
         panel.add(TF_Username);
         TF_Username.setColumns(10);
         
-        TF_NewPassword = new JTextField();
+        TF_NewPassword = new JPasswordField();
         TF_NewPassword.setColumns(10);
         TF_NewPassword.setBounds(166, 36, 270, 18);
         panel.add(TF_NewPassword);
         
-        TF_RepeatPassword = new JTextField();
+        TF_RepeatPassword = new JPasswordField();
         TF_RepeatPassword.setColumns(10);
         TF_RepeatPassword.setBounds(166, 62, 270, 18);
         panel.add(TF_RepeatPassword);
