@@ -26,6 +26,7 @@ public class SWAClient
     public static final int PROPERTY_IGNORED = socketsModule.PROPERTY_IGNORED;
     public String serverIP;
     public int serverPort;
+    public MainGraphicalInterface program = null;
     
     private static SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
@@ -33,7 +34,7 @@ public class SWAClient
     
     private class SWAUpdateThread extends Thread
     {
-        private static final int SLEEP_TIME = 30000;
+        private static final int SLEEP_TIME = 5000; //TODO: Set to 5000 to refresh lists in the graphical interface.
         
         private SWAUpdateThread()
         {
@@ -55,6 +56,11 @@ public class SWAClient
                 }
                 
                 Runtime.getRuntime().gc();
+                if(program != null)
+                {
+                    program.RefreshListOfFriends();
+                    program.RefreshListOfOnlineClients();
+                }
                 
                 try {
                     SWAUpdateThread.sleep(SLEEP_TIME);
@@ -355,7 +361,10 @@ public class SWAClient
     }
     public void receiveText(String username, String client, String text)
     {
-        System.out.println("[" + username + ":" + client + "] says: " + text);
+        if(program == null)
+            System.out.println("[" + username + ":" + client + "] says: " + text);
+        else
+            program.receiveText(username, client, text);
     }
     public void receiveFile(String username, String client, String file)
     {
@@ -369,144 +378,5 @@ public class SWAClient
             e.printStackTrace();
         }
     }
-    
-    private void SWAClientLoop()
-    {
-        boolean end = false;
-        
-        while(!end)
-        {
-            System.out.println(
-                    "Choose your commmand.\n" +
-                    "                   New User: 00 username password\n" +
-                    "                      Login: 01 username password name { true | false }\n" +
-                    "         Get Online Clients: 02\n" +
-                    "        IP and port request: 03 client\n" +
-                    "             Declare friend: 04 friend\n" +
-                    "                Ignore user: 05 users\n" +
-                    "Pending invitations request: 06\n" +
-                    "       Show list of friends: 07 property\n" +
-                    "                   Send URL: 10 URL username client\n" +
-                    "                  Send Text: 11 text username client\n" +
-                    "                  Send File: 12 path username client\n" +
-                    "                       Exit: 09\n" +
-                    "--------------------------------------------");
-            
-            Scanner sc = new Scanner(System.in);
-            String username;
-            String password;
-            String name;
-            String client;
-            String friend;
-            String url;
-            String text;
-            String path;
-            int property;
-            boolean isPublic;
-            
-            int commandIndex = sc.nextInt();
-            switch(commandIndex)
-            {
-                case 0:
-                    username = sc.next();
-                    password = sc.next();
-                    newUserCommand(username, password);
-                    break;
-                case 1:
-                    username = sc.next();
-                    password = sc.next();
-                    name = sc.next();
-                    isPublic = sc.nextBoolean();
-                    loginCommand(username, password, name, isPublic);
-                    break;
-                case 2:
-                    getOnlineClientsCommand();
-                    break;
-                case 3:
-                    client = sc.next(); 
-                    ipAndPortRequestCommand(client);
-                    break;
-                case 4:
-                    friend = sc.next();
-                    declareFriendCommand(friend);
-                    break;
-                case 5:
-                    friend = sc.next();
-                    ignoreUserCommand(friend);
-                    break;
-                case 6:
-                    pendingInvitationsRequesCommand();
-                    break;
-                case 7:
-                    property = sc.nextInt();
-                    showListOfFriendsCommand(property);
-                    break;
-                /*case 8:
-                    clientNameRequestCommand();
-                    break;*/
-                case 9:
-                    logoutCommand();
-                    end = true;
-                    break;
-                case 10:
-                    url = sc.next();
-                    username = sc.next();
-                    client = sc.next();
-                    sendURLCommand(url, username, client);
-                    break;
-                case 11:
-                    text = sc.next();
-                    username = sc.next();
-                    client = sc.next();
-                    sendTextCommand(text, username, client);
-                    break;
-                case 12:
-                    path = sc.next();
-                    username = sc.next();
-                    client = sc.next();
-                    sendFileCommand(path, username, client);
-                    break;
-                default:
-                    System.out.println("Wrong command, try again.");
-                    break;
-            }
-            System.out.println("Done!");
-        }
-    }
-    
-    private static void printUsage()
-    {
-        System.out.println(
-            "\n\tUSAGE:\n\t\t" +
-                "java sharewithall.server.SWAClient [serverIP:serverPort]" +
-                "\n\n\t\tor\n\n\t\t" +
-                "java sharewithall.server.SWAClient [serverIP]" +
-            "\n\n\t*Arguments between [] are optional." +
-            "Default server IP and port are " + DEFAULT_SERVER_IP + ":" + DEFAULT_SERVER_PORT + ".\n");
-    }
-
-    
-    public static void main(String[] args)
-    {
-        try
-        {
-            if (args.length == 1)
-            {
-                String[] aux = args[0].split(":");
-                if (aux.length == 1) new SWAClient(aux[0], DEFAULT_SERVER_PORT);
-                else if (aux.length == 2) new SWAClient(aux[0], Integer.valueOf(aux[1]).intValue());
-                else printUsage();
-            }
-            else if (args.length == 0) new SWAClient(DEFAULT_SERVER_IP, DEFAULT_SERVER_PORT);
-            else{
-                printUsage();
-                return;
-            }
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
 }
 
