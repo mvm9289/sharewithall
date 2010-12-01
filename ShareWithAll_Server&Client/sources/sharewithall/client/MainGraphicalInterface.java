@@ -1,5 +1,7 @@
 package sharewithall.client;
 
+import java.util.ArrayList<String>;
+
 import java.awt.Container;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
@@ -17,22 +19,53 @@ public class MainGraphicalInterface extends javax.swing.JFrame
 {
 
     private SWAClient client;
-    public JButton B_SendText;
-    public JButton B_SendURL;
-    public JButton B_File;
+    private JButton B_SendText;
+    private JButton B_SendURL;
+    private JButton B_File;
     private JList list;
-    public JButton B_AddNew;
-    public JButton B_Delete;
-    public JButton B_DeclareFriend;
-    public JButton B_Ignore;
+    private JButton B_AddNew;
+    private JButton B_Delete;
+    private JButton B_DeclareFriend;
+    private JButton B_Ignore;
     public JButton B_Logout;
+    private JList LS_Connected;
+    private String username;
+    private ArrayList<String> openChats;
 
     public void start()
     {
         try
         {
             setVisible(true);
+            RefreshListOfOnlineClients();
             RefreshListOfFriends();
+            
+            B_SendText.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    String receiver = (String) LS_Connected.getSelectedValue();
+                    String receiverUsername;
+                    String receiverClient;
+                    if(receiver.indexOf(" - ") == -1)
+                    { //Sending to myself.
+                        receiverUsername = username;
+                        receiverClient = receiver;
+                    }
+                    else
+                    { //Sending to another user.
+                        receiverUsername = receiver.substring(0, receiver.indexOf(" - "));
+                        receiverClient = receiver.substring(receiver.indexOf(" - "), receiver.length());
+                    }
+                    
+                    //If it's already opened, do nothing.
+                    if(!openChats.contains(receiverClient))
+                    {
+                        //TODO: Detectar cuando se cierra para poder eliminarlo de la lista, ¿como hacerlo?
+                        ChatGraphicalInterface chat = new ChatGraphicalInterface(client, username, receiverUsername, receiverClient);
+                        chat.start();
+                        openChats.add(receiverClient);
+                    }
+                }
+            });
             
             B_AddNew.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
@@ -79,6 +112,11 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
 
+    private void RefreshListOfOnlineClients()
+    {
+        LS_Connected.setListData(client.getOnlineClientsCommand());
+    }
+
     private void RefreshListOfFriends()
     {
         String[] friends = client.showListOfFriendsCommand(client.PROPERTY_FRIENDS);
@@ -107,9 +145,11 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         list.setListData(listContent);
     }
 
-    public MainGraphicalInterface(SWAClient c)
+    public MainGraphicalInterface(SWAClient c, String u)
     {
+        username = u;
         client = c;
+        openChats = new ArrayList();
         initialize();
     }
 
@@ -118,6 +158,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
      */
     private void initialize()
     {
+        setTitle("Share With All");
 
         setBounds(100, 100, 636, 445);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -131,9 +172,9 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         tabbedPane.addTab("Main tab", null, P_mainTab, null);
         P_mainTab.setLayout(null);
         
-        JList LS_Conected = new JList();
-        LS_Conected.setBounds(12, 12, 363, 303);
-        P_mainTab.add(LS_Conected);
+        LS_Connected = new JList();
+        LS_Connected.setBounds(12, 12, 363, 303);
+        P_mainTab.add(LS_Connected);
         
         B_SendText = new JButton("Text");
         B_SendText.setBounds(477, 12, 117, 24);

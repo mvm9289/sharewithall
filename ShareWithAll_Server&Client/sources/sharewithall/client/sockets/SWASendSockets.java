@@ -238,7 +238,7 @@ public class SWASendSockets
         out.flush();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        Object responseVal = in.readObject();
         clientSocket.close();
          
         if (responseCode == RETURN_VALUE) return (String[])responseVal;

@@ -125,24 +125,22 @@ public class SWAClient
         }
     }
     
-    public void getOnlineClientsCommand()
+    public String[] getOnlineClientsCommand()
     {
-        String[] clients = null;
         if(sessionID == null)
         {
             System.out.println("Sorry, you must be logged in.");
-            return;
+            return null;
         }
         try
         {
-            clients = socketsModule.getOnlineClients(sessionID);
+            return socketsModule.getOnlineClients(sessionID);
         }
         catch (Exception e)
         {
             e.printStackTrace();
         }
-        for(int i=0; i<clients.length; ++i)
-            System.out.println(clients[i]);
+        return null;
     }
     
     public void ipAndPortRequestCommand(String client)
