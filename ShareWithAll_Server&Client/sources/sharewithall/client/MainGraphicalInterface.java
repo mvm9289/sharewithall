@@ -1,6 +1,6 @@
 package sharewithall.client;
 
-import java.util.ArrayList<String>;
+import java.util.ArrayList;
 
 import java.awt.Container;
 import java.awt.EventQueue;
@@ -21,7 +21,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     private SWAClient client;
     private JButton B_SendText;
     private JButton B_SendURL;
-    private JButton B_File;
+    private JButton B_SendFile;
     private JList list;
     private JButton B_AddNew;
     private JButton B_Delete;
@@ -30,7 +30,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     public JButton B_Logout;
     private JList LS_Connected;
     private String username;
-    private ArrayList<String> openChats;
+    private ArrayList<chatInfo> openChats;
 
     public void start()
     {
@@ -45,6 +45,11 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                     String receiver = (String) LS_Connected.getSelectedValue();
                     String receiverUsername;
                     String receiverClient;
+                    if(receiver == null)
+                    {
+                        JOptionPane.showMessageDialog(null, "You must select a contact.", "Error", 0);
+                        return;
+                    }
                     if(receiver.indexOf(" - ") == -1)
                     { //Sending to myself.
                         receiverUsername = username;
@@ -55,18 +60,23 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                         receiverUsername = receiver.substring(0, receiver.indexOf(" - "));
                         receiverClient = receiver.substring(receiver.indexOf(" - "), receiver.length());
                     }
-                    
-                    //If it's already opened, do nothing.
-                    if(!openChats.contains(receiverClient))
-                    {
-                        //TODO: Detectar cuando se cierra para poder eliminarlo de la lista, ¿como hacerlo?
-                        ChatGraphicalInterface chat = new ChatGraphicalInterface(client, username, receiverUsername, receiverClient);
-                        chat.start();
-                        openChats.add(receiverClient);
-                    }
+
+                    openChat(receiverUsername, receiverClient);
                 }
             });
             
+            B_SendURL.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
+                }
+            });
+            
+            B_SendFile.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent arg0) {
+                    JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
+                }
+            });
+
             B_AddNew.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
                     String friendName = JOptionPane.showInputDialog(null, "Friend's name?");
@@ -112,12 +122,63 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
 
-    private void RefreshListOfOnlineClients()
+    public void openChat(String receiverUsername, String receiverClient)
+    {
+        if(!isOpenedChat(receiverClient))
+        {
+            ChatGraphicalInterface chat = new ChatGraphicalInterface("", client, username, receiverUsername, receiverClient, this);
+            chat.start();
+            openChats.add(new chatInfo(receiverClient, chat));
+        }
+        else
+        {
+            getOpenedChat(receiverClient).setVisible(true);
+        }
+    }
+    
+    public void openChat(String text, String receiverUsername, String receiverClient)
+    {
+        ChatGraphicalInterface chat;
+        if(!isOpenedChat(receiverClient))
+        {
+            chat = new ChatGraphicalInterface(text, client, username, receiverUsername, receiverClient, this);
+            chat.start();
+            openChats.add(new chatInfo(receiverClient, chat));
+        }
+        else
+        {
+            chat = getOpenedChat(receiverClient);
+            chat.setVisible(true);
+            chat.TA_Read.setText(chat.TA_Read.getText() + "\n" + "[" + receiverUsername + "@" + receiverClient + "]: " + text);
+        }
+    }
+    
+    private boolean isOpenedChat(String receiverClient)
+    {
+        for(int i=0; i<openChats.size(); ++i)
+        {
+            if(openChats.get(i).receiver.equals(receiverClient))
+                return true;
+        }
+        return false;
+    }
+    
+    private ChatGraphicalInterface getOpenedChat(String rc)
+    {
+        for(int i=0; i<openChats.size(); ++i)
+        {
+            if(openChats.get(i).receiver.equals(rc))
+                return openChats.get(i).chat;
+        }
+        return null;
+    }
+    
+    public void RefreshListOfOnlineClients()
     {
         LS_Connected.setListData(client.getOnlineClientsCommand());
     }
-
-    private void RefreshListOfFriends()
+    
+    public void RefreshListOfFriends()
     {
         String[] friends = client.showListOfFriendsCommand(client.PROPERTY_FRIENDS);
         for(int i=0; i<friends.length; ++i)
@@ -145,10 +206,16 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         list.setListData(listContent);
     }
 
+    public void receiveText(String username, String client, String text)
+    {
+        openChat(text, username, client);
+    }
+    
     public MainGraphicalInterface(SWAClient c, String u)
     {
         username = u;
         client = c;
+        client.program = this;
         openChats = new ArrayList();
         initialize();
     }
@@ -184,9 +251,9 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         B_SendURL.setBounds(477, 47, 117, 24);
         P_mainTab.add(B_SendURL);
         
-        B_File = new JButton("File");
-        B_File.setBounds(477, 82, 117, 24);
-        P_mainTab.add(B_File);
+        B_SendFile = new JButton("File");
+        B_SendFile.setBounds(477, 82, 117, 24);
+        P_mainTab.add(B_SendFile);
         
         JPanel P_contactsTab = new JPanel();
         tabbedPane.addTab("Contacts", null, P_contactsTab, null);
@@ -216,4 +283,28 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         B_Logout.setBounds(505, 378, 117, 24);
         getContentPane().add(B_Logout);
     }
+
 }
+
+
+class chatInfo
+{
+    public String receiver;
+    public ChatGraphicalInterface chat;
+    public boolean isShown;
+    
+    public chatInfo(String r, ChatGraphicalInterface c)
+    {
+        receiver = r;
+        chat = c;
+        isShown = true;
+    }
+    
+    public int busca(String rc)
+    {
+        if(rc == receiver)
+            return 1;
+        return -1;
+    }
+}
+
