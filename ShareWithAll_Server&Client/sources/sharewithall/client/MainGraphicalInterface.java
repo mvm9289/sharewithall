@@ -236,7 +236,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         getContentPane().add(tabbedPane);
         
         JPanel P_mainTab = new JPanel();
-        tabbedPane.addTab("Main tab", null, P_mainTab, null);
+        tabbedPane.addTab("Send", null, P_mainTab, null);
         P_mainTab.setLayout(null);
         
         LS_Connected = new JList();
