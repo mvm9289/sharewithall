@@ -116,7 +116,7 @@ public class SWAClient
         }
     }
     private void threadException(SendOperation op, Exception e) {
-        
+        e.printStackTrace();
     }
     public SWAClient(String serverIP, int serverPort)
     {

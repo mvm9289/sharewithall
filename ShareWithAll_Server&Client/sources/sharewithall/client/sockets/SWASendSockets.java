@@ -277,12 +277,13 @@ public class SWASendSockets
         out.writeUTF(token);
         out.writeUTF(url);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        String responseVal = in.readUTF();
         clientSocket.close();
         
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(responseVal);
     }
 
     public void sendText(String sessionID, String token, String ip, int port, String text) throws Exception
@@ -294,12 +295,13 @@ public class SWASendSockets
         out.writeUTF(token);
         out.writeUTF(text);
         out.flush();
-
+        clientSocket.shutdownOutput();
+        
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();
+        String responseVal = in.readUTF();
         clientSocket.close();
 
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);      
+        if (responseCode == EXCEPTION) throw new Exception(responseVal);      
     }
     
     public void sendFile(String sessionID, String token, String ip, int port, String path) throws Exception
@@ -313,23 +315,21 @@ public class SWASendSockets
         out.writeUTF(token);
         out.writeUTF(f.getName());
         out.writeInt(filesize);
-        out.flush();
-        
-        while (true) {
-            byte[] bytes = new byte[FILE_BUFFER_SIZE];
-            int bytesRead = filein.read(bytes);
-            if (bytesRead == -1) break;
-            out.writeObject(new Object[] {bytesRead, bytes});
+
+        int bytesRead;
+        byte[] bytes = new byte[FILE_BUFFER_SIZE];
+        while ((bytesRead = filein.read(bytes)) > 0)
+        {
+            out.write(bytes, 0, bytesRead);
             out.flush();
         }
-        out.writeObject(new Object[] {0, null});
-        out.flush();
+        clientSocket.shutdownOutput();
 
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();
+        String responseVal = in.readUTF();
         clientSocket.close();
         filein.close();
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);        
+        if (responseCode == EXCEPTION) throw new Exception(responseVal);        
     }
 
 }

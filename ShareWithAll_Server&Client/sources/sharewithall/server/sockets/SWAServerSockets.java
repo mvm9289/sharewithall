@@ -187,18 +187,15 @@ public class SWAServerSockets extends Thread
             int bytesRead;
             while ((bytesRead = in1.read(bytes)) > 0)
             {
-                System.out.println(1);
                 out2.write(bytes, 0, bytesRead);
                 out2.flush();
             }
-            
+            destSocket.shutdownOutput();
             while ((bytesRead = in2.read(bytes)) > 0)
             {
-                System.out.println(2);
                 out1.write(bytes, 0, bytesRead);
                 out1.flush();
             }
-            System.out.println(3);
             destSocket.close();
         }
         
