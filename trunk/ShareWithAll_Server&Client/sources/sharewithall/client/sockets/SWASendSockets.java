@@ -35,6 +35,7 @@ public class SWASendSockets
     private static final int SEND_TEXT = 13;
     private static final int SEND_FILE = 14;
     private static final int GET_SEND_TOKEN = 15;
+    private static final int SEND_GATEWAY = 16;
     private static final int RETURN_VALUE = 0;
     private static final int EXCEPTION = -1;
     public static final int PROPERTY_FRIENDS = 0;
@@ -62,6 +63,29 @@ public class SWASendSockets
         out = new ObjectOutputStream(clientSocket.getOutputStream());
         out.flush();
         in = new ObjectInputStream(clientSocket.getInputStream());
+    }
+    
+    private boolean connectGateway(String sessionID, String ip, int port) {
+        try {
+            connect(serverIP, serverPort);
+
+            out.writeInt(SEND_GATEWAY);
+            out.writeObject(new Object[] {sessionID, ip, port});
+            out.flush();
+            
+            int responseCode = in.readInt();
+            Object responseVal = in.readObject();
+            
+            if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+            return true;
+        }
+        catch (Exception e) {}
+        try {
+            clientSocket.close();
+        }
+        catch(Exception e) {}
+        
+        return false;
     }
     
     public void newUser(String username, String password) throws Exception
@@ -246,9 +270,9 @@ public class SWASendSockets
         throw new Exception((String)responseVal);
     }
     
-    public void sendURL(String token, String ip, int port, String url) throws Exception
+    public void sendURL(String sessionID, String token, String ip, int port, String url) throws Exception
     {
-        connect(ip, port);
+        if (!connectGateway(sessionID, ip, port)) connect(ip, port);
         out.writeInt(SEND_URL);
         out.writeUTF(token);
         out.writeUTF(url);
@@ -260,11 +284,11 @@ public class SWASendSockets
         
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
     }
-    
-    public void sendText(String token, String ip, int port, String text) throws Exception
+
+    public void sendText(String sessionID, String token, String ip, int port, String text) throws Exception
     {
         System.out.println("ip: " + ip + " port: " + port);
-        connect(ip, port);
+        if (!connectGateway(sessionID, ip, port)) connect(ip, port);
         out.writeInt(SEND_TEXT);
         out.writeUTF(token);
         out.writeUTF(text);
@@ -277,12 +301,12 @@ public class SWASendSockets
         if (responseCode == EXCEPTION) throw new Exception((String)responseVal);      
     }
     
-    public void sendFile(String token, String ip, int port, String path) throws Exception
+    public void sendFile(String sessionID, String token, String ip, int port, String path) throws Exception
     {
-        connect(ip, port);
         File f = new File(path);
         FileInputStream filein = new FileInputStream(f);
         
+        if (!connectGateway(sessionID, ip, port)) connect(ip, port);
         int filesize = (int)f.length();
         out.writeInt(SEND_FILE);
         out.writeUTF(token);
