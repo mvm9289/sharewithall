@@ -50,15 +50,15 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                         JOptionPane.showMessageDialog(null, "You must select a contact.", "Error", 0);
                         return;
                     }
-                    if(receiver.indexOf(" - ") == -1)
+                    if(receiver.indexOf(":") == -1)
                     { //Sending to myself.
                         receiverUsername = username;
                         receiverClient = receiver;
                     }
                     else
                     { //Sending to another user.
-                        receiverUsername = receiver.substring(0, receiver.indexOf(" - "));
-                        receiverClient = receiver.substring(receiver.indexOf(" - "), receiver.length());
+                        receiverUsername = receiver.substring(0, receiver.indexOf(":"));
+                        receiverClient = receiver.substring(receiver.indexOf(":")+1, receiver.length());
                     }
 
                     openChat(receiverUsername, receiverClient);
@@ -80,8 +80,11 @@ public class MainGraphicalInterface extends javax.swing.JFrame
             B_AddNew.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
                     String friendName = JOptionPane.showInputDialog(null, "Friend's name?");
-                    client.declareFriendCommand(friendName);
-                    RefreshListOfFriends();
+                    if(friendName != null)
+                    {
+                        client.declareFriendCommand(friendName);
+                        RefreshListOfFriends();
+                    }
                 }
             });
             
@@ -211,6 +214,11 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     public void receiveText(String username, String client, String text)
     {
         openChat(text, username, client);
+    }
+    
+    public void receiveFile(String username, String client, String path)
+    {
+        JOptionPane.showMessageDialog(null, username + "@" + client + " has sent you a file: " + path + ".", "File received", 0);
     }
     
     public MainGraphicalInterface(SWAClient c, String u)

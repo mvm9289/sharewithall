@@ -24,8 +24,6 @@ public class ChatGraphicalInterface extends JFrame
     private SWAClient client;
     private JTextArea TA_Write;
     public JTextArea TA_Read;
-    private JButton B_Add;
-    private JButton B_File;
     private JButton B_Send;
     private String username;
     private MainGraphicalInterface father;
@@ -45,18 +43,6 @@ public class ChatGraphicalInterface extends JFrame
                 client.sendTextCommand(text, contactUsername, contactClient);
             }
         });
-        
-        B_Add.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
-            }
-        });
-        
-        B_File.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
-            }
-        });
     }
     
     public void dispose()
@@ -70,6 +56,7 @@ public class ChatGraphicalInterface extends JFrame
         client = c;
         contactUsername = cu;
         contactClient = cc;
+
         father = f;
         initialize();
         if(!t.equals(""))
@@ -101,16 +88,8 @@ public class ChatGraphicalInterface extends JFrame
         
         TA_Read = new JTextArea();
         TA_Read.setEditable(false);
-        TA_Read.setBounds(10, 12, 344, 264);
+        TA_Read.setBounds(10, 12, 344, 300);
         panel.add(TA_Read);
-        
-        B_Add = new JButton("Add");
-        B_Add.setBounds(284, 288, 70, 24);
-        panel.add(B_Add);
-        
-        B_File = new JButton("File");
-        B_File.setBounds(211, 288, 70, 24);
-        panel.add(B_File);
         
         B_Send = new JButton("OK");
         B_Send.setBounds(297, 323, 57, 111);
