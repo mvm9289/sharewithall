@@ -324,7 +324,7 @@ public class SWASendSockets
         }
         out.writeObject(new Object[] {0, null});
         out.flush();
-        
+
         int responseCode = in.readInt();
         Object responseVal = in.readObject();
         clientSocket.close();
