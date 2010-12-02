@@ -1,5 +1,6 @@
 package sharewithall.server.sockets;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
@@ -64,6 +65,21 @@ public class SWAServerSockets extends Thread
         }
     }
     
+    private void cleanSockets(String sessionID) {
+        ArrayBlockingQueue<Socket> sockets = connections.get(sessionID);
+        if (sockets != null) {
+            Socket sock = sockets.poll();
+            while (sock != null) {
+                try {
+                    sock.close();
+                }
+                catch (IOException e) {}
+                sock = sockets.poll();
+            }
+            connections.remove(sessionID);
+        }
+    }
+    
     private class SWACleanerThread extends Thread
     {
         private static final int CLEANER_SLEEP_TIME = 30000;
@@ -80,6 +96,12 @@ public class SWAServerSockets extends Thread
                 JDBCDBClients clients = new JDBCDBClients();
                 Timestamp last_time = new Timestamp((new Date()).getTime() - CLIENT_EXP_TIME);
                 try {
+                    ArrayList<Object> cl = clients.select_gen(new JDBCPredicate("last_time", last_time, "<"));
+                    for (int i = 0; i < cl.size(); ++i) {
+                        JDBCClient client = (JDBCClient)cl.get(i);
+                        clients.delete_key(client.name, client.username);
+                        cleanSockets(client.session_id);
+                    }
                     int nClients = clients.delete_gen(new JDBCPredicate("last_time", last_time, "<"));
                     clients.commit();
                     if (nClients > 0) System.out.println(nClients + " clientes eliminados");
@@ -153,6 +175,9 @@ public class SWAServerSockets extends Thread
             Socket destSocket = sockets.poll();
             if (destSocket == null) throw new Exception("Client is not listening to the gateway");
             
+            out1.writeInt(RETURN_VALUE);
+            out1.writeObject(null);
+            
             ObjectOutputStream out2 = new ObjectOutputStream(destSocket.getOutputStream());
             out2.flush();
             ObjectInputStream in2 = new ObjectInputStream(destSocket.getInputStream());
@@ -217,6 +242,7 @@ public class SWAServerSockets extends Thread
                             break;
                         case LOGOUT:
                             server.logout(params);
+                            cleanSockets((String)params[0]);
                             out.writeInt(RETURN_VALUE);
                             out.writeObject(null);
                             break;
