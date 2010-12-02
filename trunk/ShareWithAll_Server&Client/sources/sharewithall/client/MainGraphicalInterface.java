@@ -175,6 +175,8 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     
     public void RefreshListOfOnlineClients()
     {
+        String[] onlineClients = client.getOnlineClientsCommand();
+        
         LS_Connected.setListData(client.getOnlineClientsCommand());
     }
     

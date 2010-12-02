@@ -35,10 +35,12 @@ public class SWAClient
     private class SWAUpdateThread extends Thread
     {
         private static final int SLEEP_TIME = 5000; //TODO: Set to 5000 to refresh lists in the graphical interface.
-        
+        private SWASendSockets updateSocketsModule;
+
         private SWAUpdateThread()
         {
             super();
+            updateSocketsModule = new SWASendSockets(serverIP, serverPort);
         }
         
         public void run()
@@ -47,7 +49,7 @@ public class SWAClient
                 try
                 {
                     if (sessionID != null) {
-                        socketsModule.updateTimestamp(sessionID);
+                        updateSocketsModule.updateTimestamp(sessionID);
                     }
                 }
                 catch (Exception e)
