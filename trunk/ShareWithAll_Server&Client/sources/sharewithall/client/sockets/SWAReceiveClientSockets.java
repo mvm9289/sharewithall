@@ -46,21 +46,18 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
             case SEND_FILE:
                 String filename = in.readUTF();
                 int filesize = in.readInt();
-                int totalBytes = 0;
                 
                 //Security problem here!!! need to check the filename
                 //Also have to check if the file already exists
                 //Also a limit for the filesize, and a limit for the time reading it
                 File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
-
-
-                while (true) {
-                    Object[] packet = (Object[])in.readObject();
-                    int nBytes = (Integer)packet[0];
-                    if (nBytes <= 0) break;
-                    byte bytes[] = (byte[])packet[1];
-                    fileout.write(bytes, 0, nBytes);
+                int bytesRead;
+                byte bytes[] = new byte[FILE_BUFFER_SIZE];
+                while ((bytesRead = in.read(bytes)) > 0)
+                {
+                    fileout.write(bytes, 0, bytesRead);
+                    fileout.flush();
                 }
                 fileout.close();
                 this.client.receiveFile(username, client, file.getAbsolutePath());

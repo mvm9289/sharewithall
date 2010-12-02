@@ -142,15 +142,15 @@ public abstract class SWAReceiveSockets extends Thread
                     String client = sender[1];
                     process(instruction, user, client, in);
                     out.writeInt(RETURN_VALUE);
-                    out.writeObject(null);
+                    out.writeUTF("");
                 }
                 catch (Exception e)
                 {
                     out.writeInt(EXCEPTION);
-                    if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
+                    if (e.getClass() == Exception.class) out.writeUTF(e.getMessage());
                     else {
                         e.printStackTrace();
-                        out.writeObject("Remote Exception");
+                        out.writeUTF("Remote Exception");
                     }
                 }
                 finally {
