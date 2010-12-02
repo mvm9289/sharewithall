@@ -5,9 +5,13 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import sharewithall.server.SWAServer;
+import sharewithall.server.jdbc.JDBCClient;
 import sharewithall.server.jdbc.JDBCDBClients;
 import sharewithall.server.jdbc.JDBCPredicate;
 
@@ -24,6 +28,7 @@ public class SWAServerSockets extends Thread
 
     private ServerSocket serverSocket;
     private SWAServer server;
+    private ConcurrentHashMap<String, ArrayBlockingQueue<Socket>> connections = new ConcurrentHashMap<String, ArrayBlockingQueue<Socket>>();
     
     public SWAServerSockets(int port, SWAServer server)
     {
@@ -113,15 +118,75 @@ public class SWAServerSockets extends Thread
         private static final int GET_LIST_OF_FRIENDS = 10;
         private static final int CLIENT_NAME_REQUEST = 11;
         private static final int GET_SEND_TOKEN = 15;
+        private static final int SEND_GATEWAY = 16;
+        private static final int RECEIVE_GATEWAY = 17;
         private static final int RETURN_VALUE = 0;
         private static final int EXCEPTION = -1;
         
         private Socket clientSocket;
+        private int instruction;
         
         private SWASocketsThread(Socket clientSocket)
         {
             super();
             this.clientSocket = clientSocket;
+        }
+        
+        private void send_gateway(Object[] params, ObjectInputStream in1, ObjectOutputStream out1) throws Exception
+        {
+            String sessionID = (String)params[0];
+            String ip = (String)params[1];
+            int port = (Integer)params[2];
+            
+            JDBCDBClients cl = new JDBCDBClients();
+            ArrayList<Object> clients = cl.select_gen(new JDBCPredicate("session_id", sessionID));
+            if (clients.isEmpty()) throw new Exception("Invalid session id");
+            
+            clients = cl.select_gen(new JDBCPredicate("ip", ip), new JDBCPredicate("port", port));
+            if (clients.isEmpty()) throw new Exception("No client exists with that ip/port");
+            String client_sessionID = ((JDBCClient)clients.get(0)).session_id;
+            
+            cl.close();
+            
+            ArrayBlockingQueue<Socket> sockets = connections.get(client_sessionID);
+            if (sockets == null) throw new Exception("Client is not listening to the gateway");
+            Socket destSocket = sockets.poll();
+            if (destSocket == null) throw new Exception("Client is not listening to the gateway");
+            
+            ObjectOutputStream out2 = new ObjectOutputStream(destSocket.getOutputStream());
+            out2.flush();
+            ObjectInputStream in2 = new ObjectInputStream(destSocket.getInputStream());
+            
+            byte[] bytes = new byte[4096];
+            while (true) {
+                int bytesRead = in1.read(bytes);
+                if (bytesRead == -1) break;
+                out2.write(bytes, 0, bytesRead);
+                out2.flush();
+            }
+            while (true) {
+                int bytesRead = in2.read(bytes);
+                if (bytesRead == -1) break;
+                out1.write(bytes, 0, bytesRead);
+                out1.flush();
+            }
+            destSocket.close();
+        }
+        
+        void receive_gateway(Object[] params, ObjectInputStream in, ObjectOutputStream out) throws Exception 
+        {
+            String sessionID = (String)params[0];
+            
+            JDBCDBClients cl = new JDBCDBClients();
+            ArrayList<Object> clients = cl.select_gen(new JDBCPredicate("session_id", sessionID));
+            if (clients.isEmpty()) throw new Exception("Invalid session id");
+            
+            ArrayBlockingQueue<Socket> sockets = connections.get(sessionID);
+            if (sockets == null) {
+                sockets = new ArrayBlockingQueue<Socket>(10);
+                connections.put(sessionID, sockets);
+            }
+            sockets.put(clientSocket);
         }
         
         private void decodeAndProcess()
@@ -131,7 +196,7 @@ public class SWAServerSockets extends Thread
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
-                int instruction = in.readInt();
+                instruction = in.readInt();
                 Object[] params = (Object[])in.readObject();
                 Object ret;
                 try
@@ -198,6 +263,12 @@ public class SWAServerSockets extends Thread
                             out.writeInt(RETURN_VALUE);
                             out.writeObject(ret);
                             break;
+                        case SEND_GATEWAY:
+                            send_gateway(params, in, out);
+                            break;
+                        case RECEIVE_GATEWAY:
+                            receive_gateway(params, in, out);
+                            break;
                         default:
                         	throw new Exception("Wrong instruction identifier.");
                     }
@@ -223,7 +294,7 @@ public class SWAServerSockets extends Thread
             try
             {
                 decodeAndProcess();
-                clientSocket.close();
+                if (instruction != RECEIVE_GATEWAY) clientSocket.close();
             }
             catch (Exception e)
             {
