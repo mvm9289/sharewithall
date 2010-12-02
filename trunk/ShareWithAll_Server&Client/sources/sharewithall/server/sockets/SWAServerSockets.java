@@ -3,6 +3,7 @@ package sharewithall.server.sockets;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.PipedOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Timestamp;
@@ -183,18 +184,21 @@ public class SWAServerSockets extends Thread
             ObjectInputStream in2 = new ObjectInputStream(destSocket.getInputStream());
             
             byte[] bytes = new byte[4096];
-            while (true) {
-                int bytesRead = in1.read(bytes);
-                if (bytesRead == -1) break;
+            int bytesRead;
+            while ((bytesRead = in1.read(bytes)) > 0)
+            {
+                System.out.println(1);
                 out2.write(bytes, 0, bytesRead);
                 out2.flush();
             }
-            while (true) {
-                int bytesRead = in2.read(bytes);
-                if (bytesRead == -1) break;
+            
+            while ((bytesRead = in2.read(bytes)) > 0)
+            {
+                System.out.println(2);
                 out1.write(bytes, 0, bytesRead);
                 out1.flush();
             }
+            System.out.println(3);
             destSocket.close();
         }
         
