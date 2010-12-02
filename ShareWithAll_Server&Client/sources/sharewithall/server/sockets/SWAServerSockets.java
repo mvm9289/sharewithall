@@ -187,6 +187,8 @@ public class SWAServerSockets extends Thread
                 connections.put(sessionID, sockets);
             }
             sockets.put(clientSocket);
+            out.writeInt(RETURN_VALUE);
+            out.writeObject(null);
         }
         
         private void decodeAndProcess()

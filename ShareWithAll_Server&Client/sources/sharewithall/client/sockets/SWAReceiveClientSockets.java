@@ -27,7 +27,11 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
         super(port);
         this.client = client;
     }
-
+    public SWAReceiveClientSockets(String serverIP, int serverPort, SWAClient client)
+    {
+        super(serverIP, serverPort);
+        this.client = client;
+    }
     @Override
     public void process(int instruction, String username, String client, ObjectInputStream in) throws Exception
     {
@@ -74,6 +78,11 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
         String clientName = s.clientNameRequest(sessionID, token);
         
         return clientName.split(":");
+    }
+    @Override
+    public String getSessionID()
+    {
+        return client.getSessionID();
     }
     
 }
