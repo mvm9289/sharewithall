@@ -3,12 +3,10 @@
  */
 package sharewithall.client.sockets;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 /**
  * Authors:
@@ -63,7 +61,7 @@ public abstract class SWAReceiveSockets extends Thread
         }
     }
 
-    public abstract void process(int instruction, String username, String client, ObjectInputStream in) throws Exception;
+    public abstract void process(int instruction, String username, String client, DataInputStream in) throws Exception;
     
     public abstract String[] obtainSender(String token) throws Exception;
     public abstract String getSessionID();
@@ -98,16 +96,15 @@ public abstract class SWAReceiveSockets extends Thread
     
     private void makeGateway() throws Exception {
         Socket sock = new Socket(serverIP, serverPort);
-        ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+        DataOutputStream out = new DataOutputStream(sock.getOutputStream());
         out.flush();
-        ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+        DataInputStream in = new DataInputStream(sock.getInputStream());
         out.writeInt(RECEIVE_GATEWAY);
-        out.writeObject(new Object[] {getSessionID()});
+        out.writeUTF(getSessionID());
         out.flush();
         
         int returnCode = in.readInt();
-        Object returnVal = in.readObject();
-        if (returnCode == EXCEPTION) throw new Exception((String)returnVal);
+        if (returnCode == EXCEPTION) throw new Exception(in.readUTF());
         Thread socket_thread = new SWASocketsThread(sock);
         socket_thread.start();
     }
@@ -127,9 +124,9 @@ public abstract class SWAReceiveSockets extends Thread
         {   
             try
             {
-                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
                 out.flush();
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+                DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 String token = in.readUTF();
                 
@@ -142,7 +139,6 @@ public abstract class SWAReceiveSockets extends Thread
                     String client = sender[1];
                     process(instruction, user, client, in);
                     out.writeInt(RETURN_VALUE);
-                    out.writeUTF("");
                 }
                 catch (Exception e)
                 {

@@ -1,14 +1,14 @@
 package sharewithall.server.sockets;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.PipedOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -97,15 +97,15 @@ public class SWAServerSockets extends Thread
                 JDBCDBClients clients = new JDBCDBClients();
                 Timestamp last_time = new Timestamp((new Date()).getTime() - CLIENT_EXP_TIME);
                 try {
-                    ArrayList<Object> cl = clients.select_gen(new JDBCPredicate("last_time", last_time, "<"));
-                    for (int i = 0; i < cl.size(); ++i) {
-                        JDBCClient client = (JDBCClient)cl.get(i);
-                        clients.delete_key(client.name, client.username);
-                        cleanSockets(client.session_id);
-                    }
                     int nClients = clients.delete_gen(new JDBCPredicate("last_time", last_time, "<"));
                     clients.commit();
                     if (nClients > 0) System.out.println(nClients + " clientes eliminados");
+                    
+                    for (Enumeration<String> e = connections.keys(); e.hasMoreElements();) {
+                        String session_id = e.nextElement();
+                        if (!clients.exists_gen(new JDBCPredicate("session_id", session_id)))
+                            cleanSockets(session_id);
+                    }
                 }
                 catch (Exception e1) {
                     e1.printStackTrace();
@@ -155,12 +155,8 @@ public class SWAServerSockets extends Thread
             this.clientSocket = clientSocket;
         }
         
-        private void send_gateway(Object[] params, ObjectInputStream in1, ObjectOutputStream out1) throws Exception
+        private void send_gateway(String sessionID, String ip, int port, DataInputStream in1, DataOutputStream out1) throws Exception
         {
-            String sessionID = (String)params[0];
-            String ip = (String)params[1];
-            int port = (Integer)params[2];
-            
             JDBCDBClients cl = new JDBCDBClients();
             ArrayList<Object> clients = cl.select_gen(new JDBCPredicate("session_id", sessionID));
             if (clients.isEmpty()) throw new Exception("Invalid session id");
@@ -177,11 +173,10 @@ public class SWAServerSockets extends Thread
             if (destSocket == null) throw new Exception("Client is not listening to the gateway");
             
             out1.writeInt(RETURN_VALUE);
-            out1.writeObject(null);
             
-            ObjectOutputStream out2 = new ObjectOutputStream(destSocket.getOutputStream());
+            DataOutputStream out2 = new DataOutputStream(destSocket.getOutputStream());
             out2.flush();
-            ObjectInputStream in2 = new ObjectInputStream(destSocket.getInputStream());
+            DataInputStream in2 = new DataInputStream(destSocket.getInputStream());
             
             byte[] bytes = new byte[4096];
             int bytesRead;
@@ -199,10 +194,8 @@ public class SWAServerSockets extends Thread
             destSocket.close();
         }
         
-        void receive_gateway(Object[] params, ObjectInputStream in, ObjectOutputStream out) throws Exception 
-        {
-            String sessionID = (String)params[0];
-            
+        void receive_gateway(String sessionID, DataInputStream in, DataOutputStream out) throws Exception 
+        {            
             JDBCDBClients cl = new JDBCDBClients();
             ArrayList<Object> clients = cl.select_gen(new JDBCPredicate("session_id", sessionID));
             if (clients.isEmpty()) throw new Exception("Invalid session id");
@@ -214,89 +207,88 @@ public class SWAServerSockets extends Thread
             }
             sockets.put(clientSocket);
             out.writeInt(RETURN_VALUE);
-            out.writeObject(null);
         }
         
+        private void write_array(String[] a, DataOutputStream out) throws Exception {
+            out.writeInt(a.length);
+            for (int i = 0; i < a.length; ++i)
+                out.writeUTF(a[i]);
+        }
         private void decodeAndProcess()
         {   
             try
             {
-                ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
                 out.flush();
-                ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
+                DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 instruction = in.readInt();
-                Object[] params = (Object[])in.readObject();
-                Object ret;
+                String ret_s;
+                String[] ret_a;
                 try
                 {
                     switch (instruction)
                     {
                         case NEW_USER:
-                            server.newUser(params);
+                            server.newUser(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(null);
                             break;
                         case LOGIN:
-                            ret = server.login(params, clientSocket.getInetAddress().getHostAddress());
+                            ret_s = server.login(in.readUTF(), in.readUTF(), in.readUTF(), in.readBoolean(), clientSocket.getInetAddress().getHostAddress());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            out.writeUTF(ret_s);
                             break;
                         case LOGOUT:
-                            server.logout(params);
-                            cleanSockets((String)params[0]);
+                            ret_s = in.readUTF();
+                            server.logout(ret_s);
+                            cleanSockets(ret_s);
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(null);
                             break;
                         case GET_ONLINE_CLIENTS:
-                            ret = server.getOnlineClients(params);
-                            out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            ret_a = server.getOnlineClients(in.readUTF());
+                            write_array(ret_a, out);
                             break;
                         case IP_AND_PORT_REQUEST:
-                            ret = server.ipAndPortRequest(params);
+                            ret_s = server.ipAndPortRequest(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            out.writeUTF(ret_s);
                             break;
                         case DECLARE_FRIEND:
-                            server.declareFriend(params);
+                            server.declareFriend(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(null);
                             break;
                         case IGNORE_USER:
-                            server.ignoreUser(params);
+                            server.ignoreUser(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(null);
                             break;
                         case UPDATE_TIMESTAMP:
-                            server.updateTimestamp(params);
+                            server.updateTimestamp(in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(null);
                             break;
                         case PENDING_INVITATIONS_REQUEST:
-                            ret = server.pendingInvitationsRequest(params);
+                            ret_a = server.pendingInvitationsRequest(in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            write_array(ret_a, out);
                             break;
                         case GET_LIST_OF_FRIENDS:
-                            ret = server.getListOfFriends(params);
+                            ret_a = server.getListOfFriends(in.readUTF(), in.readInt());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            write_array(ret_a, out);
                             break;
                         case CLIENT_NAME_REQUEST:
-                            ret = server.clientNameRequest(params);
+                            ret_s = server.clientNameRequest(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            out.writeUTF(ret_s);
                             break;
                         case GET_SEND_TOKEN:
-                            ret = server.getSendToken(params);
+                            ret_s = server.getSendToken(in.readUTF(), in.readUTF());
                             out.writeInt(RETURN_VALUE);
-                            out.writeObject(ret);
+                            out.writeUTF(ret_s);
                             break;
                         case SEND_GATEWAY:
-                            send_gateway(params, in, out);
+                            send_gateway(in.readUTF(), in.readUTF(), in.readInt(), in, out);
                             break;
                         case RECEIVE_GATEWAY:
-                            receive_gateway(params, in, out);
+                            receive_gateway(in.readUTF(), in, out);
                             break;
                         default:
                         	throw new Exception("Wrong instruction identifier.");
@@ -305,10 +297,10 @@ public class SWAServerSockets extends Thread
                 catch (Exception e)
                 {
                     out.writeInt(EXCEPTION);
-                    if (e.getClass() == Exception.class) out.writeObject(e.getMessage());
+                    if (e.getClass() == Exception.class) out.writeUTF(e.getMessage());
                     else {
                         e.printStackTrace();
-                        out.writeObject("Server Exception");
+                        out.writeUTF("Server Exception");
                     }
                 }
             }

@@ -5,8 +5,8 @@ package sharewithall.client.sockets;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.net.Socket;
 
 /**
@@ -47,8 +47,8 @@ public class SWASendSockets
     private String serverIP;
     private int serverPort;
     private Socket clientSocket;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+    private DataInputStream in;
+    private DataOutputStream out;
     
     public SWASendSockets(String serverIP, int serverPort)
     {
@@ -60,9 +60,9 @@ public class SWASendSockets
     private void connect(String ip, int port) throws Exception
     {
         clientSocket = new Socket(ip, port);
-        out = new ObjectOutputStream(clientSocket.getOutputStream());
+        out = new DataOutputStream(clientSocket.getOutputStream());
         out.flush();
-        in = new ObjectInputStream(clientSocket.getInputStream());
+        in = new DataInputStream(clientSocket.getInputStream());
     }
     
     private boolean connectGateway(String sessionID, String ip, int port) {
@@ -70,204 +70,202 @@ public class SWASendSockets
             connect(serverIP, serverPort);
 
             out.writeInt(SEND_GATEWAY);
-            out.writeObject(new Object[] {sessionID, ip, port});
+            out.writeUTF(sessionID);
+            out.writeUTF(ip);
+            out.writeInt(port);
             out.flush();
             
             int responseCode = in.readInt();
-            Object responseVal = in.readObject();
-            
-            if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+            if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
             return true;
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+            e.printStackTrace();
+        }
         try {
             clientSocket.close();
         }
-        catch(Exception e) {}
+        catch(Exception e) {
+            e.printStackTrace();
+        }
         
         return false;
+    }
+    
+    private String[] read_array() throws Exception {
+        int size = in.readInt();
+        String[] res = new String[size];
+        for (int i = 0; i < size; ++i)
+            res[i] = in.readUTF();
+        return res;
     }
     
     public void newUser(String username, String password) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(NEW_USER);
-        out.writeObject(new Object[] {username, password});
+        out.writeUTF(username);
+        out.writeUTF(password);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();
-
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
     
     public String login(String username, String password, String name, boolean isPublic) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(LOGIN);
-        out.writeObject(new Object[] {username, password, name, isPublic});
+        out.writeUTF(username);
+        out.writeUTF(password);
+        out.writeUTF(name);
+        out.writeBoolean(isPublic);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();
+        String responseMsg = in.readUTF();
         clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String)responseVal;
-        throw new Exception((String)responseVal);
+        if (responseCode == RETURN_VALUE) return responseMsg;
+        throw new Exception(responseMsg);
     }
     
     public void logout(String sessionID) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(LOGOUT);
-        out.writeObject(new Object[] {sessionID});
+        out.writeUTF(sessionID);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
     
     public String[] getOnlineClients(String sessionID) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(GET_ONLINE_CLIENTS);
-        out.writeObject(new Object[] {sessionID});
+        out.writeUTF(sessionID);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String[])responseVal;
-            
-        throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
+        return read_array();
     }
     
     public String getSendToken(String sessionID, String client) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(GET_SEND_TOKEN);
-        out.writeObject(new Object[] {sessionID, client});
+        out.writeUTF(sessionID);
+        out.writeUTF(client);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        String responseMsg = in.readUTF();
         clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String)responseVal;
-            
-        throw new Exception((String)responseVal);
+        if (responseCode == RETURN_VALUE) return responseMsg;
+        throw new Exception(responseMsg);
     }
     
     public String[] ipAndPortRequest(String sessionID, String client) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(IP_AND_PORT_REQUEST);
-        out.writeObject(new Object[] {sessionID, client});
+        out.writeUTF(sessionID);
+        out.writeUTF(client);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        String responseMsg = in.readUTF();
         clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return ((String)responseVal).split(":");
-            
-        throw new Exception((String)responseVal);
+        if (responseCode == RETURN_VALUE) return responseMsg.split(":");
+        throw new Exception(responseMsg);
     }
     
     public String clientNameRequest(String sessionID, String token) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(CLIENT_NAME_REQUEST);
-        out.writeObject(new Object[] {sessionID, token});
+        out.writeUTF(sessionID);
+        out.writeUTF(token);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
+        String responseMsg = in.readUTF();
         clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String)responseVal;
-            
-        throw new Exception((String)responseVal);
+        if (responseCode == RETURN_VALUE) return responseMsg;
+        throw new Exception(responseMsg);
     }
     
     public void declareFriend(String sessionID, String friend) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(DECLARE_FRIEND);
-        out.writeObject(new Object[] {sessionID, friend});
+        out.writeUTF(sessionID);
+        out.writeUTF(friend);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
 
     public void ignoreUser(String sessionID, String friend) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(IGNORE_USER);
-        out.writeObject(new Object[] {sessionID, friend});
+        out.writeUTF(sessionID);
+        out.writeUTF(friend);
         out.flush();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
     
     public void updateTimestamp(String sessionID) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(UPDATE_TIMESTAMP);
-        out.writeObject(new Object[] {sessionID});
+        out.writeUTF(sessionID);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
     
     public String[] pendingInvitationsRequest(String sessionID) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(PENDING_INVITATIONS_REQUEST);
-        out.writeObject(new Object[] {sessionID});
+        out.writeUTF(sessionID);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();        
-        clientSocket.close();
-        
-        if (responseCode == RETURN_VALUE) return (String[])responseVal;
-        
-        throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
+        return read_array();
     }
 
     public String[] showListOfFriends(String sessionID, int property) throws Exception
     {
         connect(serverIP, serverPort);
         out.writeInt(GET_LIST_OF_FRIENDS);
-        out.writeObject(new Object[] {sessionID, property});
+        out.writeUTF(sessionID);
+        out.writeInt(property);
         out.flush();
+        clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        Object responseVal = in.readObject();
-        clientSocket.close();
-         
-        if (responseCode == RETURN_VALUE) return (String[])responseVal;
-        
-        throw new Exception((String)responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
+        return read_array();
     }
     
     public void sendURL(String sessionID, String token, String ip, int port, String url) throws Exception
@@ -280,10 +278,7 @@ public class SWASendSockets
         clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        String responseVal = in.readUTF();
-        clientSocket.close();
-        
-        if (responseCode == EXCEPTION) throw new Exception(responseVal);
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
     }
 
     public void sendText(String sessionID, String token, String ip, int port, String text) throws Exception
@@ -298,10 +293,7 @@ public class SWASendSockets
         clientSocket.shutdownOutput();
         
         int responseCode = in.readInt();
-        String responseVal = in.readUTF();
-        clientSocket.close();
-
-        if (responseCode == EXCEPTION) throw new Exception(responseVal);      
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());    
     }
     
     public void sendFile(String sessionID, String token, String ip, int port, String path) throws Exception
@@ -326,10 +318,6 @@ public class SWASendSockets
         clientSocket.shutdownOutput();
 
         int responseCode = in.readInt();
-        String responseVal = in.readUTF();
-        clientSocket.close();
-        filein.close();
-        if (responseCode == EXCEPTION) throw new Exception(responseVal);        
+        if (responseCode == EXCEPTION) throw new Exception(in.readUTF());     
     }
-
 }
