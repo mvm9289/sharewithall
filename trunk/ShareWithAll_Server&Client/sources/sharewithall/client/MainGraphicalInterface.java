@@ -42,38 +42,33 @@ public class MainGraphicalInterface extends javax.swing.JFrame
             
             B_SendText.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
-                    String receiver = (String) LS_Connected.getSelectedValue();
-                    String receiverUsername;
-                    String receiverClient;
-                    if(receiver == null)
-                    {
-                        JOptionPane.showMessageDialog(null, "You must select a contact.", "Error", 0);
-                        return;
-                    }
-                    if(receiver.indexOf(":") == -1)
-                    { //Sending to myself.
-                        receiverUsername = username;
-                        receiverClient = receiver;
-                    }
-                    else
-                    { //Sending to another user.
-                        receiverUsername = receiver.substring(0, receiver.indexOf(":"));
-                        receiverClient = receiver.substring(receiver.indexOf(":")+1, receiver.length());
-                    }
-
-                    openChat(receiverUsername, receiverClient);
+                    String[] receiverInfo = obtainReceiver();
+                    if(receiverInfo!=null)
+                        openChat(receiverInfo[0], receiverInfo[1]);
                 }
             });
             
             B_SendURL.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
-                    JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
+                    String[] receiverInfo = obtainReceiver();
+                    if(receiverInfo!=null)
+                    {
+                        String URL = JOptionPane.showInputDialog(null, "What is the URL you want to send?");
+                        if(URL != null)
+                                client.sendURLCommand(URL, receiverInfo[0], receiverInfo[1]);
+                    }
                 }
             });
             
             B_SendFile.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
-                    JOptionPane.showMessageDialog(null, "Not implemented yet.", "Error", 0); //TODO: Implement
+                    String[] receiverInfo = obtainReceiver();
+                    if(receiverInfo!=null)
+                    {
+                        String path = JOptionPane.showInputDialog(null, "What is the path of the file you want to send?");
+                        if(path != null)
+                            client.sendFileCommand(path, receiverInfo[0], receiverInfo[1]);
+                    }
                 }
             });
 
@@ -174,6 +169,28 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                 return openChats.get(i).chat;
         }
         return null;
+    }
+    
+    private String[] obtainReceiver()
+    {
+        String receiver = (String) LS_Connected.getSelectedValue();
+        String[] receiverInfo = new String[2];
+        if(receiver == null)
+        {
+            JOptionPane.showMessageDialog(null, "You must select a contact.", "Error", 0);
+            return null;
+        }
+        if(receiver.indexOf(":") == -1)
+        { //Sending to myself.
+            receiverInfo[0] = username;
+            receiverInfo[1] = receiver;
+        }
+        else
+        { //Sending to another user.
+            receiverInfo[0] = receiver.substring(0, receiver.indexOf(":"));
+            receiverInfo[1] = receiver.substring(receiver.indexOf(":")+1, receiver.length());
+        }
+        return receiverInfo;
     }
     
     public void RefreshListOfOnlineClients()
