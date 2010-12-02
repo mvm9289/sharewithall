@@ -5,7 +5,7 @@ package sharewithall.client.sockets;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
+import java.io.DataInputStream;
 
 import sharewithall.client.SWAClient;
 
@@ -33,7 +33,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
         this.client = client;
     }
     @Override
-    public void process(int instruction, String username, String client, ObjectInputStream in) throws Exception
+    public void process(int instruction, String username, String client, DataInputStream in) throws Exception
     {
         switch (instruction)
         {
@@ -50,6 +50,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 //Security problem here!!! need to check the filename
                 //Also have to check if the file already exists
                 //Also a limit for the filesize, and a limit for the time reading it
+                System.out.println("Receiving file of " + filesize + " bytes");
                 File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
                 int bytesRead;

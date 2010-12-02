@@ -94,11 +94,8 @@ public class SWAServer
          return result.toArray(new String[0]);
     }
     
-    public void newUser(Object[] params) throws Exception
+    public void newUser(String username, String password) throws Exception
     {
-        String username = (String)params[0];
-        String password = (String)params[1];
-        
         JDBCDBUsers DBUsers = new JDBCDBUsers();
 
         if (DBUsers.exists_gen(new JDBCPredicate("username", username))) {
@@ -115,13 +112,8 @@ public class SWAServer
         DBUsers.close();
     }
     
-    public String login(Object[] params, String ip) throws Exception
+    public String login(String username, String password, String name, boolean isPublic, String ip) throws Exception
     {
-        String username = (String)params[0];
-        String password = (String)params[1];
-        String name = (String)params[2];
-        Boolean isPublic = (Boolean)params[3];
-        
         if (name.contains(":")) throw new Exception("The client name contains illegal characters: ':'.");
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCPredicate p1 = new JDBCPredicate("username", username);
@@ -147,9 +139,8 @@ public class SWAServer
         return session_id;
     }
     
-    public void logout(Object[] params) throws Exception
+    public void logout(String sessionID) throws Exception
     {
-        String sessionID = (String)params[0];
         JDBCDBClients DBClients = new JDBCDBClients();
         if (!DBClients.exists_gen(new JDBCPredicate("session_id", sessionID))) throw new Exception("Invalid session");
         
@@ -190,10 +181,8 @@ public class SWAServer
         DBClients.close();
     }
     
-    public String[] getOnlineClients(Object[] params) throws Exception
+    public String[] getOnlineClients(String sessionID) throws Exception
     {
-        String sessionID = (String)params[0];
-        
         JDBCDBClients DBClients = new JDBCDBClients();
         if (!DBClients.exists_gen(new JDBCPredicate("session_id", sessionID))) throw new Exception("Invalid session");
 
@@ -221,11 +210,8 @@ public class SWAServer
         return list.toArray(new String[0]);
     }
     
-    public String ipAndPortRequest(Object[] params) throws Exception
-    {
-        String sessionID = (String)params[0];
-        String clientName = (String)params[1];
-        
+    public String ipAndPortRequest(String sessionID, String clientName) throws Exception
+    {       
         JDBCDBClients DBClients = new JDBCDBClients();
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         if (clients.isEmpty()) throw new Exception("Invalid session");
@@ -268,11 +254,8 @@ public class SWAServer
         }
     }
     
-    public String getSendToken(Object[] params) throws Exception
-    {
-        String sessionID = (String)params[0];
-        String clientName = (String)params[1];
-        
+    public String getSendToken(String sessionID, String clientName) throws Exception
+    {      
         JDBCDBClients DBClients = new JDBCDBClients();
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         if (clients.isEmpty()) throw new Exception("Invalid session");
@@ -301,11 +284,8 @@ public class SWAServer
         return md5(sessionID + client.session_id);
     }
     
-    public String clientNameRequest(Object[] params) throws Exception
+    public String clientNameRequest(String sessionID, String token) throws Exception
     {
-        String sessionID = (String)params[0];
-        String token = (String)params[1];
-        
         JDBCDBClients DBClients = new JDBCDBClients();
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         if (clients.isEmpty()) throw new Exception("Invalid session");
@@ -329,11 +309,8 @@ public class SWAServer
         return user2 + ":" + client2.name;
     }
 
-	public void declareFriend(Object[] params) throws Exception
+	public void declareFriend(String sessionID, String friend) throws Exception
     {
-	    String sessionID = (String)params[0];
-	    String friend = (String)params[1];
-	    
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCDBClients DBClients = new JDBCDBClients();
         JDBCDBFriends DBFriends = new JDBCDBFriends();
@@ -359,11 +336,8 @@ public class SWAServer
         DBFriends.close();
     }
     
-    public void ignoreUser(Object[] params) throws Exception
+    public void ignoreUser(String sessionID, String user) throws Exception
     {
-        String sessionID = (String)params[0];
-        String user = (String)params[1];
-        
         JDBCDBUsers DBUsers = new JDBCDBUsers();
         JDBCDBClients DBClients = new JDBCDBClients();
         JDBCDBFriends DBFriends = new JDBCDBFriends();
@@ -391,10 +365,8 @@ public class SWAServer
         DBFriends.close();
     }
     
-    public void updateTimestamp(Object[] params) throws Exception
-    {
-        String sessionID = (String)params[0];
-        
+    public void updateTimestamp(String sessionID) throws Exception
+    {        
         JDBCDBClients DBClients = new JDBCDBClients();
         boolean exists = DBClients.exists_gen(new JDBCPredicate("session_id", sessionID));
         if (!exists) throw new Exception("Invalid session");
@@ -407,10 +379,8 @@ public class SWAServer
         DBClients.close();
     }
 
-    public String[] pendingInvitationsRequest(Object[] params) throws Exception
+    public String[] pendingInvitationsRequest(String sessionID) throws Exception
     {
-         String sessionID = (String)params[0];
-        
          JDBCDBClients DBClients = new JDBCDBClients();
          JDBCDBFriends DBFriends = new JDBCDBFriends();
 
@@ -438,11 +408,8 @@ public class SWAServer
          return list;
     }   
     
-    public String[] getListOfFriends(Object[] params) throws Exception
+    public String[] getListOfFriends(String sessionID, int property) throws Exception
     {
-         String sessionID = (String)params[0];
-         Integer property = (Integer)params[1];
-         
          JDBCDBClients DBClients = new JDBCDBClients();
          JDBCDBFriends DBFriends = new JDBCDBFriends();
 
