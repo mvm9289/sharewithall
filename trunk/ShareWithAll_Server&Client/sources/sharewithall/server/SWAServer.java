@@ -203,7 +203,9 @@ public class SWAServer
         clients = DBClients.select_gen(new JDBCPredicate("username", client.username));
         ArrayList<String> list = new ArrayList<String>();
         for (int i = 0; i < clients.size(); i++)
-            list.add(((JDBCClient)clients.get(i)).name);
+            if(!((JDBCClient)clients.get(i)).session_id.equals(sessionID))
+                list.add(((JDBCClient)clients.get(i)).name);
+
         
         String[] friends = showListOfFriends(sessionID);
         
