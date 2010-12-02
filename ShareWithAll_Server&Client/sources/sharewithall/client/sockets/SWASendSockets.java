@@ -288,6 +288,7 @@ public class SWASendSockets
     public void sendText(String sessionID, String token, String ip, int port, String text) throws Exception
     {
         System.out.println("ip: " + ip + " port: " + port);
+
         if (!connectGateway(sessionID, ip, port)) connect(ip, port);
         out.writeInt(SEND_TEXT);
         out.writeUTF(token);

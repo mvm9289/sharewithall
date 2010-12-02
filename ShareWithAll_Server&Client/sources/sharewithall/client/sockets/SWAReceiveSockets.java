@@ -3,10 +3,12 @@
  */
 package sharewithall.client.sockets;
 
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 
 /**
  * Authors:
@@ -70,8 +72,7 @@ public abstract class SWAReceiveSockets extends Thread
     {
         if (gateway) {
             try {
-                Thread socket_thread = new SWASocketsThread(new Socket(serverIP, serverPort));
-                socket_thread.start();
+                makeGateway();
             }
             catch (Exception e)
             {
@@ -95,6 +96,22 @@ public abstract class SWAReceiveSockets extends Thread
         }
     }
     
+    private void makeGateway() throws Exception {
+        Socket sock = new Socket(serverIP, serverPort);
+        ObjectOutputStream out = new ObjectOutputStream(sock.getOutputStream());
+        out.flush();
+        ObjectInputStream in = new ObjectInputStream(sock.getInputStream());
+        out.writeInt(RECEIVE_GATEWAY);
+        out.writeObject(new Object[] {getSessionID()});
+        out.flush();
+        
+        int returnCode = in.readInt();
+        Object returnVal = in.readObject();
+        if (returnCode == EXCEPTION) throw new Exception((String)returnVal);
+        Thread socket_thread = new SWASocketsThread(sock);
+        socket_thread.start();
+    }
+    
     private class SWASocketsThread extends Thread
     {
         
@@ -111,19 +128,12 @@ public abstract class SWAReceiveSockets extends Thread
             try
             {
                 ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
-                if (gateway) {
-                    out.writeInt(RECEIVE_GATEWAY);
-                    out.writeUTF(getSessionID());
-                }
                 out.flush();
                 ObjectInputStream in = new ObjectInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 String token = in.readUTF();
                 
-                if (gateway) {
-                    Thread socket_thread = new SWASocketsThread(new Socket(serverIP, serverPort));
-                    socket_thread.start();
-                }
+                if (gateway) makeGateway();
 
                 try
                 {
