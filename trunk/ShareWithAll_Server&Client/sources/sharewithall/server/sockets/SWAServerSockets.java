@@ -245,6 +245,7 @@ public class SWAServerSockets extends Thread
                             break;
                         case GET_ONLINE_CLIENTS:
                             ret_a = server.getOnlineClients(in.readUTF());
+                            out.writeInt(RETURN_VALUE);
                             write_array(ret_a, out);
                             break;
                         case IP_AND_PORT_REQUEST:
