@@ -33,7 +33,7 @@ public class SWAClient
     private boolean gateway = true;
     private static SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
-
+    private Object lock = new Object();
     
     private class SWAUpdateThread extends Thread
     {
@@ -51,8 +51,14 @@ public class SWAClient
             while (true) {
                 try
                 {
-                    if (sessionID != null) {
-                        updateSocketsModule.updateTimestamp(sessionID);
+                    synchronized(lock) {
+                        if (sessionID != null) {
+                            updateSocketsModule.updateTimestamp(sessionID);
+                            if(program != null) {
+                                program.RefreshListOfFriends();
+                                program.RefreshListOfOnlineClients();
+                            }
+                        }
                     }
                 }
                 catch (Exception e)
@@ -61,11 +67,6 @@ public class SWAClient
                 }
                 
                 Runtime.getRuntime().gc();
-                if(program != null)
-                {
-                    program.RefreshListOfFriends();
-                    program.RefreshListOfOnlineClients();
-                }
                 
                 try {
                     SWAUpdateThread.sleep(SLEEP_TIME);
@@ -319,9 +320,13 @@ public class SWAClient
         if(sessionID == null) return;
         try
         {
-            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-            socketsModule.logout(sessionID);
-            sessionID = null;
+            synchronized(lock) {
+                receiveSocketsModule.stop_receiver();
+                receiveSocketsModule = null;
+                SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+                socketsModule.logout(sessionID);
+                sessionID = null;
+            }
         }
         catch (Exception e)
         {
