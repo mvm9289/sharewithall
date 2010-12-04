@@ -3,6 +3,9 @@ package sharewithall.client;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+
 public class ShareWithAll
 {
     public static SWAClient client;
@@ -27,6 +30,12 @@ public class ShareWithAll
     {
         try
         {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
             if (args.length == 1)
             {
                 String[] aux = args[0].split(":");

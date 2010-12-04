@@ -13,6 +13,10 @@ import java.awt.event.ActionListener;
 
 import javax.swing.JTextArea;
 import javax.swing.JButton;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.JScrollPane;
 
 public class ChatGraphicalInterface extends JFrame
 {
@@ -22,11 +26,12 @@ public class ChatGraphicalInterface extends JFrame
     private String contactUsername;
     private String contactClient;
     private SWAClient client;
-    private JTextArea TA_Write;
-    public JTextArea TA_Read;
-    private JButton B_Send;
     private String username;
     private MainGraphicalInterface father;
+    JTextArea TA_Read;
+    private JTextArea TA_Write;
+    private JButton B_Send;
+    private JScrollPane scrollPane;
     
     public void start()
     {
@@ -72,27 +77,45 @@ public class ChatGraphicalInterface extends JFrame
     {
         setTitle("Chat - Share With All");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 378, 488);
+        setBounds(100, 100, 615, 762);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-        contentPane.setLayout(new BorderLayout(0, 0));
         setContentPane(contentPane);
-        
-        JPanel panel = new JPanel();
-        contentPane.add(panel, BorderLayout.CENTER);
-        panel.setLayout(null);
-        
-        TA_Write = new JTextArea();
-        TA_Write.setBounds(10, 324, 275, 110);
-        panel.add(TA_Write);
+        GridBagLayout gbl_contentPane = new GridBagLayout();
+        gbl_contentPane.columnWidths = new int[]{375, 0, 0};
+        gbl_contentPane.rowHeights = new int[]{28, 77, 0};
+        gbl_contentPane.columnWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        gbl_contentPane.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        contentPane.setLayout(gbl_contentPane);
         
         TA_Read = new JTextArea();
         TA_Read.setEditable(false);
-        TA_Read.setBounds(10, 12, 344, 300);
-        panel.add(TA_Read);
+        GridBagConstraints gbc_TA_Read = new GridBagConstraints();
+        gbc_TA_Read.gridwidth = 2;
+        gbc_TA_Read.fill = GridBagConstraints.BOTH;
+        gbc_TA_Read.insets = new Insets(0, 0, 5, 5);
+        gbc_TA_Read.gridx = 0;
+        gbc_TA_Read.gridy = 0;
+        contentPane.add(TA_Read, gbc_TA_Read);
+        
+        scrollPane = new JScrollPane();
+        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+        gbc_scrollPane.insets = new Insets(0, 0, 0, 5);
+        gbc_scrollPane.fill = GridBagConstraints.BOTH;
+        gbc_scrollPane.gridx = 0;
+        gbc_scrollPane.gridy = 1;
+        contentPane.add(scrollPane, gbc_scrollPane);
+        
+        TA_Write = new JTextArea();
+        scrollPane.setViewportView(TA_Write);
+        TA_Write.setRows(4);
+        TA_Write.setWrapStyleWord(true);
         
         B_Send = new JButton("OK");
-        B_Send.setBounds(297, 323, 57, 111);
-        panel.add(B_Send);
+        GridBagConstraints gbc_B_Send = new GridBagConstraints();
+        gbc_B_Send.fill = GridBagConstraints.BOTH;
+        gbc_B_Send.gridx = 1;
+        gbc_B_Send.gridy = 1;
+        contentPane.add(B_Send, gbc_B_Send);
     }
 }

@@ -9,16 +9,23 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import java.awt.Dialog.ModalExclusionType;
 
 public class RegisterGraphicalInterface extends javax.swing.JFrame
 {
     private SWAClient client;
+    private JLabel L_NewPassword;
     private JTextField TF_Username;
-    private JTextField TF_NewPassword;
-    private JTextField TF_RepeatPassword;
-    
-    public JButton B_Register;
-    public JButton B_Cancel;
+    private JLabel L_RepeatPassword;
+    private JPasswordField TF_NewPassword;
+    private JPasswordField TF_RepeatPassword;
+    JButton B_Register;
+    JButton B_Cancel;
+    private JLabel L_Username;
+    private JPanel panel;
 
     public void start()
     {
@@ -34,6 +41,7 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
 
     public RegisterGraphicalInterface(SWAClient c)
     {
+        setResizable(false);
         setTitle("Register - Share With All");
         client = c;
         initialize();
@@ -44,46 +52,78 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
      */
     private void initialize()
     {
-        setBounds(100, 100, 450, 166);
+        setBounds(100, 100, 369, 211);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        GridBagLayout gridBagLayout = new GridBagLayout();
+        gridBagLayout.columnWidths = new int[]{30, 0, 434, 30, 0};
+        gridBagLayout.rowHeights = new int[]{30, 0, 30, 0, 30, 0};
+        gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        getContentPane().setLayout(gridBagLayout);
         
-        JPanel panel = new JPanel();
-        getContentPane().add(panel, BorderLayout.CENTER);
-        panel.setLayout(null);
-        
-        JLabel L_Username = new JLabel("New Username:");
-        L_Username.setBounds(12, 12, 136, 14);
-        panel.add(L_Username);
-        
-        JLabel L_NewPassword = new JLabel("New Password:");
-        L_NewPassword.setBounds(12, 38, 136, 14);
-        panel.add(L_NewPassword);
-        
-        JLabel L_RepeatPassword = new JLabel("Repeat Password:");
-        L_RepeatPassword.setBounds(12, 64, 136, 14);
-        panel.add(L_RepeatPassword);
+        L_Username = new JLabel("Username:");
+        GridBagConstraints gbc_L_Username = new GridBagConstraints();
+        gbc_L_Username.anchor = GridBagConstraints.WEST;
+        gbc_L_Username.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Username.gridx = 1;
+        gbc_L_Username.gridy = 1;
+        getContentPane().add(L_Username, gbc_L_Username);
         
         TF_Username = new JTextField();
-        TF_Username.setBounds(166, 10, 270, 18);
-        panel.add(TF_Username);
         TF_Username.setColumns(10);
+        GridBagConstraints gbc_TF_Username = new GridBagConstraints();
+        gbc_TF_Username.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_Username.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_Username.gridx = 2;
+        gbc_TF_Username.gridy = 1;
+        getContentPane().add(TF_Username, gbc_TF_Username);
+        
+        L_NewPassword = new JLabel("Password:");
+        GridBagConstraints gbc_L_NewPassword = new GridBagConstraints();
+        gbc_L_NewPassword.anchor = GridBagConstraints.WEST;
+        gbc_L_NewPassword.insets = new Insets(0, 0, 5, 5);
+        gbc_L_NewPassword.gridx = 1;
+        gbc_L_NewPassword.gridy = 2;
+        getContentPane().add(L_NewPassword, gbc_L_NewPassword);
         
         TF_NewPassword = new JPasswordField();
         TF_NewPassword.setColumns(10);
-        TF_NewPassword.setBounds(166, 36, 270, 18);
-        panel.add(TF_NewPassword);
+        GridBagConstraints gbc_TF_NewPassword = new GridBagConstraints();
+        gbc_TF_NewPassword.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_NewPassword.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_NewPassword.gridx = 2;
+        gbc_TF_NewPassword.gridy = 2;
+        getContentPane().add(TF_NewPassword, gbc_TF_NewPassword);
+        
+        L_RepeatPassword = new JLabel("Repeat Password:");
+        GridBagConstraints gbc_L_RepeatPassword = new GridBagConstraints();
+        gbc_L_RepeatPassword.anchor = GridBagConstraints.WEST;
+        gbc_L_RepeatPassword.insets = new Insets(0, 0, 5, 5);
+        gbc_L_RepeatPassword.gridx = 1;
+        gbc_L_RepeatPassword.gridy = 3;
+        getContentPane().add(L_RepeatPassword, gbc_L_RepeatPassword);
         
         TF_RepeatPassword = new JPasswordField();
         TF_RepeatPassword.setColumns(10);
-        TF_RepeatPassword.setBounds(166, 62, 270, 18);
-        panel.add(TF_RepeatPassword);
+        GridBagConstraints gbc_TF_RepeatPassword = new GridBagConstraints();
+        gbc_TF_RepeatPassword.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_RepeatPassword.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_RepeatPassword.gridx = 2;
+        gbc_TF_RepeatPassword.gridy = 3;
+        getContentPane().add(TF_RepeatPassword, gbc_TF_RepeatPassword);
+        
+        panel = new JPanel();
+        GridBagConstraints gbc_panel = new GridBagConstraints();
+        gbc_panel.anchor = GridBagConstraints.WEST;
+        gbc_panel.insets = new Insets(0, 0, 0, 5);
+        gbc_panel.gridx = 2;
+        gbc_panel.gridy = 4;
+        getContentPane().add(panel, gbc_panel);
         
         B_Register = new JButton("Register");
-        B_Register.setBounds(319, 92, 117, 24);
         panel.add(B_Register);
         
         B_Cancel = new JButton("Cancel");
-        B_Cancel.setBounds(190, 92, 117, 24);
         panel.add(B_Cancel);
     }
 
