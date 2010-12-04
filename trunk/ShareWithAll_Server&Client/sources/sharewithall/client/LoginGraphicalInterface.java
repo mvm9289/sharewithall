@@ -14,18 +14,29 @@ import javax.swing.border.LineBorder;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JPasswordField;
+import java.awt.Font;
+import javax.swing.SwingConstants;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 
 public class LoginGraphicalInterface extends javax.swing.JFrame
 {
     private RegisterGraphicalInterface registerI;
     private SWAClient client;
+    private JLabel L_Username;
     private JTextField TF_Username;
-    private JTextField TF_Client;
-    private JCheckBox CB_Visible;
-    
-    private JButton B_Register;
-    public JButton B_Login;
+    private JLabel L_Password;
     private JPasswordField TF_Password;
+    private JLabel L_Client;
+    private JTextField TF_Client;
+    private JLabel L_Visible;
+    private JCheckBox CB_Visible;
+    private JButton B_Register;
+    JButton B_Login;
+    private JLabel L_Gateway;
+    private JCheckBox CB_Gateway;
+    private JPanel panel;
 
 
     public void start()
@@ -63,6 +74,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
 
     public LoginGraphicalInterface(SWAClient c)
     {
+        setResizable(false);
         setTitle("Login - Share With All");
         client = c;
         initialize();
@@ -74,57 +86,108 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private void initialize()
     {
         
-        setBounds(100, 100, 384, 196);
+        setBounds(100, 100, 344, 259);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        getContentPane().setLayout(null);
+        GridBagLayout gridBagLayout = new GridBagLayout();
+        gridBagLayout.columnWidths = new int[]{30, 0, 354, 30, 0};
+        gridBagLayout.rowHeights = new int[]{30, -9, 26, 17, 0, 0, 0, 0};
+        gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        getContentPane().setLayout(gridBagLayout);
         
-        JPanel panel = new JPanel();
-        panel.setBorder(new LineBorder(new Color(0, 0, 0)));
-        panel.setBounds(12, 12, 350, 144);
-        getContentPane().add(panel);
-        panel.setLayout(null);
-        
-        JLabel L_Username = new JLabel("Username: ");
-        L_Username.setBounds(12, 12, 86, 14);
-        panel.add(L_Username);
-        
-        JLabel L_Password = new JLabel("Password:");
-        L_Password.setBounds(12, 38, 86, 14);
-        panel.add(L_Password);
+        L_Username = new JLabel("Username: ");
+        GridBagConstraints gbc_L_Username = new GridBagConstraints();
+        gbc_L_Username.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Username.gridx = 1;
+        gbc_L_Username.gridy = 1;
+        getContentPane().add(L_Username, gbc_L_Username);
         
         TF_Username = new JTextField();
-        TF_Username.setBounds(116, 10, 175, 18);
-        panel.add(TF_Username);
+        TF_Username.setHorizontalAlignment(SwingConstants.LEFT);
+        TF_Username.setFont(new Font("SansSerif", Font.PLAIN, 12));
         TF_Username.setColumns(10);
+        GridBagConstraints gbc_TF_Username = new GridBagConstraints();
+        gbc_TF_Username.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_Username.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_Username.gridx = 2;
+        gbc_TF_Username.gridy = 1;
+        getContentPane().add(TF_Username, gbc_TF_Username);
         
-        JLabel L_Client = new JLabel("Client:");
-        L_Client.setBounds(12, 64, 70, 14);
-        panel.add(L_Client);
+        L_Password = new JLabel("Password:");
+        GridBagConstraints gbc_L_Password = new GridBagConstraints();
+        gbc_L_Password.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Password.gridx = 1;
+        gbc_L_Password.gridy = 2;
+        getContentPane().add(L_Password, gbc_L_Password);
+        
+        TF_Password = new JPasswordField();
+        TF_Password.setColumns(10);
+        GridBagConstraints gbc_TF_Password = new GridBagConstraints();
+        gbc_TF_Password.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_Password.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_Password.gridx = 2;
+        gbc_TF_Password.gridy = 2;
+        getContentPane().add(TF_Password, gbc_TF_Password);
+        
+        L_Client = new JLabel("Client:");
+        GridBagConstraints gbc_L_Client = new GridBagConstraints();
+        gbc_L_Client.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Client.gridx = 1;
+        gbc_L_Client.gridy = 3;
+        getContentPane().add(L_Client, gbc_L_Client);
         
         TF_Client = new JTextField();
         TF_Client.setColumns(10);
-        TF_Client.setBounds(116, 62, 175, 18);
-        panel.add(TF_Client);
+        GridBagConstraints gbc_TF_Client = new GridBagConstraints();
+        gbc_TF_Client.fill = GridBagConstraints.HORIZONTAL;
+        gbc_TF_Client.insets = new Insets(0, 0, 5, 5);
+        gbc_TF_Client.gridx = 2;
+        gbc_TF_Client.gridy = 3;
+        getContentPane().add(TF_Client, gbc_TF_Client);
+        
+        L_Visible = new JLabel("Visible:");
+        GridBagConstraints gbc_L_Visible = new GridBagConstraints();
+        gbc_L_Visible.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Visible.gridx = 1;
+        gbc_L_Visible.gridy = 4;
+        getContentPane().add(L_Visible, gbc_L_Visible);
         
         CB_Visible = new JCheckBox("");
-        CB_Visible.setBounds(116, 83, 129, 22);
-        panel.add(CB_Visible);
+        GridBagConstraints gbc_CB_Visible = new GridBagConstraints();
+        gbc_CB_Visible.anchor = GridBagConstraints.WEST;
+        gbc_CB_Visible.insets = new Insets(0, 0, 5, 5);
+        gbc_CB_Visible.gridx = 2;
+        gbc_CB_Visible.gridy = 4;
+        getContentPane().add(CB_Visible, gbc_CB_Visible);
         
-        JLabel L_Visible = new JLabel("Visible:");
-        L_Visible.setBounds(12, 87, 70, 14);
-        panel.add(L_Visible);
+        L_Gateway = new JLabel("Use Gateway");
+        GridBagConstraints gbc_L_Gateway = new GridBagConstraints();
+        gbc_L_Gateway.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Gateway.gridx = 1;
+        gbc_L_Gateway.gridy = 5;
+        getContentPane().add(L_Gateway, gbc_L_Gateway);
+        
+        CB_Gateway = new JCheckBox("");
+        GridBagConstraints gbc_CB_Gateway = new GridBagConstraints();
+        gbc_CB_Gateway.anchor = GridBagConstraints.WEST;
+        gbc_CB_Gateway.insets = new Insets(0, 0, 5, 5);
+        gbc_CB_Gateway.gridx = 2;
+        gbc_CB_Gateway.gridy = 5;
+        getContentPane().add(CB_Gateway, gbc_CB_Gateway);
+        
+        panel = new JPanel();
+        GridBagConstraints gbc_panel = new GridBagConstraints();
+        gbc_panel.insets = new Insets(0, 0, 0, 5);
+        gbc_panel.anchor = GridBagConstraints.WEST;
+        gbc_panel.gridx = 2;
+        gbc_panel.gridy = 6;
+        getContentPane().add(panel, gbc_panel);
         
         B_Login = new JButton("Login");
-        B_Login.setBounds(186, 112, 153, 24);
         panel.add(B_Login);
         
         B_Register = new JButton("Register");
-        B_Register.setBounds(12, 112, 153, 24);
         panel.add(B_Register);
-        
-        TF_Password = new JPasswordField();
-        TF_Password.setBounds(116, 36, 175, 18);
-        panel.add(TF_Password);
         initDataBindings();
     }
     protected void initDataBindings() {

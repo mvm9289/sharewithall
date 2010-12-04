@@ -14,6 +14,10 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
+import javax.swing.BoxLayout;
 
 public class MainGraphicalInterface extends javax.swing.JFrame
 {
@@ -31,6 +35,8 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     private JList LS_Connected;
     private String username;
     private ArrayList<chatInfo> openChats;
+    private JPanel panel;
+    private JPanel panel_1;
 
     public void start()
     {
@@ -254,61 +260,152 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     {
         setTitle("Share With All");
 
-        setBounds(100, 100, 636, 445);
+        setBounds(100, 100, 760, 445);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        getContentPane().setLayout(null);
+        GridBagLayout gridBagLayout = new GridBagLayout();
+        gridBagLayout.columnWidths = new int[]{610, 0};
+        gridBagLayout.rowHeights = new int[]{353, 24, 0};
+        gridBagLayout.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
+        getContentPane().setLayout(gridBagLayout);
         
         JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-        tabbedPane.setBounds(12, 12, 610, 353);
-        getContentPane().add(tabbedPane);
+        GridBagConstraints gbc_tabbedPane = new GridBagConstraints();
+        gbc_tabbedPane.fill = GridBagConstraints.BOTH;
+        gbc_tabbedPane.insets = new Insets(0, 0, 5, 0);
+        gbc_tabbedPane.gridx = 0;
+        gbc_tabbedPane.gridy = 0;
+        getContentPane().add(tabbedPane, gbc_tabbedPane);
         
         JPanel P_mainTab = new JPanel();
         tabbedPane.addTab("Send", null, P_mainTab, null);
-        P_mainTab.setLayout(null);
+        GridBagLayout gbl_P_mainTab = new GridBagLayout();
+        gbl_P_mainTab.columnWidths = new int[]{363, 98, 30, 0};
+        gbl_P_mainTab.rowHeights = new int[]{24, 0};
+        gbl_P_mainTab.columnWeights = new double[]{1.0, 0.0, 0.0, Double.MIN_VALUE};
+        gbl_P_mainTab.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+        P_mainTab.setLayout(gbl_P_mainTab);
         
         LS_Connected = new JList();
-        LS_Connected.setBounds(12, 12, 363, 303);
-        P_mainTab.add(LS_Connected);
+        GridBagConstraints gbc_LS_Connected = new GridBagConstraints();
+        gbc_LS_Connected.fill = GridBagConstraints.BOTH;
+        gbc_LS_Connected.insets = new Insets(0, 0, 0, 5);
+        gbc_LS_Connected.gridx = 0;
+        gbc_LS_Connected.gridy = 0;
+        P_mainTab.add(LS_Connected, gbc_LS_Connected);
+        
+        panel = new JPanel();
+        GridBagConstraints gbc_panel = new GridBagConstraints();
+        gbc_panel.fill = GridBagConstraints.HORIZONTAL;
+        gbc_panel.insets = new Insets(0, 0, 0, 5);
+        gbc_panel.anchor = GridBagConstraints.NORTH;
+        gbc_panel.gridx = 1;
+        gbc_panel.gridy = 0;
+        P_mainTab.add(panel, gbc_panel);
+        GridBagLayout gbl_panel = new GridBagLayout();
+        gbl_panel.columnWidths = new int[]{98, 0};
+        gbl_panel.rowHeights = new int[]{0, 0, 0, 0};
+        gbl_panel.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, Double.MIN_VALUE};
+        panel.setLayout(gbl_panel);
         
         B_SendText = new JButton("Text");
-        B_SendText.setBounds(477, 12, 117, 24);
-        P_mainTab.add(B_SendText);
-        
-        B_SendURL = new JButton("URL");
-        B_SendURL.setBounds(477, 47, 117, 24);
-        P_mainTab.add(B_SendURL);
+        GridBagConstraints gbc_B_SendText = new GridBagConstraints();
+        gbc_B_SendText.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_SendText.insets = new Insets(0, 0, 5, 0);
+        gbc_B_SendText.gridx = 0;
+        gbc_B_SendText.gridy = 0;
+        panel.add(B_SendText, gbc_B_SendText);
         
         B_SendFile = new JButton("File");
-        B_SendFile.setBounds(477, 82, 117, 24);
-        P_mainTab.add(B_SendFile);
+        GridBagConstraints gbc_B_SendFile = new GridBagConstraints();
+        gbc_B_SendFile.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_SendFile.insets = new Insets(0, 0, 5, 0);
+        gbc_B_SendFile.gridx = 0;
+        gbc_B_SendFile.gridy = 1;
+        panel.add(B_SendFile, gbc_B_SendFile);
+        
+        B_SendURL = new JButton("URL");
+        GridBagConstraints gbc_B_SendURL = new GridBagConstraints();
+        gbc_B_SendURL.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_SendURL.gridx = 0;
+        gbc_B_SendURL.gridy = 2;
+        panel.add(B_SendURL, gbc_B_SendURL);
         
         JPanel P_contactsTab = new JPanel();
         tabbedPane.addTab("Contacts", null, P_contactsTab, null);
-        P_contactsTab.setLayout(null);
+        GridBagLayout gbl_P_contactsTab = new GridBagLayout();
+        gbl_P_contactsTab.columnWidths = new int[]{379, 117, 0, 0};
+        gbl_P_contactsTab.rowHeights = new int[]{24, 0};
+        gbl_P_contactsTab.columnWeights = new double[]{1.0, 0.0, 0.0, Double.MIN_VALUE};
+        gbl_P_contactsTab.rowWeights = new double[]{1.0, Double.MIN_VALUE};
+        P_contactsTab.setLayout(gbl_P_contactsTab);
         
         list = new JList();
-        list.setBounds(12, 12, 379, 303);
-        P_contactsTab.add(list);
+        GridBagConstraints gbc_list = new GridBagConstraints();
+        gbc_list.fill = GridBagConstraints.BOTH;
+        gbc_list.insets = new Insets(0, 0, 0, 5);
+        gbc_list.gridx = 0;
+        gbc_list.gridy = 0;
+        P_contactsTab.add(list, gbc_list);
+        
+        panel_1 = new JPanel();
+        GridBagConstraints gbc_panel_1 = new GridBagConstraints();
+        gbc_panel_1.anchor = GridBagConstraints.NORTH;
+        gbc_panel_1.insets = new Insets(0, 0, 0, 5);
+        gbc_panel_1.fill = GridBagConstraints.HORIZONTAL;
+        gbc_panel_1.gridx = 1;
+        gbc_panel_1.gridy = 0;
+        P_contactsTab.add(panel_1, gbc_panel_1);
+        GridBagLayout gbl_panel_1 = new GridBagLayout();
+        gbl_panel_1.columnWidths = new int[]{75, 0};
+        gbl_panel_1.rowHeights = new int[]{28, 28, 0, 0, 0};
+        gbl_panel_1.columnWeights = new double[]{1.0, Double.MIN_VALUE};
+        gbl_panel_1.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+        panel_1.setLayout(gbl_panel_1);
         
         B_AddNew = new JButton("Add new");
-        B_AddNew.setBounds(477, 12, 117, 24);
-        P_contactsTab.add(B_AddNew);
+        GridBagConstraints gbc_B_AddNew = new GridBagConstraints();
+        gbc_B_AddNew.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_AddNew.anchor = GridBagConstraints.NORTH;
+        gbc_B_AddNew.insets = new Insets(0, 0, 5, 0);
+        gbc_B_AddNew.gridx = 0;
+        gbc_B_AddNew.gridy = 0;
+        panel_1.add(B_AddNew, gbc_B_AddNew);
         
         B_Delete = new JButton("Delete");
-        B_Delete.setBounds(477, 47, 117, 24);
-        P_contactsTab.add(B_Delete);
+        GridBagConstraints gbc_B_Delete = new GridBagConstraints();
+        gbc_B_Delete.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_Delete.anchor = GridBagConstraints.NORTH;
+        gbc_B_Delete.insets = new Insets(0, 0, 5, 0);
+        gbc_B_Delete.gridx = 0;
+        gbc_B_Delete.gridy = 1;
+        panel_1.add(B_Delete, gbc_B_Delete);
         
         B_DeclareFriend = new JButton("Accept");
-        B_DeclareFriend.setBounds(477, 82, 117, 24);
-        P_contactsTab.add(B_DeclareFriend);
+        GridBagConstraints gbc_B_DeclareFriend = new GridBagConstraints();
+        gbc_B_DeclareFriend.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_DeclareFriend.anchor = GridBagConstraints.NORTH;
+        gbc_B_DeclareFriend.insets = new Insets(0, 0, 5, 0);
+        gbc_B_DeclareFriend.gridx = 0;
+        gbc_B_DeclareFriend.gridy = 2;
+        panel_1.add(B_DeclareFriend, gbc_B_DeclareFriend);
         
         B_Ignore = new JButton("Ignore");
-        B_Ignore.setBounds(477, 117, 117, 24);
-        P_contactsTab.add(B_Ignore);
+        GridBagConstraints gbc_B_Ignore = new GridBagConstraints();
+        gbc_B_Ignore.fill = GridBagConstraints.HORIZONTAL;
+        gbc_B_Ignore.anchor = GridBagConstraints.NORTH;
+        gbc_B_Ignore.gridx = 0;
+        gbc_B_Ignore.gridy = 3;
+        panel_1.add(B_Ignore, gbc_B_Ignore);
         
         B_Logout = new JButton("Logout");
-        B_Logout.setBounds(505, 378, 117, 24);
-        getContentPane().add(B_Logout);
+        GridBagConstraints gbc_B_Logout = new GridBagConstraints();
+        gbc_B_Logout.anchor = GridBagConstraints.EAST;
+        gbc_B_Logout.fill = GridBagConstraints.VERTICAL;
+        gbc_B_Logout.gridx = 0;
+        gbc_B_Logout.gridy = 1;
+        getContentPane().add(B_Logout, gbc_B_Logout);
     }
 
 }
