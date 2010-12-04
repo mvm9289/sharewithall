@@ -89,6 +89,7 @@ public class ChatGraphicalInterface extends JFrame
         contentPane.setLayout(gbl_contentPane);
         
         TA_Read = new JTextArea();
+        TA_Read.setLineWrap(true);
         TA_Read.setEditable(false);
         GridBagConstraints gbc_TA_Read = new GridBagConstraints();
         gbc_TA_Read.gridwidth = 2;
