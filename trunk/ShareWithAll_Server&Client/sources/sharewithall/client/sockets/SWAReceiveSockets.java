@@ -83,7 +83,10 @@ public abstract class SWAReceiveSockets extends Thread
                 try
                 {
                     Socket clientSocket = receiverSocket.accept();
-                    Thread socket_thread = new SWASocketsThread(clientSocket);
+                    DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+                    out.flush();
+                    DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+                    Thread socket_thread = new SWASocketsThread(clientSocket, in, out);
                     socket_thread.start();
                 }
                 catch (Exception e)
@@ -97,15 +100,14 @@ public abstract class SWAReceiveSockets extends Thread
     private void makeGateway() throws Exception {
         Socket sock = new Socket(serverIP, serverPort);
         DataOutputStream out = new DataOutputStream(sock.getOutputStream());
-        out.flush();
-        DataInputStream in = new DataInputStream(sock.getInputStream());
         out.writeInt(RECEIVE_GATEWAY);
         out.writeUTF(getSessionID());
         out.flush();
         
+        DataInputStream in = new DataInputStream(sock.getInputStream());
         int returnCode = in.readInt();
         if (returnCode == EXCEPTION) throw new Exception(in.readUTF());
-        Thread socket_thread = new SWASocketsThread(sock);
+        Thread socket_thread = new SWASocketsThread(sock, in, out);
         socket_thread.start();
     }
     
@@ -113,20 +115,21 @@ public abstract class SWAReceiveSockets extends Thread
     {
         
         private Socket clientSocket;
+        private DataInputStream in;
+        private DataOutputStream out;
         
-        private SWASocketsThread(Socket clientSocket)
+        private SWASocketsThread(Socket clientSocket, DataInputStream in, DataOutputStream out)
         {
             super();
             this.clientSocket = clientSocket;
+            this.in = in;
+            this.out = out;
         }
         
         private void decodeAndProcess()
         {   
             try
             {
-                DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
-                out.flush();
-                DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                 int instruction = in.readInt();
                 String token = in.readUTF();
                 
