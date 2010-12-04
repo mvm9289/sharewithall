@@ -7,6 +7,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.ArrayBlockingQueue;
 
 /**
  * Authors:
@@ -26,11 +27,14 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
     protected static final int FILE_BUFFER_SIZE = 4096;
+    protected static final int MAX_THREADS = 4096;
     
     private ServerSocket receiverSocket;
     private boolean gateway;
     private String serverIP;
     private int serverPort;
+    private ArrayBlockingQueue<Thread> threads_queue = new ArrayBlockingQueue<Thread>(MAX_THREADS);
+    boolean stop = false;
     
     public SWAReceiveSockets(int port)
     {
@@ -65,18 +69,43 @@ public abstract class SWAReceiveSockets extends Thread
     
     public abstract String[] obtainSender(String token) throws Exception;
     public abstract String getSessionID();
-        
+    
+    public void stop_receiver() {
+        stop = true;
+        this.interrupt();
+    }
+    
+    private void kill_threads() {
+        while (!threads_queue.isEmpty()) {
+            try {
+                    Thread t = threads_queue.poll();
+                    t.stop();
+            }
+            catch (Exception e) {
+                System.out.println("Thread killed");
+            }
+        }
+    }
+    
     public void run()
     {
         if (gateway) {
-            try {
-                makeGateway();
+            while (true) {
+                try {
+
+                    makeGateway();
+                }
+                catch (Exception e)
+                {
+                    System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+                }
+                finally {
+                    if (stop) {
+                        kill_threads();
+                        return;
+                    }
+                }
             }
-            catch (Exception e)
-            {
-                System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
-            }
-            while (true); //Necessary?
         }
         else {
             while (true) {
@@ -87,11 +116,18 @@ public abstract class SWAReceiveSockets extends Thread
                     out.flush();
                     DataInputStream in = new DataInputStream(clientSocket.getInputStream());
                     Thread socket_thread = new SWASocketsThread(clientSocket, in, out);
-                    socket_thread.start();
+                    threads_queue.put(socket_thread);
+                    if (!stop) socket_thread.start();
                 }
                 catch (Exception e)
                 {
                     System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+                }
+                finally {
+                    if (stop) {
+                        kill_threads();
+                        return;
+                    }
                 }
             }
         }
@@ -108,7 +144,8 @@ public abstract class SWAReceiveSockets extends Thread
         int returnCode = in.readInt();
         if (returnCode == EXCEPTION) throw new Exception(in.readUTF());
         Thread socket_thread = new SWASocketsThread(sock, in, out);
-        socket_thread.start();
+        threads_queue.put(socket_thread);
+        if (!stop) socket_thread.start();
     }
     
     private class SWASocketsThread extends Thread
@@ -132,8 +169,6 @@ public abstract class SWAReceiveSockets extends Thread
             {
                 int instruction = in.readInt();
                 String token = in.readUTF();
-                
-                if (gateway) makeGateway();
 
                 try
                 {
@@ -173,6 +208,9 @@ public abstract class SWAReceiveSockets extends Thread
             catch (Exception e)
             {
                 System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+            }
+            finally {
+                threads_queue.remove(this);
             }
         }
         
