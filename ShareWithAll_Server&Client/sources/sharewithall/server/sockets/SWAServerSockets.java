@@ -136,6 +136,7 @@ public class SWAServerSockets extends Thread
             DataInputStream in = new DataInputStream(destSocket.getInputStream());
             out.writeInt(notification);
             out.writeUTF("server");
+            out.flush();
             destSocket.shutdownOutput();
             
             int responseCode = in.readInt();
