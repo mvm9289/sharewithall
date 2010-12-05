@@ -128,7 +128,7 @@ public class SWAServer
         if (DBClients.update_obj(cl) == 0) DBClients.insert_obj(cl);
         DBClients.commit();
         
-        clients = DBClients.select_gen(new JDBCPredicate("username", username));
+        clients = DBClients.select_gen(new JDBCPredicate("username", username), new JDBCPredicate("name", name, "!="));
         for (int i = 0; i < clients.size(); i++)
         {
             socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
@@ -159,7 +159,7 @@ public class SWAServer
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         JDBCClient client = (JDBCClient)clients.get(0);
 
-        clients = DBClients.select_gen(new JDBCPredicate("username", client.username));
+        clients = DBClients.select_gen(new JDBCPredicate("username", client.username), new JDBCPredicate("name", client.name, "!="));
         for (int i = 0; i < clients.size(); i++)
         {
             socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
