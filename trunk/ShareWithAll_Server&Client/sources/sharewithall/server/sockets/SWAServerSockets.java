@@ -27,7 +27,26 @@ import sharewithall.server.jdbc.JDBCPredicate;
  */
 public class SWAServerSockets extends Thread
 {
-
+    private static final int NEW_USER = 1;
+    private static final int LOGIN = 2;
+    private static final int LOGOUT = 3;
+    private static final int GET_ONLINE_CLIENTS = 4;
+    private static final int IP_AND_PORT_REQUEST = 5;
+    private static final int DECLARE_FRIEND = 6;
+    private static final int UPDATE_TIMESTAMP = 7;
+    private static final int IGNORE_USER = 8;
+    private static final int PENDING_INVITATIONS_REQUEST = 9;
+    private static final int GET_LIST_OF_FRIENDS = 10;
+    private static final int CLIENT_NAME_REQUEST = 11;
+    private static final int GET_SEND_TOKEN = 15;
+    private static final int SEND_GATEWAY = 16;
+    private static final int RECEIVE_GATEWAY = 17;
+    private static final int NOTIFY_CLIENTS_CHANGED = 18;
+    private static final int NOTIFY_FRIENDS_CHANGED = 19;
+    private static final int NOTIFY_INVITATION = 20;
+    private static final int RETURN_VALUE = 0;
+    private static final int EXCEPTION = -1;
+    
     private ServerSocket serverSocket;
     private SWAServer server;
     private ConcurrentHashMap<String, ArrayBlockingQueue<Socket>> connections = new ConcurrentHashMap<String, ArrayBlockingQueue<Socket>>();
@@ -81,6 +100,60 @@ public class SWAServerSockets extends Thread
         }
     }
     
+    public void notifyInvitation(String sessionID) {
+        notify(sessionID, NOTIFY_INVITATION);
+    }
+    
+    public void notifyClientListChanged(String sessionID) {
+        notify(sessionID, NOTIFY_CLIENTS_CHANGED);
+    }
+    
+    public void notifyFriendListChanged(String sessionID) {
+        notify(sessionID, NOTIFY_FRIENDS_CHANGED);
+    }
+    
+    private void notify(String sessionID, int notification) {
+        Socket destSocket = null;
+        try {
+            ArrayBlockingQueue<Socket> sockets = connections.get(sessionID);
+            destSocket = sockets.poll();
+        }
+        catch (Exception e) {
+            try {
+                JDBCDBClients clients = new JDBCDBClients();
+                ArrayList<Object> cls = clients.select_gen(new JDBCPredicate("session_id", sessionID));
+                JDBCClient client = (JDBCClient)cls.get(0);
+                destSocket = new Socket(client.ip, client.port);
+            }
+            catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        }
+        
+        try {
+            DataOutputStream out = new DataOutputStream(destSocket.getOutputStream());
+            out.flush();
+            DataInputStream in = new DataInputStream(destSocket.getInputStream());
+            out.writeInt(notification);
+            out.writeUTF("server");
+            destSocket.shutdownOutput();
+            
+            int responseCode = in.readInt();
+            String responseMsg = in.readUTF();
+            destSocket.close();
+            
+            if (responseCode == EXCEPTION) throw new Exception(responseMsg);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            destSocket.close();
+        }
+        
+        catch (Exception e) {}
+    }
+    
     private class SWACleanerThread extends Thread
     {
         private static final int CLEANER_SLEEP_TIME = 30000;
@@ -128,24 +201,6 @@ public class SWAServerSockets extends Thread
     
     private class SWASocketsThread extends Thread
     {
-
-        private static final int NEW_USER = 1;
-        private static final int LOGIN = 2;
-        private static final int LOGOUT = 3;
-        private static final int GET_ONLINE_CLIENTS = 4;
-        private static final int IP_AND_PORT_REQUEST = 5;
-        private static final int DECLARE_FRIEND = 6;
-        private static final int UPDATE_TIMESTAMP = 7;
-        private static final int IGNORE_USER = 8;
-        private static final int PENDING_INVITATIONS_REQUEST = 9;
-        private static final int GET_LIST_OF_FRIENDS = 10;
-        private static final int CLIENT_NAME_REQUEST = 11;
-        private static final int GET_SEND_TOKEN = 15;
-        private static final int SEND_GATEWAY = 16;
-        private static final int RECEIVE_GATEWAY = 17;
-        private static final int RETURN_VALUE = 0;
-        private static final int EXCEPTION = -1;
-        
         private Socket clientSocket;
         private int instruction;
         
@@ -214,6 +269,7 @@ public class SWAServerSockets extends Thread
             for (int i = 0; i < a.length; ++i)
                 out.writeUTF(a[i]);
         }
+        
         private void decodeAndProcess()
         {   
             try

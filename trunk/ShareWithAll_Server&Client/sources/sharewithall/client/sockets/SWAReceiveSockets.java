@@ -24,6 +24,9 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int SEND_TEXT = 13;
     protected static final int SEND_FILE = 14;
     protected static final int RECEIVE_GATEWAY = 17;
+    protected static final int NOTIFY_CLIENTS_CHANGED = 18;
+    protected static final int NOTIFY_FRIENDS_CHANGED = 19;
+    protected static final int NOTIFY_INVITATION = 20;
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
     protected static final int FILE_BUFFER_SIZE = 4096;
@@ -172,10 +175,17 @@ public abstract class SWAReceiveSockets extends Thread
 
                 try
                 {
-                    String[] sender = obtainSender(token);
-                    String user = sender[0];
-                    String client = sender[1];
-                    process(instruction, user, client, in);
+                    if (instruction == NOTIFY_INVITATION || instruction == NOTIFY_CLIENTS_CHANGED || instruction == NOTIFY_FRIENDS_CHANGED) {
+                        if (clientSocket.getInetAddress().getHostAddress().equals(serverIP)) {
+                            process(instruction, "server", "server", null);
+                        }
+                    }
+                    else {
+                        String[] sender = obtainSender(token);
+                        String user = sender[0];
+                        String client = sender[1];
+                        process(instruction, user, client, in);
+                    }
                     out.writeInt(RETURN_VALUE);
                 }
                 catch (Exception e)

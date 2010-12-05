@@ -3,6 +3,7 @@ package sharewithall.client;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -53,14 +54,21 @@ public class ShareWithAll
             
             loginI.B_Login.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
-                    client.loginCommand(loginI.getUsername(), loginI.getPassword(), loginI.getClient(), loginI.getPublic());
+                    try {
+                        client.loginCommand(loginI.getUsername(), loginI.getPassword(), loginI.getClient(), loginI.getPublic());
+                    }
+                    catch (Exception e) {
+                        JOptionPane.showMessageDialog(loginI, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        loginI.clearFields();
+                        return;
+                    }
                     username = loginI.getUsername();
                     loginI.clearFields();
                     loginI.dispose();
                     
                     mainI = new MainGraphicalInterface(client, username);
                     mainI.start();
-                    
+
                     mainI.B_Logout.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent arg0) {
                             client.logoutCommand();
