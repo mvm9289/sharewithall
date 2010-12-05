@@ -172,13 +172,12 @@ public abstract class SWAReceiveSockets extends Thread
             {
                 int instruction = in.readInt();
                 String token = in.readUTF();
-
                 try
                 {
                     if (instruction == NOTIFY_INVITATION || instruction == NOTIFY_CLIENTS_CHANGED || instruction == NOTIFY_FRIENDS_CHANGED) {
-                        if (clientSocket.getInetAddress().getHostAddress().equals(serverIP)) {
+                        //if (clientSocket.getInetAddress().getHostAddress().equals(serverIP)) {
                             process(instruction, "server", "server", null);
-                        }
+                        //}
                     }
                     else {
                         String[] sender = obtainSender(token);

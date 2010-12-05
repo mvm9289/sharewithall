@@ -70,7 +70,7 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 this.client.RefreshListOfFriends();
                 break;
             case NOTIFY_INVITATION:
-                this.client.RefreshInvitations();
+                //this.client.RefreshInvitations();
                 break;
             default:
                 break;
