@@ -35,7 +35,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private JButton B_Register;
     JButton B_Login;
     private JLabel L_Gateway;
-    private JCheckBox CB_Gateway;
+    JCheckBox CB_Gateway;
     private JPanel panel;
 
 
@@ -213,9 +213,6 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
 
     public void clearFields()
     {
-        TF_Username.setText("");
         TF_Password.setText(""); 
-        TF_Client.setText("");
-        CB_Visible.setSelected(false);
     }
 }

@@ -158,8 +158,10 @@ public class SWAServer
         
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         JDBCClient client = (JDBCClient)clients.get(0);
-
-        clients = DBClients.select_gen(new JDBCPredicate("username", client.username), new JDBCPredicate("name", client.name, "!="));
+        DBClients.delete_key(client.name, client.username);
+        DBClients.commit();
+        
+        clients = DBClients.select_gen(new JDBCPredicate("username", client.username));
         for (int i = 0; i < clients.size(); i++)
         {
             socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
@@ -176,8 +178,7 @@ public class SWAServer
                     socketsModule.notifyClientListChanged(((JDBCClient)publicClients.get(j)).session_id);
             }
         }
-        DBClients.delete_key(client.name, client.username);
-        DBClients.commit();
+
         DBClients.close();
     }
     

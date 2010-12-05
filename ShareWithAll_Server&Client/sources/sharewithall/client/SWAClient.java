@@ -130,7 +130,9 @@ public class SWAClient
     public String getSessionID() {
         return sessionID;
     }
-
+    public void setGateway(boolean useGateway) {
+        gateway = useGateway;
+    }
     public void RefreshListOfFriends() {
         program.RefreshListOfFriends();
         System.out.println("Refresh list of friends");

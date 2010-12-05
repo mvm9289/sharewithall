@@ -54,6 +54,7 @@ public class ShareWithAll
             
             loginI.B_Login.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
+                    client.setGateway(loginI.CB_Gateway.isSelected());
                     try {
                         client.loginCommand(loginI.getUsername(), loginI.getPassword(), loginI.getClient(), loginI.getPublic());
                     }
