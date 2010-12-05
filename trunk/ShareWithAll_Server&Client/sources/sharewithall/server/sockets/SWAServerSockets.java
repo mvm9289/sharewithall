@@ -139,10 +139,8 @@ public class SWAServerSockets extends Thread
             destSocket.shutdownOutput();
             
             int responseCode = in.readInt();
-            String responseMsg = in.readUTF();
+            if (responseCode == EXCEPTION) throw new Exception(in.readUTF());
             destSocket.close();
-            
-            if (responseCode == EXCEPTION) throw new Exception(responseMsg);
         }
         catch (Exception e) {
             e.printStackTrace();
