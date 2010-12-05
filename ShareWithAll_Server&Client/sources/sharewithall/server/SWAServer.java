@@ -67,25 +67,18 @@ public class SWAServer
         return bytes_to_hex(d.digest(password.getBytes("UTF-8")));
     }
     
-    private String[] showListOfFriends(String sessionID) throws Exception
+    private String[] showListOfFriends(String username) throws Exception
     {       
-         JDBCDBClients DBClients = new JDBCDBClients();
          JDBCDBFriends DBFriends = new JDBCDBFriends();
-
-         if (!DBClients.exists_gen(new JDBCPredicate("session_id", sessionID))) throw new Exception("Invalid session");
          
-         ArrayList<Object> listaCliente = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
-         DBClients.close();
-         JDBCClient client = (JDBCClient) listaCliente.get(0);
-         
-         ArrayList<Object> relaciones = DBFriends.select_gen(new JDBCPredicate("user1", client.username)
+         ArrayList<Object> relaciones = DBFriends.select_gen(new JDBCPredicate("user1", username)
          , new JDBCPredicate("status", STATUS_FRIEND));
          
          ArrayList<String> result = new ArrayList<String>();
          for(int i=0; i<relaciones.size(); ++i)
          {
              String friendName = ((JDBCFriends) relaciones.get(i)).user2;
-             if(DBFriends.exists_gen(new JDBCPredicate("user1", friendName), new JDBCPredicate("user2", client.username), 
+             if(DBFriends.exists_gen(new JDBCPredicate("user1", friendName), new JDBCPredicate("user2", username), 
                      new JDBCPredicate("status", STATUS_FRIEND)))
                  result.add(friendName);
          }
@@ -134,11 +127,30 @@ public class SWAServer
         JDBCClient cl = new JDBCClient(ip, max_port + 1, name, isPublic, last_time, username, session_id);
         if (DBClients.update_obj(cl) == 0) DBClients.insert_obj(cl);
         DBClients.commit();
+        
+        clients = DBClients.select_gen(new JDBCPredicate("username", username));
+        for (int i = 0; i < clients.size(); i++)
+        {
+            socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
+        }
+        
+        if (isPublic)
+        {
+            String[] friends = showListOfFriends(username);
+            
+            for(int i=0; i<friends.length; ++i)
+            {
+                ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
+                for(int j=0; j<publicClients.size(); ++j)
+                    socketsModule.notifyClientListChanged(((JDBCClient)publicClients.get(j)).session_id);
+            }
+        }
+        
         DBClients.close();
         
         return session_id;
     }
-    
+
     public void logout(String sessionID) throws Exception
     {
         JDBCDBClients DBClients = new JDBCDBClients();
@@ -146,38 +158,26 @@ public class SWAServer
         
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("session_id", sessionID));
         JDBCClient client = (JDBCClient)clients.get(0);
-        DBClients.delete_key(client.name, client.username);
-        DBClients.commit();
-        
+
         clients = DBClients.select_gen(new JDBCPredicate("username", client.username));
         for (int i = 0; i < clients.size(); i++)
         {
-            //notifyListChanged(((SWAServerJDBCClient)clients.get(i)).ip, ((SWAServerJDBCClient)clients.get(i)).port);
+            socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
         }
         
         if (client.is_public)
         {
-            JDBCDBFriends DBFriends = new JDBCDBFriends();
-            ArrayList<Object> friends = DBFriends.select_gen(new JDBCPredicate("user1", client.username), new JDBCPredicate("status", STATUS_FRIEND));
-            for (int i = 0; i < friends.size(); i++)
-            {
-                clients = DBClients.select_gen(new JDBCPredicate("username", ((JDBCFriends)friends.get(i)).user2));
-                for (int j = 0; j < clients.size(); j++)
-                {
-                    //notifyListChanged(((SWAServerJDBCClient)clients.get(j)).ip, ((SWAServerJDBCClient)clients.get(j)).port);
-                }
-            }
+            String[] friends = showListOfFriends(client.username);
             
-            friends = DBFriends.select_gen(new JDBCPredicate("user2", client.username), new JDBCPredicate("status", STATUS_FRIEND));
-            for (int i = 0; i < friends.size(); i++)
+            for(int i=0; i<friends.length; ++i)
             {
-                clients = DBClients.select_gen(new JDBCPredicate("username", ((JDBCFriends)friends.get(i)).user1));
-                for (int j = 0; j < clients.size(); j++)
-                {
-                    //notifyListChanged(((SWAServerJDBCClient)clients.get(j)).ip, ((SWAServerJDBCClient)clients.get(j)).port);
-                }
+                ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
+                for(int j=0; j<publicClients.size(); ++j)
+                    socketsModule.notifyClientListChanged(((JDBCClient)publicClients.get(j)).session_id);
             }
         }
+        DBClients.delete_key(client.name, client.username);
+        DBClients.commit();
         DBClients.close();
     }
     
@@ -196,7 +196,7 @@ public class SWAServer
                 list.add(((JDBCClient)clients.get(i)).name);
 
         
-        String[] friends = showListOfFriends(sessionID);
+        String[] friends = showListOfFriends(client.username);
         
         for(int i=0; i<friends.length; ++i)
         {
@@ -333,6 +333,15 @@ public class SWAServer
         JDBCFriends fr = new JDBCFriends(client.username, friend, STATUS_FRIEND);
         if (DBFriends.update_obj(fr) == 0) DBFriends.insert_obj(fr);
         DBFriends.commit();
+        
+        isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", friend), new JDBCPredicate("user2", client.username));
+        if (!isDeclared) {
+            clients = DBClients.select_gen(new JDBCPredicate("username", friend));
+            for (int i = 0; i < clients.size(); i++)
+                socketsModule.notifyInvitation(((JDBCClient)clients.get(i)).session_id);
+        }
+        DBUsers.close();
+        DBClients.close();
         DBFriends.close();
     }
     
@@ -420,7 +429,7 @@ public class SWAServer
          JDBCClient client = (JDBCClient) listaCliente.get(0);
          
          if(property == PROPERTY_FRIENDS)
-             return showListOfFriends(sessionID);
+             return showListOfFriends(client.username);
          
          ArrayList<Object> relations = new ArrayList<Object>();
          if(property == PROPERTY_DECLARED_FRIEND)

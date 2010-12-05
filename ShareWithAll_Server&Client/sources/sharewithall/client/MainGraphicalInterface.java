@@ -18,6 +18,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.BoxLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class MainGraphicalInterface extends javax.swing.JFrame
 {
@@ -43,8 +45,6 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         try
         {
             setVisible(true);
-            RefreshListOfOnlineClients();
-            RefreshListOfFriends();
             
             B_SendText.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
@@ -246,6 +246,13 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     
     public MainGraphicalInterface(SWAClient c, String u)
     {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowOpened(WindowEvent arg0) {
+                RefreshListOfFriends();
+                RefreshListOfOnlineClients();
+            }
+        });
         username = u;
         client = c;
         client.program = this;
@@ -335,7 +342,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         JPanel P_contactsTab = new JPanel();
         tabbedPane.addTab("Contacts", null, P_contactsTab, null);
         GridBagLayout gbl_P_contactsTab = new GridBagLayout();
-        gbl_P_contactsTab.columnWidths = new int[]{379, 117, 0, 0};
+        gbl_P_contactsTab.columnWidths = new int[]{379, 117, 30, 0};
         gbl_P_contactsTab.rowHeights = new int[]{24, 0};
         gbl_P_contactsTab.columnWeights = new double[]{1.0, 0.0, 0.0, Double.MIN_VALUE};
         gbl_P_contactsTab.rowWeights = new double[]{1.0, Double.MIN_VALUE};

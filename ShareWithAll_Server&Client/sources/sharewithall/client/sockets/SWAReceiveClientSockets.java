@@ -63,6 +63,15 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 fileout.close();
                 this.client.receiveFile(username, client, file.getAbsolutePath());
                 break;
+            case NOTIFY_CLIENTS_CHANGED:
+                this.client.RefreshListOfOnlineClients();
+                break;
+            case NOTIFY_FRIENDS_CHANGED:
+                this.client.RefreshListOfFriends();
+                break;
+            case NOTIFY_INVITATION:
+                this.client.RefreshInvitations();
+                break;
             default:
                 break;
         }

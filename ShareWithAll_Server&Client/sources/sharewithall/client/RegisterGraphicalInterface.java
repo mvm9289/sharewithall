@@ -53,7 +53,7 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
     private void initialize()
     {
         setBounds(100, 100, 369, 211);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[]{30, 0, 434, 30, 0};
         gridBagLayout.rowHeights = new int[]{30, 0, 30, 0, 30, 0};
