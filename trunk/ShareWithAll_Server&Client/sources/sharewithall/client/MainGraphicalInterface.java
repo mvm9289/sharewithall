@@ -252,6 +252,10 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                 RefreshListOfFriends();
                 RefreshListOfOnlineClients();
             }
+            @Override
+            public void windowClosing(WindowEvent arg0) {
+                client.logoutCommand();
+            }
         });
         username = u;
         client = c;
