@@ -1,21 +1,20 @@
 package sharewithall.client;
 
-import java.awt.BorderLayout;
-import java.awt.EventQueue;
-
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
-import java.awt.TextArea;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 
 import javax.swing.JTextArea;
 import javax.swing.JButton;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+
 import javax.swing.JScrollPane;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -29,36 +28,32 @@ public class ChatGraphicalInterface extends JFrame
     private String contactClient;
     private SWAClient client;
     private String username;
-    private MainGraphicalInterface father;
     JTextArea TA_Read;
     private JTextArea TA_Write;
     private JButton B_Send;
-    private JScrollPane scrollPane;
-    private JScrollPane scrollPane_1;
+    private JScrollPane SP_Write;
+    private JScrollPane SP_Read;
     
     private void sendText() {
         String text = TA_Write.getText();
         
         //Write in the text area.
-        TA_Read.setText(TA_Read.getText() + "\n" + username + ": " + text);
+        writeText(text, username);
         TA_Write.setText("");
         
         //Send to the receiver
-        client.sendTextCommand(text, contactUsername, contactClient);
-    }
-    public void start()
-    {
-        setVisible(true);
-        B_Send.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                sendText();
-            }
-        });
+        try {
+            client.sendTextCommand(text, contactUsername, contactClient);
+        }
+        catch (Exception e) {
+            JOptionPane.showMessageDialog(ChatGraphicalInterface.this, e.getMessage(), "Chat error", JOptionPane.ERROR_MESSAGE);
+        }        
     }
     
-    public void dispose()
-    {
-        setVisible(false);
+    public void writeText(String text, String username) {
+        String prevText = TA_Read.getText();
+        if (!prevText.equals("")) prevText += "\n";
+        TA_Read.setText(prevText + username + ": " + text);
     }
     
     public ChatGraphicalInterface(String t, SWAClient c, String u, String cu, String cc, MainGraphicalInterface f)
@@ -68,12 +63,12 @@ public class ChatGraphicalInterface extends JFrame
         contactUsername = cu;
         contactClient = cc;
 
-        father = f;
         initialize();
         if(!t.equals(""))
         {
-            TA_Read.setText(TA_Read.getText() + "\n" + "[" + contactUsername + "@" + contactClient + "]: " + t);
+            writeText(t, contactUsername + "@" + contactClient);
         }
+        setVisible(true);
     }
 
     /**
@@ -82,7 +77,6 @@ public class ChatGraphicalInterface extends JFrame
     private void initialize()
     {
         setTitle("Chat - Share With All");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 483, 520);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -94,26 +88,32 @@ public class ChatGraphicalInterface extends JFrame
         gbl_contentPane.rowWeights = new double[]{1.0, 0.0, Double.MIN_VALUE};
         contentPane.setLayout(gbl_contentPane);
         
-        scrollPane_1 = new JScrollPane();
-        GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
-        gbc_scrollPane_1.insets = new Insets(0, 0, 5, 5);
-        gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
-        gbc_scrollPane_1.gridx = 0;
-        gbc_scrollPane_1.gridy = 0;
-        contentPane.add(scrollPane_1, gbc_scrollPane_1);
+        SP_Read = new JScrollPane();
+        SP_Read.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
+            public void adjustmentValueChanged(AdjustmentEvent e) {  
+                e.getAdjustable().setValue(e.getAdjustable().getMaximum());  
+            }
+        });
+        
+        GridBagConstraints gbc_SP_Read = new GridBagConstraints();
+        gbc_SP_Read.insets = new Insets(0, 0, 5, 5);
+        gbc_SP_Read.fill = GridBagConstraints.BOTH;
+        gbc_SP_Read.gridx = 0;
+        gbc_SP_Read.gridy = 0;
+        contentPane.add(SP_Read, gbc_SP_Read);
         
         TA_Read = new JTextArea();
-        scrollPane_1.setViewportView(TA_Read);
+        SP_Read.setViewportView(TA_Read);
         TA_Read.setLineWrap(true);
         TA_Read.setEditable(false);
         
-        scrollPane = new JScrollPane();
-        GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-        gbc_scrollPane.insets = new Insets(0, 0, 0, 5);
-        gbc_scrollPane.fill = GridBagConstraints.BOTH;
-        gbc_scrollPane.gridx = 0;
-        gbc_scrollPane.gridy = 1;
-        contentPane.add(scrollPane, gbc_scrollPane);
+        SP_Write = new JScrollPane();
+        GridBagConstraints gbc_SP_Write = new GridBagConstraints();
+        gbc_SP_Write.insets = new Insets(0, 0, 0, 5);
+        gbc_SP_Write.fill = GridBagConstraints.BOTH;
+        gbc_SP_Write.gridx = 0;
+        gbc_SP_Write.gridy = 1;
+        contentPane.add(SP_Write, gbc_SP_Write);
         
         TA_Write = new JTextArea();
         TA_Write.setLineWrap(true);
@@ -127,14 +127,21 @@ public class ChatGraphicalInterface extends JFrame
         TA_Write.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent arg0) {
-                if (!arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_ENTER)
-                    TA_Write.setText("");
+                if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!arg0.isControlDown()) TA_Write.setText("");                    
+                    else TA_Write.append("\n");
+                }
             }
         });
-        scrollPane.setViewportView(TA_Write);
+        SP_Write.setViewportView(TA_Write);
         TA_Write.setWrapStyleWord(true);
         
         B_Send = new JButton("OK");
+        B_Send.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                sendText();
+            }
+        });
         GridBagConstraints gbc_B_Send = new GridBagConstraints();
         gbc_B_Send.fill = GridBagConstraints.BOTH;
         gbc_B_Send.gridx = 1;

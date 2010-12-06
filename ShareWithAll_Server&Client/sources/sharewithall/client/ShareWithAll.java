@@ -13,8 +13,6 @@ public class ShareWithAll
     public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
     public static final int DEFAULT_SERVER_PORT = 4040;
     static private LoginGraphicalInterface loginI;
-    static private MainGraphicalInterface mainI;
-    private static String username;
     
     private static void printUsage()
     {
@@ -50,33 +48,10 @@ public class ShareWithAll
                 return;
             }
             loginI = new LoginGraphicalInterface(client);
-            loginI.start();
             
             loginI.B_Login.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent arg0) {
-                    client.setGateway(loginI.CB_Gateway.isSelected());
-                    try {
-                        client.loginCommand(loginI.getUsername(), loginI.getPassword(), loginI.getClient(), loginI.getPublic());
-                    }
-                    catch (Exception e) {
-                        JOptionPane.showMessageDialog(loginI, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-                        loginI.clearFields();
-                        return;
-                    }
-                    username = loginI.getUsername();
-                    loginI.clearFields();
-                    loginI.dispose();
-                    
-                    mainI = new MainGraphicalInterface(client, username);
-                    mainI.start();
 
-                    mainI.B_Logout.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent arg0) {
-                            client.logoutCommand();
-                            mainI.dispose();
-                            loginI.start();
-                        }
-                    });
                 }
             });
             

@@ -23,6 +23,7 @@ import java.awt.Insets;
 public class LoginGraphicalInterface extends javax.swing.JFrame
 {
     private RegisterGraphicalInterface registerI;
+    private MainGraphicalInterface mainI;
     private SWAClient client;
     private JLabel L_Username;
     private JTextField TF_Username;
@@ -37,49 +38,16 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private JLabel L_Gateway;
     JCheckBox CB_Gateway;
     private JPanel panel;
-
-
-    public void start()
-    {
-        try
-        {
-            setVisible(true);
-            B_Register.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent arg0) {
-                    registerI = new RegisterGraphicalInterface(client);
-                    registerI.start();
-                    
-                    registerI.B_Cancel.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent arg0) {
-                            registerI.dispose();
-                        }
-                    });
-                    
-                    registerI.B_Register.addActionListener(new ActionListener() {
-                        public void actionPerformed(ActionEvent arg0) {
-                            if(registerI.getPassword() != null){
-                                client.newUserCommand(registerI.getUsername(), registerI.getPassword());
-                                registerI.dispose();
-                            }
-                        }
-                    });
-                }
-            });
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-
+    
     public LoginGraphicalInterface(SWAClient c)
     {
         setResizable(false);
         setTitle("Login - Share With All");
         client = c;
         initialize();
+        setVisible(true);
     }
-
+    
     /**
      * Initialize the contents of the frame.
      */
@@ -184,9 +152,33 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         getContentPane().add(panel, gbc_panel);
         
         B_Login = new JButton("Login");
+        B_Login.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                client.setGateway(CB_Gateway.isSelected());
+                try {
+                    client.loginCommand(getUsername(), getPassword(), getClient(), getPublic());
+                }
+                catch (Exception e) {
+                    JOptionPane.showMessageDialog(LoginGraphicalInterface.this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    clearFields();
+                    return;
+                }
+                String username = getUsername();
+                clearFields();
+                dispose();
+                
+                mainI = new MainGraphicalInterface(client, username, LoginGraphicalInterface.this);
+            }
+        });
         panel.add(B_Login);
         
         B_Register = new JButton("Register");
+        B_Register.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                setVisible(false);
+                registerI = new RegisterGraphicalInterface(client, LoginGraphicalInterface.this);
+            }
+        });
         panel.add(B_Register);
         initDataBindings();
     }

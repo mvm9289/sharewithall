@@ -13,10 +13,15 @@ import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.Dialog.ModalExclusionType;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class RegisterGraphicalInterface extends javax.swing.JFrame
 {
     private SWAClient client;
+    private LoginGraphicalInterface loginI;
     private JLabel L_NewPassword;
     private JTextField TF_Username;
     private JLabel L_RepeatPassword;
@@ -27,24 +32,20 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
     private JLabel L_Username;
     private JPanel panel;
 
-    public void start()
+    public RegisterGraphicalInterface(SWAClient c, LoginGraphicalInterface loginI)
     {
-        try
-        {
-            setVisible(true);
-        } catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-
-    public RegisterGraphicalInterface(SWAClient c)
-    {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent arg0) {
+                RegisterGraphicalInterface.this.loginI.setVisible(true);
+            }
+        });
         setResizable(false);
         setTitle("Register - Share With All");
         client = c;
+        this.loginI = loginI;
         initialize();
+        setVisible(true);
     }
 
     /**
@@ -121,9 +122,29 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
         getContentPane().add(panel, gbc_panel);
         
         B_Register = new JButton("Register");
+        B_Register.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                if(getPassword() != null){
+                    try {
+                        client.newUserCommand(getUsername(), getPassword());
+                        dispose();
+                        loginI.setVisible(true);
+                    }
+                    catch (Exception e) {
+                        JOptionPane.showMessageDialog(RegisterGraphicalInterface.this, e.getMessage(), "Register error", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+            }
+        });
         panel.add(B_Register);
         
         B_Cancel = new JButton("Cancel");
+        B_Cancel.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                dispose();
+                loginI.setVisible(true);
+            }
+        });
         panel.add(B_Cancel);
     }
 
