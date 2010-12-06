@@ -345,7 +345,10 @@ public class SWAServer
         {
             clients = DBClients.select_gen(new JDBCPredicate("username", friend));
             for (int i = 0; i < clients.size(); i++)
+            {
                 socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+                socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
+            }
         }
         DBUsers.close();
         DBClients.close();
@@ -381,7 +384,10 @@ public class SWAServer
         
         clients = DBClients.select_gen(new JDBCPredicate("username", user));
         for (int i = 0; i < clients.size(); i++)
+        {
             socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+            socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
+        }
         
         DBUsers.close();
         DBClients.close();
