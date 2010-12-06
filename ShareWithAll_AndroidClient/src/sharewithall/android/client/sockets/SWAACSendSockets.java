@@ -263,6 +263,31 @@ public class SWAACSendSockets extends Thread
 		}
 	}
 	
+	private void pendingInvitationRequest()
+	{
+		String sessionID = preferences.getString("sessionID", null);
+		try
+		{
+			String[] invitations = socketsModule.pendingInvitationsRequest(sessionID);
+			
+			Bundle b = new Bundle();
+			b.putBoolean("pendingInvitationRequest", true);
+			b.putStringArray("invitations", invitations);
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+		catch (Exception e)
+		{
+			Bundle b = new Bundle();
+			b.putBoolean("exception", true);
+			b.putString("message", e.getMessage());
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+	}
+	
 	private void getListOfFriends()
 	{
 		String sessionID = preferences.getString("sessionID", null);
@@ -313,18 +338,75 @@ public class SWAACSendSockets extends Thread
 			handler.sendMessage(msg);
 		}
 	}
-	
+
 	private void sendText()
 	{
+		String sessionID = preferences.getString("sessionID", null);
 		String token = (String) data[0];
     	String ip = (String) data[1];
     	int port = Integer.valueOf((String) data[2]).intValue();
     	String text = (String) data[3];
     	try
     	{
-			socketsModule.sendText(token, ip, port, text);
+			socketsModule.sendText(sessionID, token, ip, port, text);
 			Bundle b = new Bundle();
 			b.putBoolean("sendText", true);
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+    	catch (Exception e)
+    	{
+    		Bundle b = new Bundle();
+			b.putBoolean("exception", true);
+			b.putString("message", e.getMessage());
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+	}
+	
+	private void sendURL()
+	{
+		String sessionID = preferences.getString("sessionID", null);
+		String url = (String) data[0];
+    	String user = (String) data[1];
+    	String client = (String) data[2];
+    	try
+    	{
+    		String token = socketsModule.getSendToken(sessionID, user + ":" + client);
+    		String[] ipAndPort = socketsModule.ipAndPortRequest(sessionID, user + ":" + client);
+			socketsModule.sendURL(sessionID, token, ipAndPort[0], Integer.valueOf(ipAndPort[1]).intValue(), url);
+			Bundle b = new Bundle();
+			b.putBoolean("sendURL", true);
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+    	catch (Exception e)
+    	{
+    		Bundle b = new Bundle();
+			b.putBoolean("exception", true);
+			b.putString("message", e.getMessage());
+			Message msg = handler.obtainMessage();
+			msg.setData(b);
+			handler.sendMessage(msg);
+		}
+	}
+	
+	private void sendFile()
+	{
+		String sessionID = preferences.getString("sessionID", null);
+		String path = (String) data[0];
+    	String user = (String) data[1];
+    	String client = (String) data[2];
+    	try
+    	{
+    		String token = socketsModule.getSendToken(sessionID, user + ":" + client);
+    		String[] ipAndPort = socketsModule.ipAndPortRequest(sessionID, user + ":" + client);
+			socketsModule.sendFile(sessionID, token, ipAndPort[0], Integer.valueOf(ipAndPort[1]).intValue(), path);
+			Bundle b = new Bundle();
+			b.putBoolean("sendFile", true);
 			Message msg = handler.obtainMessage();
 			msg.setData(b);
 			handler.sendMessage(msg);
@@ -377,6 +459,7 @@ public class SWAACSendSockets extends Thread
 				ignoreFriend();
 				break;
 			case PENDING_INVITATIONS_REQUEST:
+				pendingInvitationRequest();
 				break;
 			case GET_LIST_OF_FRIENDS:
 				getListOfFriends();
@@ -384,11 +467,13 @@ public class SWAACSendSockets extends Thread
 			case CLIENT_NAME_REQUEST:
 				break;
 			case SEND_URL:
+				sendURL();
 				break;
 			case SEND_TEXT:
 				sendText();
 				break;
 			case SEND_FILE:
+				sendFile();
 				break;
 			default:
 				break;

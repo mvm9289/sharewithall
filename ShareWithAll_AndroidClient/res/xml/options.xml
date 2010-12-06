@@ -24,6 +24,14 @@
                 android:title="@string/optionAutologinTitle"
                 android:summary="@string/optionAutologinSummary"
     			android:dependency="passwordPref"/>
+        <CheckBoxPreference
+                android:key="autolaunchWebPref"
+                android:title="@string/optionAutolaunchWebTittle"
+                android:summary="@string/optionAutolaunchWebSummary"/>
+        <CheckBoxPreference
+                android:key="allowReceiveFilesPref"
+                android:title="@string/optionAllowReceiveFilesTittle"
+                android:summary="@string/optionAllowReceiveFilesSummary"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/friendsPrefsCategory">
         <CheckBoxPreference

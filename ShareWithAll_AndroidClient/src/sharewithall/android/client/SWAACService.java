@@ -1,77 +1,79 @@
 package sharewithall.android.client;
 
+import java.io.BufferedOutputStream;
+import java.io.DataOutputStream;
+import java.io.FileOutputStream;
+
+import sharewithall.android.client.sockets.SWAACReceiveSockets;
 import sharewithall.android.client.sockets.SWAACSendSockets;
+import sharewithall.android.client.sockets.SWAACSendSockets.Command;
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.widget.Toast;
 
 public class SWAACService extends Service
 {
-	
+
+	//****************************************//
+	//***** Intent actions for broadcast *****//
+	//****************************************//
 	public static final String ERROR_ACTION = "SWAACServiceError";
-	
-	private PendingIntent alarmSender;
+	public static final String RECEIVED_MSG_ACTION = "SWAACServiceReceivedMsg";
+	public static final String CLIENTS_CHANGED_ACTION = "SWAACServiceClientsChanged";
+	public static final String FRIENDS_CHANGED_ACTION = "SWAACServiceFriendsChanged";
+
+	//****************************************************//
+	//***** Preferences and configuration attributes *****//
+	//****************************************************//
 	private SharedPreferences preferences;
 	private SharedPreferences.Editor editor;
+	private NotificationManager notificator;
+	private PendingIntent alarmSender;
 
-    private void printMessage(String message)
-    {
-    	Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-    
-    private void updateTimestamp()
-    {
-    	SWAACSendSockets sendSockets = new SWAACSendSockets(getBaseContext(), SWAACSendSockets.Command.UPDATE_TIMESTAMP, handler, null);
-		sendSockets.send();
-    }
-    
-    private void configureAlarm()
-    {
-        alarmSender = PendingIntent.getService(this, 0, new Intent(this, SWAACService.class), 0);
-        
-        long firstTime = SystemClock.elapsedRealtime() + 30000;
-        AlarmManager alarm = (AlarmManager)getSystemService(ALARM_SERVICE);
-        alarm.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 30000, alarmSender);
-    }
-    
-    private void sendErrorNotification()
-    {
-    	editor.putBoolean("loggedIn", false);
-    	editor.commit();
-    	
-    	Intent error = new Intent();
-    	error.setAction(ERROR_ACTION);
-    	sendBroadcast(error);
-    }
+	//*********************************************//
+	//***** Connection and sending attributes *****//
+	//*********************************************//
+	private SWAACReceiveSockets receiveSockets;
+	
+	
+	
+	
+	
+	//***************************************//
+	//***** Service override functions *****//
+	//***************************************//
 	
 	@Override
 	public void onCreate()
 	{
 		super.onCreate();
-		setForeground(true);
-		preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-		editor = preferences.edit();
-		configureAlarm();
+		
+		configure();
 	}
 	
 	@Override
 	public void onStart(Intent intent, int startId)
 	{
 		super.onStart(intent, startId);
+		
 		updateTimestamp();
 	}
 	
 	@Override
 	public void onDestroy()
 	{
+        receiveSockets.stop_receiver();
         AlarmManager alarm = (AlarmManager)getSystemService(ALARM_SERVICE);
         alarm.cancel(alarmSender);
 		super.onDestroy();
@@ -82,18 +84,230 @@ public class SWAACService extends Service
 	{
 		return null;
 	}
+	
+	
+	
+	
+	
+	//***********************************//
+	//***** Configuration functions *****//
+	//***********************************//
+    
+	private void configure()
+	{
+		setForeground(true);
+		
+		preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+		editor = preferences.edit();
+    	notificator = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		
+		configureListenSocket();
+		
+		configureAlarm();
+	}
 
-	
-	
-	final Handler handler = new Handler() {
+    private void configureListenSocket()
+    {
+		String serverIP = preferences.getString("serverIPPref", getString(R.string.defaultServerIP));
+		int serverPort = Integer.valueOf(preferences.getString("serverPortPref", getString(R.string.defaultServerPort))).intValue();
+    	receiveSockets = new SWAACReceiveSockets(getBaseContext(), handler, serverIP, serverPort);
+    	receiveSockets.start();
+    }
+
+    private void configureAlarm()
+    {
+        alarmSender = PendingIntent.getService(this, 0, new Intent(this, SWAACService.class), 0);
+        long firstTime = SystemClock.elapsedRealtime() + 30000;
+        AlarmManager alarm = (AlarmManager)getSystemService(ALARM_SERVICE);
+        alarm.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, firstTime, 30000, alarmSender);
+    }
+    
+    
+    
+    
+    
+	//***********************************//
+	//***** Update session function *****//
+	//***********************************//
+    
+    private void updateTimestamp()
+    {
+    	SWAACSendSockets sendSockets = new SWAACSendSockets(getBaseContext(), Command.UPDATE_TIMESTAMP, handler);
+		sendSockets.send();
+    }
+    
+    
+    
+    
+
+	//**********************************//
+	//***** Receive data functions *****//
+	//**********************************//
+    
+    private void messageReceived(String user, String client, String textMessage)
+    {
+		String idChatWindow = preferences.getString("username", null) +
+			preferences.getString("deviceNamePref", getString(R.string.defaultDeviceName)) + user + client;
+    	try
+		{
+	    	FileOutputStream fos = openFileOutput(idChatWindow, MODE_APPEND);
+	    	BufferedOutputStream bos = new BufferedOutputStream(fos);
+	    	DataOutputStream dos = new DataOutputStream(bos);
+    		dos.writeBytes(textMessage);
+    		dos.writeByte('\n');
+	    	dos.close();
+	    	bos.close();
+	    	fos.close();
+		}
+		catch (Exception e) {}
+		sendMessageReceivedNotification(idChatWindow, user, client, textMessage);
+    }
+    
+    private void URLReceived(String user, String client, String URL)
+    {
+    	if (URL.indexOf("http://") != 0) URL = "http://" + URL;
+        Uri uriUrl = Uri.parse(URL);
+        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, uriUrl);
+        launchBrowser.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        if (!preferences.getString("username", null).equals(user) && !preferences.getBoolean("autolaunchWebPref", true))
+        	sendURLNotification(uriUrl, launchBrowser, user, client);
+        else startActivity(launchBrowser);
+    }
+    
+    
+    
+    
+
+	//**********************************//
+	//***** Notification functions *****//
+	//**********************************//
+
+    private void sendMessageReceivedNotification(String idChatWindow, String user, String client, String textMessage)
+    {
+    	if (preferences.getBoolean(idChatWindow + "isOn", false))
+    	{
+        	Intent messageReceived = new Intent();
+        	messageReceived.putExtra("idChatWindow", idChatWindow);
+        	messageReceived.putExtra("textMessage", textMessage);
+        	messageReceived.setAction(RECEIVED_MSG_ACTION);
+        	sendBroadcast(messageReceived);
+    	}
+    	else
+    	{
+	    	Notification notification = new Notification(R.drawable.tinyicon, textMessage, System.currentTimeMillis());
+	    	Intent intent = new Intent().setClass(this, SWAACChatWindowActivity.class);
+	    	intent.putExtra("clientUser", user);
+        	intent.putExtra("client", client);
+	    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+	    	notification.setLatestEventInfo(this, getString(R.string.newMessageNotificationTittle),
+	    			getString(R.string.newMessageNotificationMsg) + client, pendingIntent);
+	    	notification.defaults = Notification.DEFAULT_VIBRATE;
+	    	notificator.notify(R.string.chatNotificationID, notification);
+			editor.putBoolean(idChatWindow, true);
+			editor.commit();
+    	}
+    }
+    
+    private void sendURLNotification(Uri uriUrl, Intent launchBrowser, String user, String client)
+    {
+    	Notification notification = new Notification(R.drawable.tinyicon, "URL received: " + uriUrl.toString(), System.currentTimeMillis());
+    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchBrowser, 0);
+    	notification.setLatestEventInfo(this, getString(R.string.urlNotificationTittle) + user + "@" + client,
+    			getString(R.string.urlNotificationMsg) + uriUrl.toString(), pendingIntent);
+    	notification.defaults = Notification.DEFAULT_VIBRATE;
+    	notification.flags = Notification.FLAG_AUTO_CANCEL;
+    	notificator.notify(R.string.urlNotificationID, notification);
+    }
+    
+    private void sendFileReceivedNotification(String user, String client, String filename, int filesize)
+    {
+    	Notification notification = new Notification(R.drawable.tinyicon, getString(R.string.fileReceivedNotificationTicker) + filename +
+    			" (" + filesize + "B)", System.currentTimeMillis());
+    	Intent intent = new Intent();
+    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+    	notification.setLatestEventInfo(this, getString(R.string.fileReceivedNotificationTittle1) + filename + " (" + filesize + "B)" +
+    			getString(R.string.fileReceivedNotificationTittle2), getString(R.string.fileReceivedNotificationMsg) + user + "@" +
+    			client, pendingIntent);
+    	notification.defaults = Notification.DEFAULT_VIBRATE;
+    	notification.flags = Notification.FLAG_AUTO_CANCEL;
+    	notificator.notify(R.string.fileNotificationID, notification);
+    }
+    
+    private void sendErrorNotification()
+    {
+    	editor.putBoolean("loggedIn", false);
+    	editor.commit();
+    	Intent error = new Intent();
+    	error.setAction(ERROR_ACTION);
+    	sendBroadcast(error);
+    }
+
+    private void clientsListChanged()
+    {
+    	editor.putBoolean("clientListChanged", true);
+    	editor.commit();
+    	Intent clientsChanged = new Intent();
+    	clientsChanged.setAction(CLIENTS_CHANGED_ACTION);
+    	sendBroadcast(clientsChanged);
+    }
+    
+    private void friendsListChanged()
+    {
+    	editor.putBoolean("friendsListChanged", true);
+    	editor.commit();
+    	Intent friendsChanged = new Intent();
+    	friendsChanged.setAction(FRIENDS_CHANGED_ACTION);
+    	sendBroadcast(friendsChanged);
+    }
+    
+    private void newInvitation(int invitations)
+    {
+    	Notification notification = new Notification(R.drawable.tinyicon, getString(R.string.invitationReceivedTicker),
+    			System.currentTimeMillis());
+    	Intent intent = new Intent().setClass(this, SWAACFriendsListActivity.class);
+    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+    	notification.setLatestEventInfo(this, getString(R.string.invitationReceivedTittle),
+    			getString(R.string.invitationReceivedMsg) + " " + invitations, pendingIntent);
+    	notification.defaults = Notification.DEFAULT_VIBRATE;
+    	notification.flags = Notification.FLAG_AUTO_CANCEL;
+    	notificator.notify(R.string.invitationNotificationID, notification);
+    	
+    	editor.putBoolean("friendsListChanged", true);
+    	editor.commit();
+    	Intent friendsChanged = new Intent();
+    	friendsChanged.setAction(FRIENDS_CHANGED_ACTION);
+    	sendBroadcast(friendsChanged);
+    }
+    
+    
+    
+    
+    
+	//********************************************************//
+	//***** Handler for connections module communication *****//
+	//********************************************************//
+    
+	final Handler handler = new Handler()
+	{
         public void handleMessage(Message msg)
         {
-            if (msg.getData().getBoolean("exception"))
+        	Bundle b = msg.getData();
+            if (b.getBoolean("exception"))
             {
-            	printMessage("Error: " + msg.getData().getString("message"));
+            	SWAACUtils.printMessage(SWAACService.this, "Error: " + b.getString("message"));
             	sendErrorNotification();
             	stopSelf();
             }
+            else if (b.getBoolean("sendText"))
+            	messageReceived(b.getString("userReceived"), b.getString("clientReceived"), b.getString("textMessage"));
+            else if (b.getBoolean("sendURL"))
+            	URLReceived(b.getString("userReceived"), b.getString("clientReceived"), b.getString("URLMessage"));
+            else if (b.getBoolean("sendFile"))
+            	sendFileReceivedNotification(b.getString("userReceived"), b.getString("clientReceived"),
+            			b.getString("filename"), b.getInt("filesize"));
+            else if (b.getBoolean("clientsChanged")) clientsListChanged();
+            else if (b.getBoolean("friendsChanged")) friendsListChanged();
+            else if (b.getBoolean("pendingInvitation")) newInvitation(b.getInt("nInvitations"));
         }
     };
 
