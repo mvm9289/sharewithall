@@ -191,9 +191,11 @@ public class SWAServerSockets extends Thread
         {
             while (true) {
                 ArrayList<Object> entry = notify.poll();
-                String sessionID = (String)entry.get(0);
-                int notification = (Integer)entry.get(1);
-                SWAServerSockets.this.notify(sessionID, notification);
+                if (entry != null) {
+                    String sessionID = (String)entry.get(0);
+                    int notification = (Integer)entry.get(1);
+                    SWAServerSockets.this.notify(sessionID, notification);
+                }
             }
         }
     }
