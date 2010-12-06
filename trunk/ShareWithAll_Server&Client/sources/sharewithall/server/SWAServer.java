@@ -341,6 +341,12 @@ public class SWAServer
             for (int i = 0; i < clients.size(); i++)
                 socketsModule.notifyInvitation(((JDBCClient)clients.get(i)).session_id);
         }
+        else
+        {
+            clients = DBClients.select_gen(new JDBCPredicate("username", friend));
+            for (int i = 0; i < clients.size(); i++)
+                socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+        }
         DBUsers.close();
         DBClients.close();
         DBFriends.close();
@@ -372,6 +378,15 @@ public class SWAServer
         JDBCFriends fr = new JDBCFriends(client.username, user, STATUS_IGNORE_USER);
         if (DBFriends.update_obj(fr) == 0) DBFriends.insert_obj(fr);
         DBFriends.commit();
+        
+        isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", user), new JDBCPredicate("user2", client.username));
+        if (isDeclared) {
+            clients = DBClients.select_gen(new JDBCPredicate("username", user));
+            for (int i = 0; i < clients.size(); i++)
+                socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+        }
+        DBUsers.close();
+        DBClients.close();
         DBFriends.close();
     }
     
