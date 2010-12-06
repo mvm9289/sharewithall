@@ -331,26 +331,34 @@ public class SWAServer
             , new JDBCPredicate("status", STATUS_FRIEND));
         if(isDeclared) throw new Exception("Relation already declared.");
         
+        isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", friend), new JDBCPredicate("user2", client.username));
+        
         //Execution
         JDBCFriends fr = new JDBCFriends(client.username, friend, STATUS_FRIEND);
         if (DBFriends.update_obj(fr) == 0) DBFriends.insert_obj(fr);
         DBFriends.commit();
         
-        isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", friend), new JDBCPredicate("user2", client.username));
+        clients = DBClients.select_gen(new JDBCPredicate("username", friend));
         if (!isDeclared) {
-            clients = DBClients.select_gen(new JDBCPredicate("username", friend));
             for (int i = 0; i < clients.size(); i++)
                 socketsModule.notifyInvitation(((JDBCClient)clients.get(i)).session_id);
         }
         else
         {
-            clients = DBClients.select_gen(new JDBCPredicate("username", friend));
+            for (int i = 0; i < clients.size(); i++)
+            {
+                socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+                socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
+            }
+            
+            clients = DBClients.select_gen(new JDBCPredicate("username", client.username), new JDBCPredicate("session_id", sessionID, "!="));
             for (int i = 0; i < clients.size(); i++)
             {
                 socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
                 socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
             }
         }
+        
         DBUsers.close();
         DBClients.close();
         DBFriends.close();
@@ -384,6 +392,13 @@ public class SWAServer
         DBFriends.commit();
         
         clients = DBClients.select_gen(new JDBCPredicate("username", user));
+        for (int i = 0; i < clients.size(); i++)
+        {
+            socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+            socketsModule.notifyClientListChanged(((JDBCClient)clients.get(i)).session_id);
+        }
+        
+        clients = DBClients.select_gen(new JDBCPredicate("username", client.username), new JDBCPredicate("session_id", sessionID, "!="));
         for (int i = 0; i < clients.size(); i++)
         {
             socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
