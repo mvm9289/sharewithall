@@ -50,6 +50,7 @@ public class SWAServerSockets extends Thread
     private ServerSocket serverSocket;
     private SWAServer server;
     private ConcurrentHashMap<String, ArrayBlockingQueue<Socket>> connections = new ConcurrentHashMap<String, ArrayBlockingQueue<Socket>>();
+    ArrayBlockingQueue<ArrayList<Object>> notify = new ArrayBlockingQueue<ArrayList<Object>>(1000);
     
     public SWAServerSockets(int port, SWAServer server)
     {
@@ -69,6 +70,8 @@ public class SWAServerSockets extends Thread
     {
         Thread cleaner = new SWACleanerThread();
         cleaner.start();
+        Thread notifier = new SWANotifierThread();
+        notifier.start();
         
         while (true)
         {
@@ -101,15 +104,39 @@ public class SWAServerSockets extends Thread
     }
     
     public void notifyInvitation(String sessionID) {
-        notify(sessionID, NOTIFY_INVITATION);
+        ArrayList<Object> entry = new ArrayList<Object>();
+        entry.add(sessionID);
+        entry.add(NOTIFY_INVITATION);
+        try {
+            notify.put(entry);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public void notifyClientListChanged(String sessionID) {
-        notify(sessionID, NOTIFY_CLIENTS_CHANGED);
+        ArrayList<Object> entry = new ArrayList<Object>();
+        entry.add(sessionID);
+        entry.add(NOTIFY_CLIENTS_CHANGED);
+        try {
+            notify.put(entry);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
     
     public void notifyFriendListChanged(String sessionID) {
-        notify(sessionID, NOTIFY_FRIENDS_CHANGED);
+        ArrayList<Object> entry = new ArrayList<Object>();
+        entry.add(sessionID);
+        entry.add(NOTIFY_FRIENDS_CHANGED);
+        try {
+            notify.put(entry);
+        }
+        catch(Exception e) {
+            e.printStackTrace();
+        }
     }
     
     private void notify(String sessionID, int notification) {
@@ -151,6 +178,24 @@ public class SWAServerSockets extends Thread
         }
         
         catch (Exception e) {}
+    }
+    
+    private class SWANotifierThread extends Thread
+    {
+        private SWANotifierThread()
+        {
+            super();
+        }
+        
+        public void run()
+        {
+            while (true) {
+                ArrayList<Object> entry = notify.poll();
+                String sessionID = (String)entry.get(0);
+                int notification = (Integer)entry.get(1);
+                SWAServerSockets.this.notify(sessionID, notification);
+            }
+        }
     }
     
     private class SWACleanerThread extends Thread
