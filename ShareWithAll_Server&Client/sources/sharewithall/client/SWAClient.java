@@ -157,7 +157,6 @@ public class SWAClient
     }
     public void RefreshListOfFriends() {
         program.RefreshListOfFriends();
-        program.RefreshListOfOnlineClients();
         System.out.println("Refresh list of friends");
     }
     public void RefreshListOfOnlineClients() {

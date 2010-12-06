@@ -113,7 +113,6 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     public void RefreshListOfOnlineClients()
     {
         try {
-            //TODO: not unmark the selected client
             String receiver = (String) LS_Connected.getSelectedValue();
             LS_Connected.setListData(client.getOnlineClientsCommand());
             LS_Connected.setSelectedValue(receiver, true);
