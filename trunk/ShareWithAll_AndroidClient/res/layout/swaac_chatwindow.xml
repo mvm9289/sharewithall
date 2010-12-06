@@ -35,7 +35,7 @@
 			android:id="@+id/chatSendButton"
 			android:layout_width="150dip"
 			android:layout_height="fill_parent"
-			android:text="@string/chatButton"
+			android:text="@string/sendButton"
 			android:layout_weight="1"/>
 	</LinearLayout>
  </LinearLayout>
