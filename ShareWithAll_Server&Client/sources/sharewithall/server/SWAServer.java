@@ -379,12 +379,10 @@ public class SWAServer
         if (DBFriends.update_obj(fr) == 0) DBFriends.insert_obj(fr);
         DBFriends.commit();
         
-        isDeclared = DBFriends.exists_gen(new JDBCPredicate("user1", user), new JDBCPredicate("user2", client.username));
-        if (isDeclared) {
-            clients = DBClients.select_gen(new JDBCPredicate("username", user));
-            for (int i = 0; i < clients.size(); i++)
-                socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
-        }
+        clients = DBClients.select_gen(new JDBCPredicate("username", user));
+        for (int i = 0; i < clients.size(); i++)
+            socketsModule.notifyFriendListChanged(((JDBCClient)clients.get(i)).session_id);
+        
         DBUsers.close();
         DBClients.close();
         DBFriends.close();
