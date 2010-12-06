@@ -196,14 +196,15 @@ public class SWAServer
             if(!((JDBCClient)clients.get(i)).session_id.equals(sessionID))
                 list.add(((JDBCClient)clients.get(i)).name);
 
-        
-        String[] friends = showListOfFriends(client.username);
-        
-        for(int i=0; i<friends.length; ++i)
-        {
-            ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
-            for(int j=0; j<publicClients.size(); ++j)
-                list.add(((JDBCClient) publicClients.get(j)).username + ":" + ((JDBCClient) publicClients.get(j)).name);
+        if (client.is_public) {
+            String[] friends = showListOfFriends(client.username);
+            
+            for(int i=0; i<friends.length; ++i)
+            {
+                ArrayList<Object> publicClients = DBClients.select_gen(new JDBCPredicate("username", friends[i]), new JDBCPredicate("is_public", true));
+                for(int j=0; j<publicClients.size(); ++j)
+                    list.add(((JDBCClient) publicClients.get(j)).username + ":" + ((JDBCClient) publicClients.get(j)).name);
+            }
         }
         
         DBClients.close();

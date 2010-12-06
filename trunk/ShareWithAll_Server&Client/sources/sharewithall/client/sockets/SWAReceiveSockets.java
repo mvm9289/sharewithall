@@ -30,14 +30,14 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
     protected static final int FILE_BUFFER_SIZE = 4096;
-    protected static final int MAX_THREADS = 4096;
+    protected static final int MAX_THREADS = 5;
     
     private ServerSocket receiverSocket;
     private boolean gateway;
     private String serverIP;
     private int serverPort;
     private ArrayBlockingQueue<Thread> threads_queue = new ArrayBlockingQueue<Thread>(MAX_THREADS);
-    boolean stop = false;
+    private boolean stop = false;
     
     public SWAReceiveSockets(int port)
     {
@@ -74,6 +74,7 @@ public abstract class SWAReceiveSockets extends Thread
     public abstract String getSessionID();
     
     public void stop_receiver() {
+        System.out.println("Closing receiver...");
         stop = true;
         this.interrupt();
     }
@@ -82,16 +83,17 @@ public abstract class SWAReceiveSockets extends Thread
         while (!threads_queue.isEmpty()) {
             try {
                     Thread t = threads_queue.poll();
-                    t.stop();
+                    t.interrupt();
             }
             catch (Exception e) {
-                System.out.println("Thread killed");
+                
             }
         }
     }
     
     public void run()
     {
+        System.out.println("Starting main thread");
         if (gateway) {
             while (true) {
                 try {
@@ -105,6 +107,7 @@ public abstract class SWAReceiveSockets extends Thread
                 finally {
                     if (stop) {
                         kill_threads();
+                        System.out.println("Exiting main thread");
                         return;
                     }
                 }
@@ -129,11 +132,13 @@ public abstract class SWAReceiveSockets extends Thread
                 finally {
                     if (stop) {
                         kill_threads();
+                        System.out.println("Exiting main thread");
                         return;
                     }
                 }
             }
         }
+        
     }
     
     private void makeGateway() throws Exception {
@@ -209,6 +214,8 @@ public abstract class SWAReceiveSockets extends Thread
         
         public void run()
         {
+            System.out.println("Starting child thread " + threads_queue.size());
+            
             try
             {
                 decodeAndProcess();
@@ -221,6 +228,7 @@ public abstract class SWAReceiveSockets extends Thread
             finally {
                 threads_queue.remove(this);
             }
+            System.out.println("Exiting child thread " + threads_queue.size());
         }
         
     }

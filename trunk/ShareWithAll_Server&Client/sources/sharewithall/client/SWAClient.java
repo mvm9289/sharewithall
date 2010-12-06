@@ -1,10 +1,18 @@
 
 package sharewithall.client;
 
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Scanner;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import sharewithall.client.sockets.SWAReceiveClientSockets;
 import sharewithall.client.sockets.SWASendSockets;
+import sharewithall.server.jdbc.JDBCPredicate;
 
 /**
  * Authors:
@@ -29,9 +37,11 @@ public class SWAClient
     public int serverPort;
     public MainGraphicalInterface program = null;
     private boolean gateway = true;
-    private static SWAReceiveClientSockets receiveSocketsModule;
+    private SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
     private Object lock = new Object();
+    private HashMap<String, ArrayList<String>> cache_clients = new HashMap<String, ArrayList<String>>();
+    private String username;
     
     private class SWAUpdateThread extends Thread
     {
@@ -111,6 +121,18 @@ public class SWAClient
         }
     }
     private void threadException(SendOperation op, Exception e) {
+        switch (op) {
+            case SEND_FILE:
+                program.showErrorMessage("Send file error", e.getMessage());
+                break;
+            case SEND_TEXT:
+                program.showErrorMessage("Send text error", e.getMessage());
+                break;
+            case SEND_URL:
+                program.showErrorMessage("Send URL error", e.getMessage());
+                break;
+        }
+        
         e.printStackTrace();
     }
     public SWAClient(String serverIP, int serverPort)
@@ -135,6 +157,7 @@ public class SWAClient
     }
     public void RefreshListOfFriends() {
         program.RefreshListOfFriends();
+        program.RefreshListOfOnlineClients();
         System.out.println("Refresh list of friends");
     }
     public void RefreshListOfOnlineClients() {
@@ -144,7 +167,7 @@ public class SWAClient
     public void RefreshInvitations() {
         System.out.println("Refresh invitations");
     }
-    public void newUserCommand(String username, String password)
+    public void newUserCommand(String username, String password) throws Exception
     {
         try
         {
@@ -153,17 +176,13 @@ public class SWAClient
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
-    public void loginCommand(String username, String password, String name, boolean isPublic) throws Exception {
-        if(sessionID != null)
-        {
-            System.out.println("Sorry, you are already logged in.");
-            return;
-        }
-
+    public void loginCommand(String username, String password, String name, boolean isPublic) throws Exception
+    {
         try
         {
             SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
@@ -171,7 +190,8 @@ public class SWAClient
             ////////// HE ANADIDO ESTO, PONEDLO EN UNA FUNCION SI QUEREIS PERO TIENE QUE IR AQUI!!!!
             String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
             int port = Integer.valueOf(myIPandPort[1]).intValue();
-
+            this.username = username;
+            
             if (gateway) receiveSocketsModule = new SWAReceiveClientSockets(serverIP, serverPort, this);
             else receiveSocketsModule = new SWAReceiveClientSockets(port, this);
             receiveSocketsModule.start();
@@ -179,27 +199,37 @@ public class SWAClient
         catch (Exception e)
         {
             if (e.getClass() == Exception.class) throw e;
-            e.printStackTrace();
+            else throw new Exception("Error");
         }
     }
     
-    public String[] getOnlineClientsCommand()
+    public String[] getOnlineClientsCommand() throws Exception
     {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return null;
-        }
         try
         {
             SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-            return socketsModule.getOnlineClients(sessionID);
+            String[] res = socketsModule.getOnlineClients(sessionID);
+            
+            for (Iterator<String> it = cache_clients.keySet().iterator(); it.hasNext();) {
+                String key = it.next();
+                String[] key_split = key.split(":");
+                String searchkey = key;
+                if (key_split[0].equals(username)) searchkey = key_split[1];
+                
+                boolean found = false;
+                for (int i = 0; !found && i < res.length; ++i)
+                    if (res[i].equals(searchkey))
+                        found = true;
+                if (!found) cache_clients.remove(key);
+            }
+            
+            return res;
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
-        return null;
     }
     
     /*public void ipAndPortRequestCommand(String client)
@@ -242,13 +272,8 @@ public class SWAClient
         }
     }*/
     
-    public void declareFriendCommand(String friend)
+    public void declareFriendCommand(String friend) throws Exception
     {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return;
-        }
         try
         {
             SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
@@ -256,17 +281,13 @@ public class SWAClient
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
-    public void ignoreUserCommand(String friend)
+    public void ignoreUserCommand(String friend) throws Exception
     {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return;
-        }
         try
         {
             SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
@@ -274,7 +295,8 @@ public class SWAClient
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
@@ -301,14 +323,8 @@ public class SWAClient
         }
     }*/
     
-    public String[] showListOfFriendsCommand(int property)
+    public String[] showListOfFriendsCommand(int property) throws Exception
     {
-       
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return null;
-        }
         try
         {
             String[] result;
@@ -318,14 +334,13 @@ public class SWAClient
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
-        return null;
     }
     
-    public void logoutCommand()
+    public void logoutCommand() throws Exception
     {
-        if(sessionID == null) return;
         try
         {
             synchronized(lock) {
@@ -334,120 +349,87 @@ public class SWAClient
                 SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
                 socketsModule.logout(sessionID);
                 sessionID = null;
+                username = null;
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
-    public void sendURLCommand(String url, String username, String client)
-    {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return;
-        }
-                
-        try
-        {
+    private ArrayList<String> getInfoClient(String username, String client) throws Exception{
+        ArrayList<String> info = cache_clients.get(username + ":" + client);
+        if (info == null) {
             SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
             String token = socketsModule.getSendToken(sessionID, username + ":" + client);
             String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
-            Thread t = new SWASendThread(SendOperation.SEND_URL, sessionID, token, res[0], Integer.parseInt(res[1]), url);
+            info = new ArrayList<String>();
+            info.add(token);
+            info.add(res[0]);
+            info.add(res[1]);
+            cache_clients.put(username + ":" + client, info);
+        }
+        return info;
+    }
+    
+    public void sendURLCommand(String url, String username, String client) throws Exception
+    {    
+        try
+        {
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_URL, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), url);
             t.start();
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
-    
-    public void sendTextCommand(String text, String username, String client)
+
+    public void sendTextCommand(String text, String username, String client) throws Exception
     {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return;
-        }
-        
         try
         {
-            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-            String token = socketsModule.getSendToken(sessionID, username + ":" + client);
-            String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
-            Thread t = new SWASendThread(SendOperation.SEND_TEXT, sessionID, token, res[0], Integer.parseInt(res[1]), text);
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_TEXT, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), text);
             t.start();
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
-    public void sendFileCommand(String path, String username, String client)
+    public void sendFileCommand(String path, String username, String client) throws Exception
     {
-        if(sessionID == null)
-        {
-            System.out.println("Sorry, you must be logged in.");
-            return;
-        }
-        
         try
         {
-            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-            String token = socketsModule.getSendToken(sessionID, username + ":" + client);
-            String res[] = socketsModule.ipAndPortRequest(sessionID, username + ":" + client);
-            Thread t = new SWASendThread(SendOperation.SEND_FILE, sessionID, token, res[0], Integer.parseInt(res[1]), path);
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_FILE, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), path);
             t.start();
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
 
     public void receiveURL(String username, String client, String url)
     {
-        boolean ok = false;
-        java.awt.Desktop desktop = null;
-        if (java.awt.Desktop.isDesktopSupported() ) {
-            desktop = java.awt.Desktop.getDesktop();
-            ok = desktop.isSupported(java.awt.Desktop.Action.BROWSE);
-        }
-
-        System.out.println("[" + username + ":" + client + "] has sent you the URL '" + url + "'");
-        if (ok) {
-            System.out.println("Trying to open it in your default browser...");
-            try {
-                java.net.URI uri = new java.net.URI( url );
-                desktop.browse( uri );
-            }
-            catch ( Exception e ) {
-                e.printStackTrace();
-            }
-        }
-        else System.out.println("Cannot open it in your default browser");
+        program.receiveURL(username, client, url);
     }
     public void receiveText(String username, String client, String text)
     {
-        if(program == null)
-            System.out.println("[" + username + ":" + client + "] says: " + text);
-        else
-            program.receiveText(username, client, text);
+        program.receiveText(username, client, text);
     }
     public void receiveFile(String username, String client, String file)
     {
-        try {
-            //File f = new File(file);
-            //MagicMatch match = Magic.getMagicMatch(f, true);
-            System.out.println("[" + username + ":" + client + "] has sent you the file '" + file);// + "' with type '" + match.print() + "'");
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        program.receiveFile(username, client, file);
     }
 }
 
