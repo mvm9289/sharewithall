@@ -32,6 +32,11 @@
                 android:key="allowReceiveFilesPref"
                 android:title="@string/optionAllowReceiveFilesTittle"
                 android:summary="@string/optionAllowReceiveFilesSummary"/>
+        <CheckBoxPreference
+                android:key="autolaunchFilePref"
+                android:title="@string/optionAutolaunchFilesTittle"
+                android:summary="@string/optionAutolaunchFilesSummary"
+    			android:dependency="allowReceiveFilesPref"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/friendsPrefsCategory">
         <CheckBoxPreference

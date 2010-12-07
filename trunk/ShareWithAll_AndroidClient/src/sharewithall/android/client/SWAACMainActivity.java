@@ -56,7 +56,7 @@ public class SWAACMainActivity extends Activity
     protected void onResume()
     {
     	super.onResume();
-        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true);
+        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true, false);
         else configure2();
     }
     
@@ -106,7 +106,7 @@ public class SWAACMainActivity extends Activity
         editor = preferences.edit();
 
         if (preferences.getBoolean("firstExecute", true)) setDefaultPreferences();
-        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true);
+        if (preferences.getBoolean("loggedIn", false)) toNextActivity(true, false);
         else
         {
         	setContentView(R.layout.swaac_main);
@@ -146,6 +146,7 @@ public class SWAACMainActivity extends Activity
     	editor.putBoolean("autologinPref", false);
     	editor.putBoolean("autolaunchWebPref", true);
     	editor.putBoolean("allowReceiveFilesPref", true);
+    	editor.putBoolean("autolaunchFilePref", true);
     	editor.putBoolean("showSendedInvPref", true);
     	editor.putBoolean("showReceivedInvPref", true);
     	editor.putBoolean("showBlockedPref", true);
@@ -162,12 +163,13 @@ public class SWAACMainActivity extends Activity
 	//***** Activity navigation functions *****//
 	//*****************************************//
     
-    private void toNextActivity(boolean regetClients)
+    private void toNextActivity(boolean regetClients, boolean firstLogin)
     {
 		editor.remove("loggedOut");
 		editor.commit();
     	Intent intent = new Intent().setClass(this, SWAACLoggedInActivity.class);
     	intent.putExtra("regetClients", regetClients);
+    	intent.putExtra("firstLogin", firstLogin);
     	intent.putExtra("onlineClients", onlineClients);
 		startActivity(intent);
 		finish();
@@ -223,7 +225,7 @@ public class SWAACMainActivity extends Activity
 				break;
 			case 2:
 				progressDialog.dismiss();
-		    	toNextActivity(false);
+		    	toNextActivity(false, true);
 				break;
 			default:
 				break;

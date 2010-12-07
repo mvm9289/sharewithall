@@ -149,6 +149,7 @@ public class SWAACOptionsActivity extends PreferenceActivity
 		editor.putBoolean("autologinPref", false);
     	editor.putBoolean("autolaunchWebPref", true);
     	editor.putBoolean("allowReceiveFilesPref", true);
+    	editor.putBoolean("autolaunchFilePref", true);
 		editor.commit();
 	}
 	

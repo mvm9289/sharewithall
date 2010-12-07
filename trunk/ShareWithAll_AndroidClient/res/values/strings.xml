@@ -62,7 +62,7 @@
 <string name="chatNotificationText">New chat message!</string>
 <string name="sendURLTittle">Enter a valid URL</string>
 <string name="fileNotificationID"></string>
-<string name="optionAutolaunchWebTittle">Auto-lauch Web browser</string>
+<string name="optionAutolaunchWebTittle">Auto-launch Web browser</string>
 <string name="optionAutolaunchWebSummary">Launch Web browser automatically when receive an URL from friend</string>
 <string name="optionAllowReceiveFilesTittle">Enable file reception</string>
 <string name="optionAllowReceiveFilesSummary">Allow to receive files from friends</string>
@@ -97,4 +97,8 @@
 <string name="invitationReceivedTittle">You have new friend invitations!</string>
 <string name="invitationReceivedMsg">Pending invitations: </string>
 <string name="invitationNotificationID"></string>
+<string name="fileExtensionError">No application available to open </string>
+<string name="optionAutolaunchFilesTittle">Auto-launch files</string>
+<string name="optionAutolaunchFilesSummary">Launch file automatically when receive it from friend</string>
+<string name="enterFileLocationTittle">Enter file path</string>
 </resources>

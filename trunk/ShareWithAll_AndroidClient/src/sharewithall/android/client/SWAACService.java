@@ -2,7 +2,9 @@ package sharewithall.android.client;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
+import java.util.ArrayList;
 
 import sharewithall.android.client.sockets.SWAACReceiveSockets;
 import sharewithall.android.client.sockets.SWAACSendSockets;
@@ -45,6 +47,9 @@ public class SWAACService extends Service
 	//***** Connection and sending attributes *****//
 	//*********************************************//
 	private SWAACReceiveSockets receiveSockets;
+	private ArrayList<String> audioExtensions;
+	private ArrayList<String> imageExtensions;
+	private ArrayList<String> videoExtensions;
 	
 	
 	
@@ -100,6 +105,30 @@ public class SWAACService extends Service
 		preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		editor = preferences.edit();
     	notificator = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    	
+    	audioExtensions = new ArrayList<String>();
+    	audioExtensions.add("m4a");
+    	audioExtensions.add("mp3");
+    	audioExtensions.add("mid");
+    	audioExtensions.add("xmf");
+    	audioExtensions.add("mxmf");
+    	audioExtensions.add("rtttl");
+    	audioExtensions.add("rtx");
+    	audioExtensions.add("ota");
+    	audioExtensions.add("imy");
+    	audioExtensions.add("ogg");
+    	audioExtensions.add("wav");
+    	
+    	imageExtensions = new ArrayList<String>();
+    	imageExtensions.add("jpg");
+    	imageExtensions.add("jpeg");
+    	imageExtensions.add("gif");
+    	imageExtensions.add("png");
+    	imageExtensions.add("bmp");
+    	
+    	videoExtensions = new ArrayList<String>();
+    	videoExtensions.add("3gp");
+    	videoExtensions.add("mp4");
 		
 		configureListenSocket();
 		
@@ -174,6 +203,38 @@ public class SWAACService extends Service
         else startActivity(launchBrowser);
     }
     
+    private void FileReceived(String user, String client, String filename, int filesize)
+    {
+    	int dotExt = filename.lastIndexOf('.');
+    	String fileExt = null;
+    	if (dotExt != 1) fileExt = filename.substring(dotExt + 1).toLowerCase();
+    	File file = new File("/sdcard/ShareWithAll/" + filename);
+    	Uri uri = Uri.fromFile(file);
+    	Intent launchApp = new Intent();
+    	launchApp.setAction(Intent.ACTION_VIEW);
+    	if (audioExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "audio/*");
+    	else if (imageExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "image/*");
+    	else if (videoExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "video/*");
+    	else if (fileExt.equals("txt")) launchApp.setDataAndType(uri, "text/*");
+    	else launchApp.setDataAndType(uri, "application/" + fileExt);
+    	launchApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    	if (fileExt == null || !preferences.getString("username", null).equals(user) && !preferences.getBoolean("autolaunchFilePref", true))
+    		sendFileReceivedNotification(user, client, filename, filesize, launchApp);
+    	else
+    	{
+    		try
+    		{
+    			startActivity(launchApp);
+    		}
+    		catch (Exception e)
+    		{
+				SWAACUtils.printMessage(this, "Error: " + getString(R.string.fileExtensionError) + " ." + fileExt);
+				sendFileReceivedNotification(user, client, filename, filesize, launchApp);
+			}
+    	}
+    	
+    }
+    
     
     
     
@@ -200,7 +261,7 @@ public class SWAACService extends Service
         	intent.putExtra("client", client);
 	    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 	    	notification.setLatestEventInfo(this, getString(R.string.newMessageNotificationTittle),
-	    			getString(R.string.newMessageNotificationMsg) + client, pendingIntent);
+	    			getString(R.string.newMessageNotificationMsg) + " " + client, pendingIntent);
 	    	notification.defaults = Notification.DEFAULT_VIBRATE;
 	    	notificator.notify(R.string.chatNotificationID, notification);
 			editor.putBoolean(idChatWindow, true);
@@ -212,21 +273,20 @@ public class SWAACService extends Service
     {
     	Notification notification = new Notification(R.drawable.tinyicon, "URL received: " + uriUrl.toString(), System.currentTimeMillis());
     	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchBrowser, 0);
-    	notification.setLatestEventInfo(this, getString(R.string.urlNotificationTittle) + user + "@" + client,
-    			getString(R.string.urlNotificationMsg) + uriUrl.toString(), pendingIntent);
+    	notification.setLatestEventInfo(this, getString(R.string.urlNotificationTittle) + " " + user + "@" + client,
+    			getString(R.string.urlNotificationMsg) + " " + uriUrl.toString(), pendingIntent);
     	notification.defaults = Notification.DEFAULT_VIBRATE;
     	notification.flags = Notification.FLAG_AUTO_CANCEL;
     	notificator.notify(R.string.urlNotificationID, notification);
     }
     
-    private void sendFileReceivedNotification(String user, String client, String filename, int filesize)
+    private void sendFileReceivedNotification(String user, String client, String filename, int filesize, Intent launchApp)
     {
     	Notification notification = new Notification(R.drawable.tinyicon, getString(R.string.fileReceivedNotificationTicker) + filename +
     			" (" + filesize + "B)", System.currentTimeMillis());
-    	Intent intent = new Intent();
-    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-    	notification.setLatestEventInfo(this, getString(R.string.fileReceivedNotificationTittle1) + filename + " (" + filesize + "B)" +
-    			getString(R.string.fileReceivedNotificationTittle2), getString(R.string.fileReceivedNotificationMsg) + user + "@" +
+    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, launchApp, 0);
+    	notification.setLatestEventInfo(this, getString(R.string.fileReceivedNotificationTittle1) + " " + filename + " (" + filesize + "B) " +
+    			getString(R.string.fileReceivedNotificationTittle2), getString(R.string.fileReceivedNotificationMsg) + " " + user + "@" +
     			client, pendingIntent);
     	notification.defaults = Notification.DEFAULT_VIBRATE;
     	notification.flags = Notification.FLAG_AUTO_CANCEL;
@@ -303,7 +363,7 @@ public class SWAACService extends Service
             else if (b.getBoolean("sendURL"))
             	URLReceived(b.getString("userReceived"), b.getString("clientReceived"), b.getString("URLMessage"));
             else if (b.getBoolean("sendFile"))
-            	sendFileReceivedNotification(b.getString("userReceived"), b.getString("clientReceived"),
+            	FileReceived(b.getString("userReceived"), b.getString("clientReceived"),
             			b.getString("filename"), b.getInt("filesize"));
             else if (b.getBoolean("clientsChanged")) clientsListChanged();
             else if (b.getBoolean("friendsChanged")) friendsListChanged();

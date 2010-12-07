@@ -12,6 +12,9 @@ import sharewithall.android.client.sockets.SWAACSendSockets;
 import sharewithall.android.client.sockets.SWAACSendSockets.Command;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -54,6 +57,7 @@ public class SWAACLoggedInActivity extends Activity
 	private String clickedUser;
 	private String[] onlineClients;
 	private String sessionID;
+	private int invitations;
 
 	//**********************************************//
 	//***** Clients list management attributes *****//
@@ -138,15 +142,7 @@ public class SWAACLoggedInActivity extends Activity
 		Uri uri = data.getData();
 		
 		if (requestCode == REQUEST_CODE_PICK_FILE_TO_OPEN && uri != null)
-		{
-			Object[] dat = new Object[3];
-			dat[0] = uri.getPath();
-			if (clickedUser.equals("")) dat[1] = preferences.getString("username", null);
-			else dat[1] = clickedUser;
-			dat[2] = clickedClient;
-			sendSockets = new SWAACSendSockets(SWAACLoggedInActivity.this, Command.SEND_FILE, handler, dat);
-			sendSockets.send();
-		}
+			processFileSelected(uri.getPath());
     }
     
     
@@ -175,6 +171,8 @@ public class SWAACLoggedInActivity extends Activity
     	else updateClientsList(0);
     	
     	startService(new Intent().setClass(this, SWAACService.class));
+    	
+    	if (getIntent().getBooleanExtra("firstLogin", false)) invitationsRequest(0);
     }
 
     private void configureBroadcastReceiver()
@@ -279,6 +277,40 @@ public class SWAACLoggedInActivity extends Activity
     	alert.show();
     }
     
+    private void showEnterFileDialog()
+    {
+    	AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	builder.setTitle(R.string.enterFileLocationTittle);
+    	final EditText inputText = new EditText(this);
+    	builder.setView(inputText);
+    	builder.setPositiveButton(R.string.sendButton, new DialogInterface.OnClickListener()
+    	{
+			@Override
+			public void onClick(DialogInterface dialog, int which)
+			{
+				processFileSelected(inputText.getText().toString());
+			}
+		});
+    	AlertDialog alert = builder.create();
+    	alert.show();
+    }
+    
+    private void processFileSelected(String filePath)
+    {
+    	if (filePath == null || filePath.equals(""))
+    		SWAACUtils.printMessage(this, "Please select a file");
+    	else
+    	{
+	    	Object[] dat = new Object[3];
+			dat[0] = filePath;
+			if (clickedUser.equals("")) dat[1] = preferences.getString("username", null);
+			else dat[1] = clickedUser;
+			dat[2] = clickedClient;
+			sendSockets = new SWAACSendSockets(SWAACLoggedInActivity.this, Command.SEND_FILE, handler, dat);
+			sendSockets.send();
+    	}
+    }
+    
     private void processClickedDialog(int item)
     {
     	if (item == 0)
@@ -298,7 +330,7 @@ public class SWAACLoggedInActivity extends Activity
     	    }
         	catch (Exception e)
         	{
-    			SWAACUtils.printMessage(this, "Error: " + getString(R.string.errorNoEStrongs));
+    			showEnterFileDialog();
     		}
 
     	}
@@ -512,6 +544,42 @@ public class SWAACLoggedInActivity extends Activity
 				break;
 		}
     }
+
+    
+    
+    
+    
+	//************************************************//
+	//***** Pending invitations request function *****//
+	//************************************************//
+    
+    private void invitationsRequest(int state)
+    {
+    	switch (state)
+    	{
+			case 0:
+				sendSockets = new SWAACSendSockets(getBaseContext(), Command.PENDING_INVITATIONS_REQUEST, handler);
+				sendSockets.send();
+				break;
+			case 1:
+				if (invitations > 0)
+				{
+			    	NotificationManager notificator = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+					Notification notification = new Notification(R.drawable.tinyicon, getString(R.string.invitationReceivedTicker),
+			    			System.currentTimeMillis());
+			    	Intent intent = new Intent().setClass(this, SWAACFriendsListActivity.class);
+			    	PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+			    	notification.setLatestEventInfo(this, getString(R.string.invitationReceivedTittle),
+			    			getString(R.string.invitationReceivedMsg) + " " + invitations, pendingIntent);
+			    	notification.defaults = Notification.DEFAULT_VIBRATE;
+			    	notification.flags = Notification.FLAG_AUTO_CANCEL;
+			    	notificator.notify(R.string.invitationNotificationID, notification);
+				}
+				break;
+			default:
+				break;
+		}
+    }
     
     
     
@@ -541,6 +609,11 @@ public class SWAACLoggedInActivity extends Activity
             {
             	onlineClients = b.getStringArray("onlineClients");
             	updateClientsList(1);
+            }
+            else if (b.getBoolean("pendingInvitationRequest"))
+            {
+            	invitations = b.getStringArray("invitations").length;
+            	invitationsRequest(1);
             }
         }
     };
