@@ -50,15 +50,23 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
             
                 String filename = in.readUTF();
                 int filesize = in.readInt();
-                
-                //Security problem here!!! need to check the filename
-                //Also have to check if the file already exists
-                //Also a limit for the filesize, and a limit for the time reading it
-                System.out.println("Receiving file of " + filesize + " bytes");
+
                 boolean[] stopper = new boolean[] {false};
-                FileGraphicalInterface graphical = this.client.program.newDownload(username + "@" + client, filename, filesize, username.equals(this.client.username), stopper);
                 
                 File file = new File(filename);
+                String name = file.getName();
+                file = new File(name);
+                
+                int count = 1;
+                int index = name.indexOf('.');
+                
+                while (file.exists()) {
+                    if (index == -1) file = new File(name + "(" + count + ")");
+                    else file = new File(name.substring(0, index) + "(" + count + ")" + name.substring(index));
+                    count++;
+                }
+                
+                FileGraphicalInterface graphical = this.client.program.newDownload(username + "@" + client, file.getAbsolutePath(), filesize, username.equals(this.client.username), stopper);
                 FileOutputStream fileout = new FileOutputStream(file);
                 int bytesRead;
                 int totalBytes = 0;

@@ -10,15 +10,15 @@ import javax.swing.JLabel;
 import java.awt.Insets;
 import java.awt.Font;
 import java.io.File;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class FileGraphicalInterface extends JFrame
 {
-
     private JPanel contentPane;
     private SWAClient client;
     private JLabel L_Saving;
@@ -29,6 +29,7 @@ public class FileGraphicalInterface extends JFrame
     private JButton B_Open;
     private JCheckBox CB_Open;
     private boolean[] stopper;
+    private boolean finished = false;
     
     private String getSizeFromBytes(int bytes) {
         if (bytes < 1024.0)
@@ -52,13 +53,18 @@ public class FileGraphicalInterface extends JFrame
      */
     public FileGraphicalInterface(SWAClient cli, String sender, String path, int bytes, boolean open, boolean[] stopper)
     {
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent arg0) {
+                if (finished) client.program.finishedDownload(FileGraphicalInterface.this);
+            }
+        });
+
         client = cli;
         this.stopper = stopper;
-        
-        setResizable(false);
         setTitle("Receiving file");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        setBounds(100, 100, 324, 230);
+        setBounds(100, 100, 373, 199);
         contentPane = new JPanel();
         contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
         setContentPane(contentPane);
@@ -66,7 +72,7 @@ public class FileGraphicalInterface extends JFrame
         gbl_contentPane.columnWidths = new int[]{100, 0, 0};
         gbl_contentPane.rowHeights = new int[]{0, 0, 0, 30, 30, 0, 0};
         gbl_contentPane.columnWeights = new double[]{0.0, 1.0, Double.MIN_VALUE};
-        gbl_contentPane.rowWeights = new double[]{1.0, 1.0, 1.0, 1.0, 0.0, 1.0, Double.MIN_VALUE};
+        gbl_contentPane.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
         contentPane.setLayout(gbl_contentPane);
         
         JLabel lblReceivingFile = new JLabel("Saving file to:");
@@ -82,7 +88,7 @@ public class FileGraphicalInterface extends JFrame
         L_Saving.setText(path);
         L_Saving.setFont(new Font("SansSerif", Font.PLAIN, 12));
         GridBagConstraints gbc_L_Saving = new GridBagConstraints();
-        gbc_L_Saving.anchor = GridBagConstraints.WEST;
+        gbc_L_Saving.fill = GridBagConstraints.HORIZONTAL;
         gbc_L_Saving.insets = new Insets(0, 0, 5, 0);
         gbc_L_Saving.gridx = 1;
         gbc_L_Saving.gridy = 0;
@@ -101,7 +107,7 @@ public class FileGraphicalInterface extends JFrame
         L_Sender.setText(sender);
         L_Sender.setFont(new Font("SansSerif", Font.PLAIN, 12));
         GridBagConstraints gbc_L_Sender = new GridBagConstraints();
-        gbc_L_Sender.anchor = GridBagConstraints.WEST;
+        gbc_L_Sender.fill = GridBagConstraints.HORIZONTAL;
         gbc_L_Sender.insets = new Insets(0, 0, 5, 0);
         gbc_L_Sender.gridx = 1;
         gbc_L_Sender.gridy = 1;
@@ -120,7 +126,7 @@ public class FileGraphicalInterface extends JFrame
         L_Size.setText(getSizeFromBytes(bytes));
         L_Size.setFont(new Font("SansSerif", Font.PLAIN, 12));
         GridBagConstraints gbc_L_Size = new GridBagConstraints();
-        gbc_L_Size.anchor = GridBagConstraints.WEST;
+        gbc_L_Size.fill = GridBagConstraints.HORIZONTAL;
         gbc_L_Size.insets = new Insets(0, 0, 5, 0);
         gbc_L_Size.gridx = 1;
         gbc_L_Size.gridy = 2;
@@ -205,6 +211,7 @@ public class FileGraphicalInterface extends JFrame
     }
     
     public void finishedDownload() {
+        finished = true;
         B_Stop.setEnabled(false);
         if (CB_Open.isSelected()) openFile();
         else B_Open.setEnabled(true);

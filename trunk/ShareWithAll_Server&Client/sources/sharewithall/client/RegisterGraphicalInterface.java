@@ -1,7 +1,5 @@
 package sharewithall.client;
 
-import java.awt.BorderLayout;
-
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -12,7 +10,6 @@ import javax.swing.JTextField;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
-import java.awt.Dialog.ModalExclusionType;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -152,14 +149,18 @@ public class RegisterGraphicalInterface extends javax.swing.JFrame
     {
         return TF_Username.getText(); 
     }
+    
     public String getPassword()
     {
-        if(!TF_NewPassword.getText().equals(TF_RepeatPassword.getText()))
+        String p1 = String.valueOf(TF_NewPassword.getPassword());
+        String p2 = String.valueOf(TF_RepeatPassword.getPassword());
+        
+        if(!p1.equals(p2))
         {
-            JOptionPane.showMessageDialog(null, "The password don't match.", "Error", 0);
+            JOptionPane.showMessageDialog(this, "The password don't match.", "Error", JOptionPane.ERROR_MESSAGE);
             return null;
         }
 
-        return TF_NewPassword.getText(); 
+        return p1; 
     }
 }
