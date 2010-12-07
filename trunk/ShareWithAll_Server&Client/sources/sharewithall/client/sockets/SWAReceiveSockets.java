@@ -30,7 +30,7 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
     protected static final int FILE_BUFFER_SIZE = 4096;
-    protected static final int MAX_THREADS = 5;
+    protected static final int MAX_THREADS = 20;
     
     private ServerSocket receiverSocket;
     private boolean gateway;

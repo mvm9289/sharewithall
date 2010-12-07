@@ -45,6 +45,7 @@ public class SWAServerSockets extends Thread
     private static final int NOTIFY_FRIENDS_CHANGED = 19;
     private static final int NOTIFY_INVITATION = 20;
     private static final int RETURN_VALUE = 0;
+    protected static final int MAX_GATEWAY_SOCKETS = 50;
     private static final int EXCEPTION = -1;
     
     private ServerSocket serverSocket;
@@ -303,7 +304,7 @@ public class SWAServerSockets extends Thread
             
             ArrayBlockingQueue<Socket> sockets = connections.get(sessionID);
             if (sockets == null) {
-                sockets = new ArrayBlockingQueue<Socket>(10);
+                sockets = new ArrayBlockingQueue<Socket>(MAX_GATEWAY_SOCKETS);
                 connections.put(sessionID, sockets);
             }
             sockets.put(clientSocket);

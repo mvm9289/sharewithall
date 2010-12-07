@@ -125,13 +125,16 @@ public class SWAClient
     private void threadException(SendOperation op, Exception e) {
         switch (op) {
             case SEND_FILE:
-                program.showErrorMessage("Send file error", e.getMessage());
+                if (e.getClass() == Exception.class) program.showErrorMessage("Send file error", e.getMessage());
+                else program.showErrorMessage("Send file error", "Error in the file transfer");
                 break;
             case SEND_TEXT:
-                program.showErrorMessage("Send text error", e.getMessage());
+                if (e.getClass() == Exception.class) program.showErrorMessage("Send text error", e.getMessage());
+                else program.showErrorMessage("Send text error", "Error sending the text message");
                 break;
             case SEND_URL:
-                program.showErrorMessage("Send URL error", e.getMessage());
+                if (e.getClass() == Exception.class) program.showErrorMessage("Send URL error", e.getMessage());
+                else program.showErrorMessage("Send URL error", "Error sending the URL");
                 break;
         }
         
@@ -352,6 +355,7 @@ public class SWAClient
                 socketsModule.logout(sessionID);
                 sessionID = null;
                 username = null;
+                cache_clients.clear();
             }
         }
         catch (Exception e)
