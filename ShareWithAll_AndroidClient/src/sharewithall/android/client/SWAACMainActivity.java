@@ -121,7 +121,6 @@ public class SWAACMainActivity extends Activity
     				login(0);
     			}
     		});
-            configure2();
         }
     }
     
