@@ -81,6 +81,7 @@ public class SWAACService extends Service
         receiveSockets.stop_receiver();
         AlarmManager alarm = (AlarmManager)getSystemService(ALARM_SERVICE);
         alarm.cancel(alarmSender);
+        notificator.cancelAll();
 		super.onDestroy();
 	}
 	

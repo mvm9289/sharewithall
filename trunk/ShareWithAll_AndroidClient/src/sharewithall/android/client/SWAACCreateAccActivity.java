@@ -78,6 +78,8 @@ public class SWAACCreateAccActivity extends Activity
 			case 0:
 				if (!password1.equals(password2))
 		    		SWAACUtils.printMessage(this, getResources().getString(R.string.passwordsNotMatch));
+				else if (username.length() < 6 || password1.length() < 6)
+					SWAACUtils.printMessage(this, getResources().getString(R.string.userAndPassMinimum));
 		    	else
 		    	{
 		    		Object[] data = new Object[2];
