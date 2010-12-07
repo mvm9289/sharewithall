@@ -271,8 +271,7 @@ public class SWAServerSockets extends Thread
             
             ArrayBlockingQueue<Socket> sockets = connections.get(client_sessionID);
             if (sockets == null) throw new Exception("Client is not listening to the gateway");
-            Socket destSocket = sockets.poll();
-            if (destSocket == null) throw new Exception("Client is not listening to the gateway");
+            Socket destSocket = sockets.take();
             
             out1.writeInt(RETURN_VALUE);
             

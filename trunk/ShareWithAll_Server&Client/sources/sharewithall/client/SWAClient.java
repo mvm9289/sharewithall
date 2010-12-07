@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Semaphore;
 
 import sharewithall.client.sockets.SWAReceiveClientSockets;
 import sharewithall.client.sockets.SWASendSockets;
@@ -33,6 +34,7 @@ public class SWAClient
     public static final int PROPERTY_DECLARED_FRIEND = SWASendSockets.PROPERTY_DECLARED_FRIEND;
     public static final int PROPERTY_EXPECTING = SWASendSockets.PROPERTY_EXPECTING;
     public static final int PROPERTY_IGNORED = SWASendSockets.PROPERTY_IGNORED;
+    public static final int MAX_SENDS = 5;
     public String serverIP;
     public int serverPort;
     public MainGraphicalInterface program = null;
@@ -42,6 +44,7 @@ public class SWAClient
     private SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
     private Object lock = new Object();
+    private Semaphore sem = new Semaphore(MAX_SENDS); 
     private HashMap<String, ArrayList<String>> cache_clients = new HashMap<String, ArrayList<String>>();
     public String username;
     
@@ -98,11 +101,13 @@ public class SWAClient
         public void run()
         {
             try {
+                sem.acquire();
                 String sessionID = (String)params[0];
                 String token = (String)params[1];
                 String ip = (String)params[2];
                 int port = (Integer)params[3];
                 String data = (String)params[4];
+                
                 switch (op) {
                     case SEND_FILE:
                         socketsModule.sendFile(sessionID, token, ip, port, data);
@@ -119,6 +124,9 @@ public class SWAClient
             }
             catch (Exception e) {
                 threadException(op, e);
+            }
+            finally {
+                sem.release();
             }
         }
     }
@@ -350,18 +358,20 @@ public class SWAClient
         {
             synchronized(lock) {
                 receiveSocketsModule.stop_receiver();
-                receiveSocketsModule = null;
                 SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
                 socketsModule.logout(sessionID);
-                sessionID = null;
-                username = null;
-                cache_clients.clear();
             }
         }
         catch (Exception e)
         {
             if (e.getClass() == Exception.class) throw e;
             else throw new Exception("Error");
+        }
+        finally {
+            receiveSocketsModule = null;
+            sessionID = null;
+            username = null;
+            cache_clients.clear();
         }
     }
     

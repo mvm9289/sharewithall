@@ -141,6 +141,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         getContentPane().add(L_Gateway, gbc_L_Gateway);
         
         CB_Gateway = new JCheckBox("");
+        CB_Gateway.setSelected(true);
         GridBagConstraints gbc_CB_Gateway = new GridBagConstraints();
         gbc_CB_Gateway.anchor = GridBagConstraints.WEST;
         gbc_CB_Gateway.insets = new Insets(0, 0, 5, 5);
