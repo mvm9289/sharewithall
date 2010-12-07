@@ -38,6 +38,10 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private JLabel L_Gateway;
     JCheckBox CB_Gateway;
     private JPanel panel;
+    private JLabel L_Receiving;
+    private JCheckBox CB_Receiving;
+    private JLabel L_Links;
+    private JCheckBox CB_Links;
     
     public LoginGraphicalInterface(SWAClient c)
     {
@@ -54,13 +58,13 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private void initialize()
     {
         
-        setBounds(100, 100, 344, 259);
+        setBounds(100, 100, 344, 275);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[]{30, 0, 354, 30, 0};
-        gridBagLayout.rowHeights = new int[]{30, -9, 26, 17, 0, 0, 0, 0};
+        gridBagLayout.rowHeights = new int[]{30, -9, 26, 17, 0, 0, 0, 0, 0, 0};
         gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
         getContentPane().setLayout(gridBagLayout);
         
         L_Username = new JLabel("Username: ");
@@ -143,18 +147,51 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         gbc_CB_Gateway.gridy = 5;
         getContentPane().add(CB_Gateway, gbc_CB_Gateway);
         
+        L_Receiving = new JLabel("Allow receiving files");
+        GridBagConstraints gbc_L_Receiving = new GridBagConstraints();
+        gbc_L_Receiving.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Receiving.gridx = 1;
+        gbc_L_Receiving.gridy = 6;
+        getContentPane().add(L_Receiving, gbc_L_Receiving);
+        
+        CB_Receiving = new JCheckBox("");
+        GridBagConstraints gbc_CB_Receiving = new GridBagConstraints();
+        gbc_CB_Receiving.anchor = GridBagConstraints.WEST;
+        gbc_CB_Receiving.insets = new Insets(0, 0, 5, 5);
+        gbc_CB_Receiving.gridx = 2;
+        gbc_CB_Receiving.gridy = 6;
+        getContentPane().add(CB_Receiving, gbc_CB_Receiving);
+        
+        L_Links = new JLabel("Open links automatically");
+        GridBagConstraints gbc_L_Links = new GridBagConstraints();
+        gbc_L_Links.insets = new Insets(0, 0, 5, 5);
+        gbc_L_Links.gridx = 1;
+        gbc_L_Links.gridy = 7;
+        getContentPane().add(L_Links, gbc_L_Links);
+        
+        CB_Links = new JCheckBox("");
+        GridBagConstraints gbc_CB_Links = new GridBagConstraints();
+        gbc_CB_Links.anchor = GridBagConstraints.WEST;
+        gbc_CB_Links.insets = new Insets(0, 0, 5, 5);
+        gbc_CB_Links.gridx = 2;
+        gbc_CB_Links.gridy = 7;
+        getContentPane().add(CB_Links, gbc_CB_Links);
+        
         panel = new JPanel();
         GridBagConstraints gbc_panel = new GridBagConstraints();
         gbc_panel.insets = new Insets(0, 0, 0, 5);
         gbc_panel.anchor = GridBagConstraints.WEST;
         gbc_panel.gridx = 2;
-        gbc_panel.gridy = 6;
+        gbc_panel.gridy = 8;
         getContentPane().add(panel, gbc_panel);
         
         B_Login = new JButton("Login");
         B_Login.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                client.setGateway(CB_Gateway.isSelected());
+                client.gateway = CB_Gateway.isSelected();
+                client.open_links = CB_Links.isSelected();
+                client.receive_files = CB_Receiving.isSelected();
+                
                 try {
                     client.loginCommand(getUsername(), getPassword(), getClient(), getPublic());
                 }
