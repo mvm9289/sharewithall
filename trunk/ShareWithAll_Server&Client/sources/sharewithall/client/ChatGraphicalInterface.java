@@ -6,8 +6,6 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.AdjustmentEvent;
-import java.awt.event.AdjustmentListener;
 
 import javax.swing.JTextArea;
 import javax.swing.JButton;
@@ -18,6 +16,8 @@ import java.awt.Insets;
 import javax.swing.JScrollPane;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 
 public class ChatGraphicalInterface extends JFrame
 {
@@ -87,11 +87,6 @@ public class ChatGraphicalInterface extends JFrame
         contentPane.setLayout(gbl_contentPane);
         
         SP_Read = new JScrollPane();
-        SP_Read.getVerticalScrollBar().addAdjustmentListener(new AdjustmentListener() {  
-            public void adjustmentValueChanged(AdjustmentEvent e) {  
-                e.getAdjustable().setValue(e.getAdjustable().getMaximum());  
-            }
-        });
         
         GridBagConstraints gbc_SP_Read = new GridBagConstraints();
         gbc_SP_Read.insets = new Insets(0, 0, 5, 5);
@@ -101,6 +96,12 @@ public class ChatGraphicalInterface extends JFrame
         contentPane.add(SP_Read, gbc_SP_Read);
         
         TA_Read = new JTextArea();
+        TA_Read.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent arg0) {
+                SP_Read.getVerticalScrollBar().setValue(SP_Read.getVerticalScrollBar().getMaximum());
+            }
+        });
         SP_Read.setViewportView(TA_Read);
         TA_Read.setLineWrap(true);
         TA_Read.setEditable(false);
