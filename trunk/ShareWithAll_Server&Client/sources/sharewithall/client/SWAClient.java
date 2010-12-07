@@ -36,12 +36,14 @@ public class SWAClient
     public String serverIP;
     public int serverPort;
     public MainGraphicalInterface program = null;
-    private boolean gateway = true;
+    public boolean gateway = true;
+    public boolean receive_files = true;
+    public boolean open_links = true;
     private SWAReceiveClientSockets receiveSocketsModule;
     private String sessionID;
     private Object lock = new Object();
     private HashMap<String, ArrayList<String>> cache_clients = new HashMap<String, ArrayList<String>>();
-    private String username;
+    public String username;
     
     private class SWAUpdateThread extends Thread
     {
@@ -152,20 +154,21 @@ public class SWAClient
     public String getSessionID() {
         return sessionID;
     }
-    public void setGateway(boolean useGateway) {
-        gateway = useGateway;
-    }
+    
     public void RefreshListOfFriends() {
         program.RefreshListOfFriends();
         System.out.println("Refresh list of friends");
     }
+    
     public void RefreshListOfOnlineClients() {
         program.RefreshListOfOnlineClients();
         System.out.println("Refresh online clients");
     }
+    
     public void RefreshInvitations() {
         System.out.println("Refresh invitations");
     }
+    
     public void newUserCommand(String username, String password) throws Exception
     {
         try
@@ -425,10 +428,6 @@ public class SWAClient
     public void receiveText(String username, String client, String text)
     {
         program.receiveText(username, client, text);
-    }
-    public void receiveFile(String username, String client, String file)
-    {
-        program.receiveFile(username, client, file);
     }
 }
 

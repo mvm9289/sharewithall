@@ -18,6 +18,8 @@ import java.awt.Insets;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.net.URL;
 
 public class MainGraphicalInterface extends javax.swing.JFrame
 {
@@ -37,6 +39,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     private JList LS_Connected;
     private String username;
     private ArrayList<chatInfo> openChats;
+    private ArrayList<FileGraphicalInterface> openFiles = new ArrayList<FileGraphicalInterface>();
     private JPanel panel;
     private JPanel panel_1;
 
@@ -160,32 +163,56 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         openChat(text, username, client);
     }
     
+    public FileGraphicalInterface newDownload(String sender, String path, int bytes, boolean open, boolean[] stopper) {
+        FileGraphicalInterface ret = new FileGraphicalInterface(client, sender, path, bytes, open, stopper);
+        openFiles.add(ret);
+        return ret;
+    }
+    
     public void receiveFile(String username, String client, String path)
     {
-        JOptionPane.showMessageDialog(MainGraphicalInterface.this, username + "@" + client + " has sent you a file: " + path + ".", "File received", JOptionPane.INFORMATION_MESSAGE);
+        int answer = JOptionPane.showConfirmDialog(this, username + "@" + client + " has sent you a file: " + path + ". Do you want to open it?");
+        if (answer == JOptionPane.OK_OPTION) {
+
+        }
     }
     
     public void receiveURL(String username, String client, String url) {
-        JOptionPane.showMessageDialog(MainGraphicalInterface.this, username + "@" + client + " has sent you a link: " + url + ".", "URL received", JOptionPane.INFORMATION_MESSAGE);
-        
-        boolean ok = false;
-        java.awt.Desktop desktop = null;
-        if (java.awt.Desktop.isDesktopSupported() ) {
-            desktop = java.awt.Desktop.getDesktop();
-            ok = desktop.isSupported(java.awt.Desktop.Action.BROWSE);
+        int answer = JOptionPane.OK_OPTION;
+        if (!this.client.open_links && !username.equals(this.client.username)) {
+            answer = JOptionPane.showConfirmDialog(this, username + "@" + client + " has sent you a link: " + url + ". Do you want to open it?");
         }
-        if (ok) {
-            try {
-                java.net.URI uri = new java.net.URI( url );
-                desktop.browse( uri );
+        if (answer == JOptionPane.OK_OPTION) {
+            boolean ok = false;
+            java.awt.Desktop desktop = null;
+            if (java.awt.Desktop.isDesktopSupported() ) {
+                desktop = java.awt.Desktop.getDesktop();
+                ok = desktop.isSupported(java.awt.Desktop.Action.BROWSE);
             }
-            catch ( Exception e ) {
-                showErrorMessage("Open URL error", e.getMessage());
+            if (ok) {
+                try {
+                    desktop.browse((new URL("http", url, "")).toURI());
+                }
+                catch ( Exception e ) {
+                    try {
+                        URL u = new URL(url);
+                        if (u.getProtocol().equals("http") || u.getProtocol().equals("https")) desktop.browse(u.toURI());
+                        else ok = false;
+                    }
+                    catch (Exception ee) {
+                        ok = false;
+                    }
+                }
+            }
+            if (!ok) {
+                showErrorMessage("Open URL error", "Cannot open the URL '" + url + "' in your default browser");
             }
         }
-        else {
-            showErrorMessage("Open URL error", "Cannot open the received URL in your default browser");
-        }
+    }
+    
+    public void finishedDownload(FileGraphicalInterface file) {
+        openFiles.remove(file);
+        file.dispose();
     }
     
     public void showErrorMessage(String title, String message) {
@@ -219,12 +246,17 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         setVisible(true);
     }
     
-    private void removeChats() {
+    private void removeChildren() {
         for (int i = 0; i < openChats.size(); ++i) {
             chatInfo ch = openChats.get(i);
             ch.chat.dispose();
         }
         openChats.clear();
+        for (int i = 0; i < openFiles.size(); ++i) {
+            FileGraphicalInterface f = openFiles.get(i);
+            f.dispose();
+        }
+        openFiles.clear();
     }
     
     /**
@@ -465,7 +497,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
                     showErrorMessage("Logout error", e.getMessage());
                 }
                 dispose();
-                removeChats();
+                removeChildren();
                 loginI.setVisible(true);
             }
         });

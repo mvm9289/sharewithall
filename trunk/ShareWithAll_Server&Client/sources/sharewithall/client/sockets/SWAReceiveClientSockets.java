@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.DataInputStream;
 
+import sharewithall.client.FileGraphicalInterface;
 import sharewithall.client.SWAClient;
 
 /**
@@ -44,6 +45,9 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 this.client.receiveText(username, client, in.readUTF());
                 break;
             case SEND_FILE:
+                if (!this.client.receive_files && !this.client.username.equals(username))
+                    throw new Exception("Receiving files disabled");
+            
                 String filename = in.readUTF();
                 int filesize = in.readInt();
                 
@@ -51,17 +55,25 @@ public class SWAReceiveClientSockets extends SWAReceiveSockets
                 //Also have to check if the file already exists
                 //Also a limit for the filesize, and a limit for the time reading it
                 System.out.println("Receiving file of " + filesize + " bytes");
+                boolean[] stopper = new boolean[] {false};
+                FileGraphicalInterface graphical = this.client.program.newDownload(username + "@" + client, filename, filesize, username.equals(this.client.username), stopper);
+                
                 File file = new File(filename);
                 FileOutputStream fileout = new FileOutputStream(file);
                 int bytesRead;
+                int totalBytes = 0;
                 byte bytes[] = new byte[FILE_BUFFER_SIZE];
-                while ((bytesRead = in.read(bytes)) > 0)
+                while (!stopper[0] && (bytesRead = in.read(bytes)) > 0)
                 {
                     fileout.write(bytes, 0, bytesRead);
                     fileout.flush();
+                    totalBytes += bytesRead;
+                    graphical.setProgress(totalBytes);
                 }
                 fileout.close();
-                this.client.receiveFile(username, client, file.getAbsolutePath());
+                if (!stopper[0]) graphical.finishedDownload();
+                else file.delete();
+ 
                 break;
             case NOTIFY_CLIENTS_CHANGED:
                 this.client.RefreshListOfOnlineClients();
