@@ -30,7 +30,7 @@ public abstract class SWAReceiveSockets extends Thread
     protected static final int RETURN_VALUE = 0;
     protected static final int EXCEPTION = -1;
     protected static final int FILE_BUFFER_SIZE = 4096;
-    protected static final int MAX_THREADS = 20;
+    protected static final int MAX_THREADS = 10;
     
     private ServerSocket receiverSocket;
     private boolean gateway;
@@ -97,12 +97,11 @@ public abstract class SWAReceiveSockets extends Thread
         if (gateway) {
             while (true) {
                 try {
-
                     makeGateway();
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+                    e.printStackTrace();
                 }
                 finally {
                     if (stop) {
@@ -127,7 +126,7 @@ public abstract class SWAReceiveSockets extends Thread
                 }
                 catch (Exception e)
                 {
-                    System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
+                    e.printStackTrace();
                 }
                 finally {
                     if (stop) {

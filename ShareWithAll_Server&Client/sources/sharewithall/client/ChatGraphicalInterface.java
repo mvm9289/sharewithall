@@ -21,9 +21,7 @@ import java.awt.event.KeyEvent;
 
 public class ChatGraphicalInterface extends JFrame
 {
-
     private JPanel contentPane;
-
     private String contactUsername;
     private String contactClient;
     private SWAClient client;

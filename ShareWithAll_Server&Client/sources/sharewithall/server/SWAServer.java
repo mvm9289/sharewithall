@@ -97,9 +97,16 @@ public class SWAServer
         }
         if (username.contains(":")) {
         	DBUsers.close();
-            throw new Exception("This username contains illegal characters: ':'.");
+            throw new Exception("This username contains illegal characters: ':'");
         }
-
+        if (username.length() == 0) {
+            DBUsers.close();
+            throw new Exception("The username cannot be empty");
+        }
+        if (password.length() == 0) {
+            DBUsers.close();
+            throw new Exception("The password cannot be empty");
+        }
         DBUsers.insert_obj(new JDBCUser(username, md5(password)));
         DBUsers.commit();
         DBUsers.close();
@@ -117,6 +124,12 @@ public class SWAServer
         if (!exists) throw new Exception("The username/password combination is not correct");
         
         JDBCDBClients DBClients = new JDBCDBClients();
+        
+        JDBCClient cl = (JDBCClient)DBClients.get_key(name, username);
+        if (cl != null) {
+            DBClients.close();
+            throw new Exception("A client with the passed username/name already exists");
+        }
         String session_id = md5(System.currentTimeMillis() + username + (new Random()).nextLong() + password);
         ArrayList<Object> clients = DBClients.select_gen(new JDBCPredicate("ip", ip));
         int max_port = FIRST_CLIENT_PORT;
@@ -124,8 +137,8 @@ public class SWAServer
             max_port = Math.max(max_port, ((JDBCClient)clients.get(i)).port);
         Timestamp last_time = new Timestamp((new Date()).getTime());
         
-        JDBCClient cl = new JDBCClient(ip, max_port + 1, name, isPublic, last_time, username, session_id);
-        if (DBClients.update_obj(cl) == 0) DBClients.insert_obj(cl);
+        cl = new JDBCClient(ip, max_port + 1, name, isPublic, last_time, username, session_id);
+        DBClients.insert_obj(cl);
         DBClients.commit();
         
         clients = DBClients.select_gen(new JDBCPredicate("username", username), new JDBCPredicate("name", name, "!="));

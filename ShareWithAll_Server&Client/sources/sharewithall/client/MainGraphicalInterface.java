@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -334,12 +335,12 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         B_SendFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 try {
+                    final JFileChooser fc = new JFileChooser();
+                    int returnVal = fc.showOpenDialog(MainGraphicalInterface.this);
                     String[] receiverInfo = obtainReceiver();
-                    if(receiverInfo!=null)
-                    {
-                        String path = JOptionPane.showInputDialog(MainGraphicalInterface.this, "What is the path of the file you want to send?");
-                        if(path != null)
-                            client.sendFileCommand(path, receiverInfo[0], receiverInfo[1]);
+                    if (receiverInfo != null && returnVal == JFileChooser.APPROVE_OPTION) {
+                        File file = fc.getSelectedFile();
+                        client.sendFileCommand(file.getAbsolutePath(), receiverInfo[0], receiverInfo[1]);
                     }
                 }
                 catch (Exception e) {
@@ -490,15 +491,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         B_Logout = new JButton("Logout");
         B_Logout.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
-                try {
-                    client.logoutCommand();
-                }
-                catch (Exception e) {
-                    showErrorMessage("Logout error", e.getMessage());
-                }
-                dispose();
-                removeChildren();
-                loginI.setVisible(true);
+                logout();
             }
         });
         GridBagConstraints gbc_B_Logout = new GridBagConstraints();
@@ -507,6 +500,18 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         gbc_B_Logout.gridx = 0;
         gbc_B_Logout.gridy = 1;
         getContentPane().add(B_Logout, gbc_B_Logout);
+    }
+    
+    public void logout() {
+        try {
+            client.logoutCommand();
+        }
+        catch (Exception e) {
+            showErrorMessage("Logout error", e.getMessage());
+        }
+        dispose();
+        removeChildren();
+        loginI.setVisible(true);
     }
 }
 

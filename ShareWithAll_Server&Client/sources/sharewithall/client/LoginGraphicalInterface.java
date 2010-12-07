@@ -1,8 +1,5 @@
 package sharewithall.client;
 
-import java.awt.Color;
-import java.awt.EventQueue;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
@@ -10,7 +7,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.LineBorder;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JPasswordField;
@@ -19,12 +15,9 @@ import javax.swing.SwingConstants;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
-import java.awt.GridLayout;
 
 public class LoginGraphicalInterface extends javax.swing.JFrame
 {
-    private RegisterGraphicalInterface registerI;
-    private MainGraphicalInterface mainI;
     private SWAClient client;
     private JLabel L_Username;
     private JTextField TF_Username;
@@ -197,7 +190,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         B_Register.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 setVisible(false);
-                registerI = new RegisterGraphicalInterface(client, LoginGraphicalInterface.this);
+                new RegisterGraphicalInterface(client, LoginGraphicalInterface.this);
             }
         });
         
@@ -220,7 +213,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
                 clearFields();
                 dispose();
                 
-                mainI = new MainGraphicalInterface(client, username, LoginGraphicalInterface.this);
+                new MainGraphicalInterface(client, username, LoginGraphicalInterface.this);
             }
         });
         GridBagConstraints gbc_B_Login = new GridBagConstraints();
@@ -245,7 +238,7 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     }
     public String getPassword()
     {
-        return TF_Password.getText(); 
+        return String.valueOf(TF_Password.getPassword());
     }
     public String getClient()
     {
