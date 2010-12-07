@@ -49,7 +49,6 @@ public abstract class SWAReceiveSockets extends Thread
         }
         catch (Exception e)
         {
-            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
         }
     }
     
@@ -64,7 +63,6 @@ public abstract class SWAReceiveSockets extends Thread
         }
         catch (Exception e)
         {
-            System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
         }
     }
 
@@ -74,7 +72,6 @@ public abstract class SWAReceiveSockets extends Thread
     public abstract String getSessionID();
     
     public void stop_receiver() {
-        System.out.println("Closing receiver...");
         stop = true;
         this.interrupt();
     }
@@ -93,7 +90,6 @@ public abstract class SWAReceiveSockets extends Thread
     
     public void run()
     {
-        System.out.println("Starting main thread");
         if (gateway) {
             while (true) {
                 try {
@@ -101,12 +97,10 @@ public abstract class SWAReceiveSockets extends Thread
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
                 }
                 finally {
                     if (stop) {
                         kill_threads();
-                        System.out.println("Exiting main thread");
                         return;
                     }
                 }
@@ -126,12 +120,10 @@ public abstract class SWAReceiveSockets extends Thread
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
                 }
                 finally {
                     if (stop) {
                         kill_threads();
-                        System.out.println("Exiting main thread");
                         return;
                     }
                 }
@@ -195,10 +187,7 @@ public abstract class SWAReceiveSockets extends Thread
                 {
                     out.writeInt(EXCEPTION);
                     if (e.getClass() == Exception.class) out.writeUTF(e.getMessage());
-                    else {
-                        e.printStackTrace();
-                        out.writeUTF("Remote Exception");
-                    }
+                    else out.writeUTF("Remote Exception");
                 }
                 finally {
                     out.flush();
@@ -206,15 +195,11 @@ public abstract class SWAReceiveSockets extends Thread
             }
             catch (Exception e)
             {
-                e.printStackTrace();
-                //System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
             }
         }
         
         public void run()
         {
-            System.out.println("Starting child thread " + threads_queue.size());
-            
             try
             {
                 decodeAndProcess();
@@ -222,12 +207,10 @@ public abstract class SWAReceiveSockets extends Thread
             }
             catch (Exception e)
             {
-                System.out.println("Server exception: " + e.getClass() + ":" + e.getMessage());
             }
             finally {
                 threads_queue.remove(this);
             }
-            System.out.println("Exiting child thread " + threads_queue.size());
         }
         
     }

@@ -44,7 +44,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     private JPanel panel;
     private JPanel panel_1;
 
-    public void openChat(String receiverUsername, String receiverClient)
+    private void openChat(String receiverUsername, String receiverClient)
     {
         if(!isOpenedChat(receiverClient))
         {
@@ -57,7 +57,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
     
-    public void openChat(String text, String receiverUsername, String receiverClient)
+    private void openChat(String text, String receiverUsername, String receiverClient)
     {
         ChatGraphicalInterface chat;
         if(!isOpenedChat(receiverClient))
@@ -114,7 +114,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         return receiverInfo;
     }
     
-    public void RefreshListOfOnlineClients()
+    public synchronized void RefreshListOfOnlineClients()
     {
         try {
             String receiver = (String) LS_Connected.getSelectedValue();
@@ -126,7 +126,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
     
-    public void RefreshListOfFriends()
+    public synchronized void RefreshListOfFriends()
     {
         try {
             String[] friends = client.showListOfFriendsCommand(SWAClient.PROPERTY_FRIENDS);
@@ -159,23 +159,15 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
 
-    public void receiveText(String username, String client, String text)
+    public synchronized void receiveText(String username, String client, String text)
     {
         openChat(text, username, client);
     }
     
-    public FileGraphicalInterface newDownload(String sender, String path, int bytes, boolean open, boolean[] stopper) {
+    public synchronized FileGraphicalInterface newDownload(String sender, String path, int bytes, boolean open, boolean[] stopper) {
         FileGraphicalInterface ret = new FileGraphicalInterface(client, sender, path, bytes, open, stopper);
         openFiles.add(ret);
         return ret;
-    }
-    
-    public void receiveFile(String username, String client, String path)
-    {
-        int answer = JOptionPane.showConfirmDialog(this, username + "@" + client + " has sent you a file: " + path + ". Do you want to open it?");
-        if (answer == JOptionPane.OK_OPTION) {
-
-        }
     }
     
     public void receiveURL(String username, String client, String url) {
@@ -211,7 +203,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         }
     }
     
-    public void finishedDownload(FileGraphicalInterface file) {
+    public synchronized void finishedDownload(FileGraphicalInterface file) {
         openFiles.remove(file);
         file.dispose();
     }

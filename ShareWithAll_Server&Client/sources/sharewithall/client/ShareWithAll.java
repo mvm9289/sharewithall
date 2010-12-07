@@ -1,7 +1,5 @@
 package sharewithall.client;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
@@ -10,7 +8,6 @@ public class ShareWithAll
     public static SWAClient client;
     public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
     public static final int DEFAULT_SERVER_PORT = 4040;
-    static private LoginGraphicalInterface loginI;
     
     private static void printUsage()
     {
@@ -45,17 +42,10 @@ public class ShareWithAll
                 printUsage();
                 return;
             }
-            loginI = new LoginGraphicalInterface(client);
-            
-            loginI.B_Login.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent arg0) {
-
-                }
-            });
+            new LoginGraphicalInterface(client);
             
         } catch (Exception e)
         {
-            e.printStackTrace();
         }
     }
 }
