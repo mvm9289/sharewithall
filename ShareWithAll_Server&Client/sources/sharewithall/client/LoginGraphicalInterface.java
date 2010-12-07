@@ -19,6 +19,7 @@ import javax.swing.SwingConstants;
 import java.awt.GridBagLayout;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
+import java.awt.GridLayout;
 
 public class LoginGraphicalInterface extends javax.swing.JFrame
 {
@@ -58,13 +59,13 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
     private void initialize()
     {
         
-        setBounds(100, 100, 344, 275);
+        setBounds(100, 100, 375, 304);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[]{30, 0, 354, 30, 0};
         gridBagLayout.rowHeights = new int[]{30, -9, 26, 17, 0, 0, 0, 0, 0, 0};
         gridBagLayout.columnWeights = new double[]{0.0, 0.0, 1.0, 0.0, Double.MIN_VALUE};
-        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, Double.MIN_VALUE};
+        gridBagLayout.rowWeights = new double[]{0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, Double.MIN_VALUE};
         getContentPane().setLayout(gridBagLayout);
         
         L_Username = new JLabel("Username: ");
@@ -184,6 +185,20 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
         gbc_panel.gridx = 2;
         gbc_panel.gridy = 8;
         getContentPane().add(panel, gbc_panel);
+        GridBagLayout gbl_panel = new GridBagLayout();
+        gbl_panel.columnWidths = new int[]{0, 75, 0};
+        gbl_panel.rowHeights = new int[]{28, 0};
+        gbl_panel.columnWeights = new double[]{0.0, 0.0, Double.MIN_VALUE};
+        gbl_panel.rowWeights = new double[]{0.0, Double.MIN_VALUE};
+        panel.setLayout(gbl_panel);
+        
+        B_Register = new JButton("Register");
+        B_Register.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent arg0) {
+                setVisible(false);
+                registerI = new RegisterGraphicalInterface(client, LoginGraphicalInterface.this);
+            }
+        });
         
         B_Login = new JButton("Login");
         B_Login.addActionListener(new ActionListener() {
@@ -207,16 +222,17 @@ public class LoginGraphicalInterface extends javax.swing.JFrame
                 mainI = new MainGraphicalInterface(client, username, LoginGraphicalInterface.this);
             }
         });
-        panel.add(B_Login);
-        
-        B_Register = new JButton("Register");
-        B_Register.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent arg0) {
-                setVisible(false);
-                registerI = new RegisterGraphicalInterface(client, LoginGraphicalInterface.this);
-            }
-        });
-        panel.add(B_Register);
+        GridBagConstraints gbc_B_Login = new GridBagConstraints();
+        gbc_B_Login.insets = new Insets(0, 0, 0, 5);
+        gbc_B_Login.fill = GridBagConstraints.BOTH;
+        gbc_B_Login.gridx = 0;
+        gbc_B_Login.gridy = 0;
+        panel.add(B_Login, gbc_B_Login);
+        GridBagConstraints gbc_B_Register = new GridBagConstraints();
+        gbc_B_Register.fill = GridBagConstraints.BOTH;
+        gbc_B_Register.gridx = 1;
+        gbc_B_Register.gridy = 0;
+        panel.add(B_Register, gbc_B_Register);
         initDataBindings();
     }
     protected void initDataBindings() {
