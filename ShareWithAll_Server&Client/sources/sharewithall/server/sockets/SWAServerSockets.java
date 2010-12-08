@@ -45,7 +45,8 @@ public class SWAServerSockets extends Thread
     private static final int NOTIFY_FRIENDS_CHANGED = 19;
     private static final int NOTIFY_INVITATION = 20;
     private static final int RETURN_VALUE = 0;
-    protected static final int MAX_GATEWAY_SOCKETS = 50;
+    private static final int MAX_GATEWAY_SOCKETS = 50;
+    private static final int TAM_BUFFER = 1024*1024;
     private static final int EXCEPTION = -1;
     
     private ServerSocket serverSocket;
@@ -279,7 +280,7 @@ public class SWAServerSockets extends Thread
             out2.flush();
             DataInputStream in2 = new DataInputStream(destSocket.getInputStream());
             
-            byte[] bytes = new byte[4096];
+            byte[] bytes = new byte[TAM_BUFFER];
             int bytesRead;
             while ((bytesRead = in1.read(bytes)) > 0)
             {
