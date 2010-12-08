@@ -148,17 +148,20 @@ public class SWAServerSockets extends Thread
             destSocket = sockets.poll();
         }
         catch (Exception e) {
+
+        }
+        finally {
             try {
                 JDBCDBClients clients = new JDBCDBClients();
                 ArrayList<Object> cls = clients.select_gen(new JDBCPredicate("session_id", sessionID));
                 JDBCClient client = (JDBCClient)cls.get(0);
                 destSocket = new Socket(client.ip, client.port);
             }
-            catch (Exception ee) {
-                ee.printStackTrace();
+            catch (Exception e) {
+                e.printStackTrace();
             }
         }
-        
+        if (destSocket == null) return;
         try {
             DataOutputStream out = new DataOutputStream(destSocket.getOutputStream());
             out.flush();
