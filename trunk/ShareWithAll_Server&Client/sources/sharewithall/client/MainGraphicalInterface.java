@@ -327,12 +327,14 @@ public class MainGraphicalInterface extends javax.swing.JFrame
         B_SendFile.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent arg0) {
                 try {
-                    final JFileChooser fc = new JFileChooser();
-                    int returnVal = fc.showOpenDialog(MainGraphicalInterface.this);
                     String[] receiverInfo = obtainReceiver();
-                    if (receiverInfo != null && returnVal == JFileChooser.APPROVE_OPTION) {
-                        File file = fc.getSelectedFile();
-                        client.sendFileCommand(file.getAbsolutePath(), receiverInfo[0], receiverInfo[1]);
+                    if (receiverInfo != null) {
+                        JFileChooser fc = new JFileChooser();
+                        int returnVal = fc.showOpenDialog(MainGraphicalInterface.this);
+                        if (returnVal == JFileChooser.APPROVE_OPTION) {
+                            File file = fc.getSelectedFile();
+                            client.sendFileCommand(file.getAbsolutePath(), receiverInfo[0], receiverInfo[1]);
+                        }
                     }
                 }
                 catch (Exception e) {
