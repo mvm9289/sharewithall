@@ -46,7 +46,7 @@ public class SWAServerSockets extends Thread
     private static final int NOTIFY_INVITATION = 20;
     private static final int RETURN_VALUE = 0;
     private static final int MAX_GATEWAY_SOCKETS = 50;
-    private static final int TAM_BUFFER = 1024*1024;
+    private static final int TAM_BUFFER = 4096;
     private static final int EXCEPTION = -1;
     
     private ServerSocket serverSocket;
