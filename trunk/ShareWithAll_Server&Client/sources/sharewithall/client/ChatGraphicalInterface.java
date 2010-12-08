@@ -36,16 +36,18 @@ public class ChatGraphicalInterface extends JFrame
         String text = TA_Write.getText();
         
         //Write in the text area.
-        writeText(text, username);
-        TA_Write.setText("");
-        
-        //Send to the receiver
-        try {
-            client.sendTextCommand(text, contactUsername, contactClient);
+        if (!text.equals("")) {
+            writeText(text, username);
+            TA_Write.setText("");
+            
+            //Send to the receiver
+            try {
+                client.sendTextCommand(text, contactUsername, contactClient);
+            }
+            catch (Exception e) {
+                JOptionPane.showMessageDialog(ChatGraphicalInterface.this, e.getMessage(), "Chat error", JOptionPane.ERROR_MESSAGE);
+            }
         }
-        catch (Exception e) {
-            JOptionPane.showMessageDialog(ChatGraphicalInterface.this, e.getMessage(), "Chat error", JOptionPane.ERROR_MESSAGE);
-        }        
     }
     
     public void writeText(String text, String username) {
@@ -119,19 +121,18 @@ public class ChatGraphicalInterface extends JFrame
         TA_Write.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent arg0) {
-                if (!arg0.isControlDown() && arg0.getKeyCode() == KeyEvent.VK_ENTER)
-                    sendText();
-            }
-        });
-        TA_Write.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent arg0) {
                 if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-                    if (!arg0.isControlDown()) TA_Write.setText("");                    
-                    else TA_Write.append("\n");
+                    if (!arg0.isControlDown()) {
+                        arg0.consume();
+                        sendText();
+                    }
+                    else {
+                        TA_Write.append("\n");
+                    }
                 }
             }
         });
+
         SP_Write.setViewportView(TA_Write);
         TA_Write.setWrapStyleWord(true);
         

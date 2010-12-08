@@ -175,30 +175,28 @@ public class SWAClient
     
     public void loginCommand(String username, String password, String name, boolean isPublic) throws Exception
     {
-        synchronized(lock) {
-            try
-            {
-                SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-                sessionID = socketsModule.login(username, password, name, isPublic);
-                String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
-                int port = Integer.valueOf(myIPandPort[1]).intValue();
-                this.username = username;
-                
-                if (gateway) receiveSocketsModule = new SWAReceiveClientSockets(serverIP, serverPort, this);
-                else receiveSocketsModule = new SWAReceiveClientSockets(port, this);
-                receiveSocketsModule.start();
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        try
+        {
+            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+            sessionID = socketsModule.login(username, password, name, isPublic);
+            String[] myIPandPort = socketsModule.ipAndPortRequest(sessionID, name);
+            int port = Integer.valueOf(myIPandPort[1]).intValue();
+            this.username = username;
+            
+            if (gateway) receiveSocketsModule = new SWAReceiveClientSockets(serverIP, serverPort, this);
+            else receiveSocketsModule = new SWAReceiveClientSockets(port, this);
+            receiveSocketsModule.start();
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
     public String[] getOnlineClientsCommand() throws Exception
     {
-        synchronized(lock) {
+        synchronized (lock) {
             if (sessionID == null) return null;
             try
             {
@@ -233,60 +231,55 @@ public class SWAClient
     
     public void declareFriendCommand(String friend) throws Exception
     {
-        synchronized(lock) {
-            if (sessionID == null) return;
-            try
-            {
-                SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-                socketsModule.declareFriend(sessionID, friend);
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        if (sessionID == null) return;
+        try
+        {
+            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+            socketsModule.declareFriend(sessionID, friend);
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
     public void ignoreUserCommand(String friend) throws Exception
     {
-        synchronized(lock) {
-            if (sessionID == null) return;
-            try
-            {
-                SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-                socketsModule.ignoreUser(sessionID, friend);
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        if (sessionID == null) return;
+        try
+        {
+            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+            socketsModule.ignoreUser(sessionID, friend);
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
     public String[] showListOfFriendsCommand(int property) throws Exception
     {
-        synchronized(lock) {
-            if (sessionID == null) return null;
-            try
-            {
-                String[] result;
-                SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
-                result = socketsModule.showListOfFriends(sessionID, property);
-                return result;
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        if (sessionID == null) return null;
+        try
+        {
+            String[] result;
+            SWASendSockets socketsModule = new SWASendSockets(serverIP, serverPort);
+            result = socketsModule.showListOfFriends(sessionID, property);
+            return result;
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
     public void logoutCommand() throws Exception
     {
-        synchronized(lock) {
+        synchronized (lock) {
+            if (sessionID == null) return;
             try
             {
                 receiveSocketsModule.stop_receiver();
@@ -294,8 +287,7 @@ public class SWAClient
                 socketsModule.logout(sessionID);
             }
             catch (Exception e)
-            {
-            }
+            {}
             finally {
                 sessionID = null;
                 receiveSocketsModule = null;
@@ -324,52 +316,46 @@ public class SWAClient
     
     public void sendURLCommand(String url, String username, String client) throws Exception
     {    
-        synchronized(lock) {
-            try
-            {
-                ArrayList<String> info = getInfoClient(username, client);
-                Thread t = new SWASendThread(SendOperation.SEND_URL, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), url);
-                t.start();
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        try
+        {
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_URL, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), url);
+            t.start();
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
 
     public void sendTextCommand(String text, String username, String client) throws Exception
     {
-        synchronized(lock) {
-            try
-            {
-                ArrayList<String> info = getInfoClient(username, client);
-                Thread t = new SWASendThread(SendOperation.SEND_TEXT, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), text);
-                t.start();
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        try
+        {
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_TEXT, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), text);
+            t.start();
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
     
     public void sendFileCommand(String path, String username, String client) throws Exception
     {
-        synchronized(lock) {
-            try
-            {
-                ArrayList<String> info = getInfoClient(username, client);
-                Thread t = new SWASendThread(SendOperation.SEND_FILE, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), path);
-                t.start();
-            }
-            catch (Exception e)
-            {
-                if (e.getClass() == Exception.class) throw e;
-                else throw new Exception("Error");
-            }
+        try
+        {
+            ArrayList<String> info = getInfoClient(username, client);
+            Thread t = new SWASendThread(SendOperation.SEND_FILE, sessionID, info.get(0), info.get(1), Integer.parseInt(info.get(2)), path);
+            t.start();
+        }
+        catch (Exception e)
+        {
+            if (e.getClass() == Exception.class) throw e;
+            else throw new Exception("Error");
         }
     }
 

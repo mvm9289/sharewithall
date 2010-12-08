@@ -259,7 +259,7 @@ public class MainGraphicalInterface extends javax.swing.JFrame
     {
         setTitle("Share With All");
 
-        setBounds(100, 100, 760, 445);
+        setBounds(100, 100, 500, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout gridBagLayout = new GridBagLayout();
         gridBagLayout.columnWidths = new int[]{610, 0};
