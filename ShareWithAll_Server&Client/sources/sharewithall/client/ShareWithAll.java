@@ -6,7 +6,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 public class ShareWithAll
 {
     public static SWAClient client;
-    public static final String DEFAULT_SERVER_IP = "192.168.1.122";
+    public static final String DEFAULT_SERVER_IP = "mvm9289.dyndns.org";
     public static final int DEFAULT_SERVER_PORT = 4040;
     
     private static void printUsage()
