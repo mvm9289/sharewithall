@@ -4,7 +4,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
 
 import sharewithall.android.client.sockets.SWAACReceiveSockets;
 import sharewithall.android.client.sockets.SWAACSendSockets;
@@ -23,6 +22,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.webkit.MimeTypeMap;
 
 public class SWAACService extends Service
 {
@@ -47,9 +47,6 @@ public class SWAACService extends Service
 	//***** Connection and sending attributes *****//
 	//*********************************************//
 	private SWAACReceiveSockets receiveSockets;
-	private ArrayList<String> audioExtensions;
-	private ArrayList<String> imageExtensions;
-	private ArrayList<String> videoExtensions;
 	
 	
 	
@@ -106,30 +103,6 @@ public class SWAACService extends Service
 		preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
 		editor = preferences.edit();
     	notificator = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-    	
-    	audioExtensions = new ArrayList<String>();
-    	audioExtensions.add("m4a");
-    	audioExtensions.add("mp3");
-    	audioExtensions.add("mid");
-    	audioExtensions.add("xmf");
-    	audioExtensions.add("mxmf");
-    	audioExtensions.add("rtttl");
-    	audioExtensions.add("rtx");
-    	audioExtensions.add("ota");
-    	audioExtensions.add("imy");
-    	audioExtensions.add("ogg");
-    	audioExtensions.add("wav");
-    	
-    	imageExtensions = new ArrayList<String>();
-    	imageExtensions.add("jpg");
-    	imageExtensions.add("jpeg");
-    	imageExtensions.add("gif");
-    	imageExtensions.add("png");
-    	imageExtensions.add("bmp");
-    	
-    	videoExtensions = new ArrayList<String>();
-    	videoExtensions.add("3gp");
-    	videoExtensions.add("mp4");
 		
 		configureListenSocket();
 		
@@ -213,13 +186,10 @@ public class SWAACService extends Service
     	Uri uri = Uri.fromFile(file);
     	Intent launchApp = new Intent();
     	launchApp.setAction(Intent.ACTION_VIEW);
-    	if (audioExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "audio/*");
-    	else if (imageExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "image/*");
-    	else if (videoExtensions.contains(fileExt)) launchApp.setDataAndType(uri, "video/*");
-    	else if (fileExt.equals("txt")) launchApp.setDataAndType(uri, "text/*");
-    	else launchApp.setDataAndType(uri, "application/" + fileExt);
+    	MimeTypeMap mimeMap = MimeTypeMap.getSingleton();
+    	launchApp.setDataAndType(uri, mimeMap.getMimeTypeFromExtension(fileExt));
     	launchApp.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-    	if (fileExt == null || !preferences.getString("username", null).equals(user) && !preferences.getBoolean("autolaunchFilePref", true))
+    	if (!preferences.getString("username", null).equals(user) && !preferences.getBoolean("autolaunchFilePref", true))
     		sendFileReceivedNotification(user, client, filename, filesize, launchApp);
     	else
     	{
@@ -229,7 +199,10 @@ public class SWAACService extends Service
     		}
     		catch (Exception e)
     		{
-				SWAACUtils.printMessage(this, "Error: " + getString(R.string.fileExtensionError) + " ." + fileExt);
+    			String message;
+    			if (fileExt == null) message = " " + getString(R.string.fileExtensionError2);
+    			else message = " ." + fileExt;
+				SWAACUtils.printMessage(this, "Error: " + getString(R.string.fileExtensionError) + message);
 				sendFileReceivedNotification(user, client, filename, filesize, launchApp);
 			}
     	}
