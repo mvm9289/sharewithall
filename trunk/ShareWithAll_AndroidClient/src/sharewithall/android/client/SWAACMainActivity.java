@@ -191,9 +191,9 @@ public class SWAACMainActivity extends Activity
     
     
     
-	//*****************************************//
-	//***** Activity navigation functions *****//
-	//*****************************************//
+	//**************************************//
+	//***** Activity process functions *****//
+	//**************************************//
     
     private void login(int state)
     {
